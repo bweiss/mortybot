@@ -65,6 +65,15 @@ public class MessageListener extends ListenerAdapter {
                 }
                 break;
 
+            case "MSG":
+                if (args.size() > 1) {
+                    String target = args.get(0);
+                    String message = String.join(" ", args.subList(1, args.size()));
+                    event.getBot().sendIRC().message(target, message);
+                    event.respondWith(String.format("-msg(%s) %s", target, message));
+                }
+                break;
+
             case "OP":
                 if (args.size() > 0) {
                     event.getBot().sendIRC().mode(channel.getName(), "+o " + args.get(0));
