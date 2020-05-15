@@ -39,8 +39,8 @@ public class MortyBot extends PircBotX {
         Configuration config = null;
         try {
             config = new Configuration.Builder()
-                    .setName(botProperties.getProperty("botName", "botx"))
-                    .setLogin(botProperties.getProperty("botLogin", "botx"))
+                    .setName(botProperties.getProperty("botName", "morty"))
+                    .setLogin(botProperties.getProperty("botLogin", "morty"))
                     .setRealName(botProperties.getProperty("botRealName", "Someone should change me!"))
                     .addServer(botProperties.getProperty("ircServer", "irc.hatemachine.net"),
                             Integer.parseInt(botProperties.getProperty("ircPort", "6667")))
