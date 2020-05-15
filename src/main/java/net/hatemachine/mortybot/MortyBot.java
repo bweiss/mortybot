@@ -3,6 +3,8 @@ package net.hatemachine.mortybot;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.UtilSSLSocketFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,6 +14,10 @@ import java.util.List;
 import java.util.Properties;
 
 public class MortyBot extends PircBotX {
+
+    private static final Logger log = LoggerFactory.getLogger(MortyBot.class);
+
+    private static final List<String> _admins = new ArrayList<>();
 
     public MortyBot(Configuration configuration) {
         super(configuration);
@@ -47,12 +53,12 @@ public class MortyBot extends PircBotX {
                     .addListener(new MessageListener(botProperties.getProperty("commandPrefix", "!")))
                     .buildConfiguration();
         } catch (NumberFormatException e) {
-            System.out.println("Invalid integer value encountered in properties file.");
+            log.error("Invalid integer value encountered in properties file.");
             e.printStackTrace();
         }
 
         if (config == null) {
-            System.out.println("Bot config not found! Exiting...");
+            log.error("Bot config not found! Exiting...");
             return;
         }
 
@@ -60,22 +66,28 @@ public class MortyBot extends PircBotX {
         try {
             MortyBot bot = new MortyBot(config);
             // todo - need a better way to handle admins
-            bot.addBotAdmin("fudd");
+            if (bot.addBotAdmin(botProperties.getProperty("botAdmin"))) {
+                log.info("Bot admin: " + botProperties.getProperty("botAdmin"));
+            } else {
+                log.warn("No default bot admin specified!");
+            }
+            log.info("Starting up bot with nick: " + bot.getNick());
             bot.startBot();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void addBotAdmin(String nick) {
-        if (!_admins.contains(nick)) {
+    public boolean addBotAdmin(String nick) {
+        if (nick != null && !_admins.contains(nick)) {
             _admins.add(nick);
+            return true;
+        } else {
+            return false;
         }
     }
 
-    public boolean isAdmin(String nick) {
+    public static boolean isAdmin(String nick) {
         return _admins.contains(nick);
     }
-
-    private List<String> _admins = new ArrayList<>();
 }

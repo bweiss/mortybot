@@ -6,12 +6,17 @@ import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
 import org.pircbotx.hooks.types.GenericMessageEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Objects;
 
 import static org.pircbotx.Utils.tokenizeLine;
 
 public class MessageListener extends ListenerAdapter {
+
+    private static final Logger log = LoggerFactory.getLogger(MessageListener.class);
 
     public MessageListener() {
         this.commandPrefix = "!";
@@ -25,9 +30,9 @@ public class MessageListener extends ListenerAdapter {
     public void onMessage(final MessageEvent event) {
 
         if (event.getMessage().startsWith(getCommandPrefix())) {
-            commandHandler(event.getChannel(), event.getUser(), event);
+            commandHandler(event.getChannel(), Objects.requireNonNull(event.getUser()), event);
         } else {
-            chatHandler(event.getChannel(), event.getUser(), event);
+            chatHandler(event.getChannel(), Objects.requireNonNull(event.getUser()), event);
         }
     }
 
@@ -35,9 +40,9 @@ public class MessageListener extends ListenerAdapter {
     public void onPrivateMessage(final PrivateMessageEvent event) {
 
         if (event.getMessage().startsWith(getCommandPrefix())) {
-            commandHandler(null, event.getUser(), event);
+            commandHandler(null, Objects.requireNonNull(event.getUser()), event);
         } else {
-            chatHandler(null, event.getUser(), event);
+            chatHandler(null, Objects.requireNonNull(event.getUser()), event);
         }
     }
 
@@ -56,62 +61,77 @@ public class MessageListener extends ListenerAdapter {
         List<String> tokens = tokenizeLine(event.getMessage());
         String command = tokens.get(0).substring(getCommandPrefix().length());
         List<String> args = tokens.subList(1, tokens.size());
+        boolean adminFlag = MortyBot.isAdmin(user.getNick());
 
         switch (command.toUpperCase()) {
 
             case "DEOP":
-                if (args.size() > 0) {
-                    event.getBot().sendIRC().mode(channel.getName(), "-o " + args.get(0));
-                } else {
-                    event.getBot().sendIRC().mode(channel.getName(), "-o " + user.getNick());
+                if (adminFlag && channel != null) {
+                    if (args.size() > 0) {
+                        event.getBot().sendIRC().mode(channel.getName(), "-o " + args.get(0));
+                    } else {
+                        event.getBot().sendIRC().mode(channel.getName(), "-o " + user.getNick());
+                    }
                 }
                 break;
 
             case "JOIN":
-                if (args.size() > 1) {
-                    event.getBot().sendIRC().joinChannel(args.get(0), args.get(1));
-                } else if (args.size() == 1) {
-                    event.getBot().sendIRC().joinChannel(args.get(0));
+                if (adminFlag) {
+                    if (args.size() > 1) {
+                        event.getBot().sendIRC().joinChannel(args.get(0), args.get(1));
+                    } else if (args.size() == 1) {
+                        event.getBot().sendIRC().joinChannel(args.get(0));
+                    }
                 }
                 break;
 
             case "MSG":
-                if (args.size() > 1) {
-                    String target = args.get(0);
-                    String message = String.join(" ", args.subList(1, args.size()));
-                    event.getBot().sendIRC().message(target, message);
-                    event.respondWith(String.format("-msg(%s) %s", target, message));
+                if (adminFlag) {
+                    if (args.size() > 1) {
+                        String target = args.get(0);
+                        String message = String.join(" ", args.subList(1, args.size()));
+                        event.getBot().sendIRC().message(target, message);
+                        event.respondWith(String.format("-msg(%s) %s", target, message));
+                    }
                 }
                 break;
 
             case "OP":
-                if (args.size() > 0) {
-                    event.getBot().sendIRC().mode(channel.getName(), "+o " + args.get(0));
-                } else {
-                    event.getBot().sendIRC().mode(channel.getName(), "+o " + user.getNick());
+                if (adminFlag && channel != null) {
+                    if (args.size() > 0) {
+                        event.getBot().sendIRC().mode(channel.getName(), "+o " + args.get(0));
+                    } else {
+                        event.getBot().sendIRC().mode(channel.getName(), "+o " + user.getNick());
+                    }
                 }
                 break;
 
             case "PART":
-                if (args.size() > 0) {
-                    event.getBot().sendRaw().rawLine("PART " + args.get(0));
-                } else {
-                    event.getBot().sendRaw().rawLine("PART " + channel.getName());
+                if (adminFlag) {
+                    if (args.size() > 0) {
+                        event.getBot().sendRaw().rawLine("PART " + args.get(0));
+                    } else if (channel != null) {
+                        event.getBot().sendRaw().rawLine("PART " + channel.getName());
+                    }
                 }
                 break;
 
             case "QUIT":
-                event.getBot().stopBotReconnect();
-                if (args.size() > 0) {
-                    event.getBot().sendIRC().quitServer(String.join(" ", args));
-                } else {
-                    event.getBot().sendIRC().quitServer();
+                if (adminFlag) {
+                    event.getBot().stopBotReconnect();
+                    if (args.size() > 0) {
+                        event.getBot().sendIRC().quitServer(String.join(" ", args));
+                    } else {
+                        event.getBot().sendIRC().quitServer();
+                    }
                 }
                 break;
 
             case "TEST":
-                event.respondWith("command: " + command);
-                event.respondWith("args: " + args.toString());
+                if (adminFlag) {
+                    event.respondWith("command: " + command);
+                    event.respondWith("args: " + args.toString());
+                }
                 break;
 
             case "TIME":
