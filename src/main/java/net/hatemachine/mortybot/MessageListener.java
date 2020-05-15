@@ -26,10 +26,8 @@ public class MessageListener extends ListenerAdapter {
 
         if (event.getMessage().startsWith(getCommandPrefix())) {
             commandHandler(event.getChannel(), event.getUser(), event);
-        }
-
-        if (event.getMessage().equalsIgnoreCase("Hello")) {
-            event.respond("Hi there!");
+        } else {
+            chatHandler(event.getChannel(), event.getUser(), event);
         }
     }
 
@@ -38,6 +36,18 @@ public class MessageListener extends ListenerAdapter {
 
         if (event.getMessage().startsWith(getCommandPrefix())) {
             commandHandler(null, event.getUser(), event);
+        } else {
+            chatHandler(null, event.getUser(), event);
+        }
+    }
+
+    private void chatHandler (final Channel channel, final User user, final GenericMessageEvent event) {
+
+        if (event.getMessage().equalsIgnoreCase("Hello")) {
+            event.respond("Hi there!");
+        }
+        else if (event.getMessage().equalsIgnoreCase("shut up morty")) {
+            event.respondWith("Aww jeez, Rick!");
         }
     }
 
