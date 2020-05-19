@@ -9,13 +9,12 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import static org.pircbotx.Utils.tokenizeLine;
-
-public class MessageListener extends ListenerAdapter {
-
+public class MessageListener extends ListenerAdapter
+{
     private static final Logger log = LoggerFactory.getLogger(MessageListener.class);
 
     public MessageListener() {
@@ -27,8 +26,8 @@ public class MessageListener extends ListenerAdapter {
     }
 
     @Override
-    public void onMessage(final MessageEvent event) {
-
+    public void onMessage(final MessageEvent event)
+    {
         if (event.getMessage().startsWith(getCommandPrefix())) {
             commandHandler(event.getChannel(), Objects.requireNonNull(event.getUser()), event);
         } else {
@@ -37,8 +36,8 @@ public class MessageListener extends ListenerAdapter {
     }
 
     @Override
-    public void onPrivateMessage(final PrivateMessageEvent event) {
-
+    public void onPrivateMessage(final PrivateMessageEvent event)
+    {
         if (event.getMessage().startsWith(getCommandPrefix())) {
             commandHandler(null, Objects.requireNonNull(event.getUser()), event);
         } else {
@@ -46,8 +45,8 @@ public class MessageListener extends ListenerAdapter {
         }
     }
 
-    private void chatHandler (final Channel channel, final User user, final GenericMessageEvent event) {
-
+    private void chatHandler (final Channel channel, final User user, final GenericMessageEvent event)
+    {
         if (event.getMessage().equalsIgnoreCase("Hello")) {
             event.respond("Hi there!");
         }
@@ -56,15 +55,15 @@ public class MessageListener extends ListenerAdapter {
         }
     }
 
-    private void commandHandler(final Channel channel, final User user, final GenericMessageEvent event) {
-
-        List<String> tokens = tokenizeLine(event.getMessage());
+    private void commandHandler(final Channel channel, final User user, final GenericMessageEvent event)
+    {
+        List<String> tokens = Arrays.asList(event.getMessage().split(" "));
         String command = tokens.get(0).substring(getCommandPrefix().length());
         List<String> args = tokens.subList(1, tokens.size());
         boolean adminFlag = MortyBot.isAdmin(user.getNick());
 
-        switch (command.toUpperCase()) {
-
+        switch (command.toUpperCase())
+        {
             case "DEOP":
                 if (adminFlag && channel != null) {
                     if (args.size() > 0) {

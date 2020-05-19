@@ -13,8 +13,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
-public class MortyBot extends PircBotX {
-
+public class MortyBot extends PircBotX
+{
     private static final Logger log = LoggerFactory.getLogger(MortyBot.class);
 
     private static final List<String> _admins = new ArrayList<>();
@@ -23,8 +23,8 @@ public class MortyBot extends PircBotX {
         super(configuration);
     }
 
-    public static void main(String[] args) {
-
+    public static void main(String[] args)
+    {
         // Load our bot properties
         Properties botProperties = new Properties();
         try (InputStream inputStream = MortyBot.class.getClassLoader().getResourceAsStream("bot.properties")) {
