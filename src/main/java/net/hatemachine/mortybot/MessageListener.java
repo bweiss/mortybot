@@ -11,11 +11,16 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 
-public class MessageListener extends ListenerAdapter
-{
+public class MessageListener extends ListenerAdapter {
+
     private static final Logger log = LoggerFactory.getLogger(MessageListener.class);
+
+    private enum Origin {
+        PRIVATE,
+        PUBLIC
+    }
 
     public MessageListener() {
         this.commandPrefix = "!";
@@ -26,27 +31,24 @@ public class MessageListener extends ListenerAdapter
     }
 
     @Override
-    public void onMessage(final MessageEvent event)
-    {
+    public void onMessage(final MessageEvent event) {
         if (event.getMessage().startsWith(getCommandPrefix())) {
-            commandHandler(event.getChannel(), Objects.requireNonNull(event.getUser()), event);
+            commandHandler(event, Origin.PUBLIC);
         } else {
-            chatHandler(event.getChannel(), Objects.requireNonNull(event.getUser()), event);
+            chatHandler(event);
         }
     }
 
     @Override
-    public void onPrivateMessage(final PrivateMessageEvent event)
-    {
+    public void onPrivateMessage(final PrivateMessageEvent event) {
         if (event.getMessage().startsWith(getCommandPrefix())) {
-            commandHandler(null, Objects.requireNonNull(event.getUser()), event);
+            commandHandler(event, Origin.PRIVATE);
         } else {
-            chatHandler(null, Objects.requireNonNull(event.getUser()), event);
+            chatHandler(event);
         }
     }
 
-    private void chatHandler (final Channel channel, final User user, final GenericMessageEvent event)
-    {
+    private void chatHandler (final GenericMessageEvent event) {
         if (event.getMessage().equalsIgnoreCase("Hello")) {
             event.respond("Hi there!");
         }
@@ -55,87 +57,72 @@ public class MessageListener extends ListenerAdapter
         }
     }
 
-    private void commandHandler(final Channel channel, final User user, final GenericMessageEvent event)
-    {
-        List<String> tokens = Arrays.asList(event.getMessage().split(" "));
-        String command = tokens.get(0).substring(getCommandPrefix().length());
-        List<String> args = tokens.subList(1, tokens.size());
-        boolean adminFlag = MortyBot.isAdmin(user.getNick());
+    private void commandHandler(GenericMessageEvent event, Origin origin) {
 
-        switch (command.toUpperCase())
-        {
+        MortyBot bot = event.getBot();
+        User user = event.getUser();
+        Optional<Channel> channel = Optional.of(((MessageEvent) event).getChannel());
+        List<String> tokens = Arrays.asList(event.getMessage().split(" "));
+        String command = tokens.get(0).substring(getCommandPrefix().length()).toUpperCase();
+        List<String> args = tokens.subList(1, tokens.size());
+
+        log.debug("Command {} triggered by {}, origin: {}, args: {}", command, user, origin, args);
+
+        switch (command) {
+
             case "DEOP":
-                if (adminFlag && channel != null) {
-                    if (args.size() > 0) {
-                        event.getBot().sendIRC().mode(channel.getName(), "-o " + args.get(0));
-                    } else {
-                        event.getBot().sendIRC().mode(channel.getName(), "-o " + user.getNick());
-                    }
+                if (origin == Origin.PUBLIC) {
+                    bot.sendIRC().mode(channel.get().getName(), "-o " + (args.isEmpty() ? user.getNick() : args.get(0)));
                 }
                 break;
 
             case "JOIN":
-                if (adminFlag) {
-                    if (args.size() > 1) {
-                        event.getBot().sendIRC().joinChannel(args.get(0), args.get(1));
-                    } else if (args.size() == 1) {
-                        event.getBot().sendIRC().joinChannel(args.get(0));
-                    }
+                if (args.size() == 1) {
+                    bot.sendIRC().joinChannel(args.get(0));
+                } else if (args.size() > 1) {
+                    // attempt to join with a key
+                    bot.sendIRC().joinChannel(args.get(0), args.get(1));
                 }
                 break;
 
             case "MSG":
-                if (adminFlag) {
-                    if (args.size() > 1) {
-                        String target = args.get(0);
-                        String message = String.join(" ", args.subList(1, args.size()));
-                        event.getBot().sendIRC().message(target, message);
-                        event.respondWith(String.format("-msg(%s) %s", target, message));
-                    }
+                if (args.size() > 1) {
+                    String target = args.get(0);
+                    String message = String.join(" ", args.subList(1, args.size()));
+                    bot.sendIRC().message(target, message);
+                    event.respondWith(String.format("-msg(%s) %s", target, message));
                 }
                 break;
 
             case "OP":
-                if (adminFlag && channel != null) {
-                    if (args.size() > 0) {
-                        event.getBot().sendIRC().mode(channel.getName(), "+o " + args.get(0));
-                    } else {
-                        event.getBot().sendIRC().mode(channel.getName(), "+o " + user.getNick());
-                    }
+                if (origin == Origin.PUBLIC) {
+                    bot.sendIRC().mode(channel.get().getName(), "+o " + (args.isEmpty() ? user.getNick() : args.get(0)));
                 }
                 break;
 
             case "PART":
-                if (adminFlag) {
-                    if (args.size() > 0) {
-                        event.getBot().sendRaw().rawLine("PART " + args.get(0));
-                    } else if (channel != null) {
-                        event.getBot().sendRaw().rawLine("PART " + channel.getName());
-                    }
+                if (args.size() > 0) {
+                    event.getBot().sendRaw().rawLine("PART " + args.get(0));
+                } else if (origin == Origin.PUBLIC) {
+                    event.getBot().sendRaw().rawLine("PART " + channel.get().getName());
                 }
                 break;
 
             case "QUIT":
-                if (adminFlag) {
-                    event.getBot().stopBotReconnect();
-                    if (args.size() > 0) {
-                        event.getBot().sendIRC().quitServer(String.join(" ", args));
-                    } else {
-                        event.getBot().sendIRC().quitServer();
-                    }
-                }
-                break;
-
-            case "TEST":
-                if (adminFlag) {
-                    event.respondWith("command: " + command);
-                    event.respondWith("args: " + args.toString());
+                event.getBot().stopBotReconnect();
+                if (args.size() > 0) {
+                    event.getBot().sendIRC().quitServer(String.join(" ", args));
+                } else {
+                    event.getBot().sendIRC().quitServer();
                 }
                 break;
 
             case "TIME":
                 String time = new java.util.Date().toString();
                 event.respondWith("The time is now " + time);
+                break;
+
+            default:
                 break;
         }
     }
