@@ -9,13 +9,17 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 public class MortyBot extends PircBotX {
 
     private static final Logger log = LoggerFactory.getLogger(MortyBot.class);
     private static final Properties props = new Properties();
+    private static final List<BotUser> users = new ArrayList<>();
 
     public MortyBot(Configuration configuration) {
         super(configuration);
@@ -59,6 +63,11 @@ public class MortyBot extends PircBotX {
             return;
         }
 
+        // setup a couple of users for testing
+        users.add(new BotUser("brian", "*!brian@hatemachine.net", true));
+        users.add(new BotUser("bmw", "*!brian@*.beerandloathing.org", false));
+        users.add(new BotUser("megan", "*!megan@hugmachine.net", true));
+
         // Start the bot and connect to a server
         try (MortyBot bot = new MortyBot(config)) {
             log.info("Starting bot with nick: {}", bot.getNick());
@@ -66,5 +75,28 @@ public class MortyBot extends PircBotX {
         } catch (IOException | IrcException e) {
             log.error("Failed to start bot, exiting...", e);
         }
+    }
+
+    /**
+     * Returns a list of bot users that have hostmasks matching a specified userhost (nick!ident@hostname).
+     *
+     * @param userhost - userhost in the form of nick!ident@hostname
+     * @return List of BotUser objects that matched
+     */
+    public final List<BotUser> findBotUsersByUserhost(String userhost) {
+        List<BotUser> matches = new ArrayList<>();
+        for (BotUser user : users) {
+            for (String hostmask : user.getHostmasks()) {
+                String regex = StringUtils.wildcardToRegex(hostmask);
+                if (Pattern.matches(regex, userhost)) {
+                    matches.add(user);
+                }
+            }
+        }
+        return matches;
+    }
+
+    public List<BotUser> getBotUsers() {
+        return users;
     }
 }

@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class MessageListener extends ListenerAdapter {
 
@@ -57,16 +58,23 @@ public class MessageListener extends ListenerAdapter {
         }
     }
 
+    /**
+     * Takes a message event that contains a command for the bot.
+     *
+     * @param event
+     * @param origin
+     */
     private void commandHandler(GenericMessageEvent event, Origin origin) {
 
         MortyBot bot = event.getBot();
         User user = event.getUser();
+        String userhost = String.format("%s!%s@%s", user.getNick(), user.getLogin(), user.getHostname());
         Optional<Channel> channel = Optional.of(((MessageEvent) event).getChannel());
         List<String> tokens = Arrays.asList(event.getMessage().split(" "));
         String command = tokens.get(0).substring(getCommandPrefix().length()).toUpperCase();
         List<String> args = tokens.subList(1, tokens.size());
 
-        log.debug("Command {} triggered by {}, origin: {}, args: {}", command, user, origin, args);
+        log.info("Command {} triggered by {}, origin: {}, args: {}", command, user, origin, args);
 
         switch (command) {
 
@@ -122,7 +130,19 @@ public class MessageListener extends ListenerAdapter {
                 event.respondWith("The time is now " + time);
                 break;
 
+            case "WHOAMI":
+                String target = args.isEmpty() ? userhost : args.get(0);
+                List<BotUser> users = bot.findBotUsersByUserhost(target);
+                if (users.isEmpty()) {
+                    event.respondWith("You did not match any bot users");
+                } else {
+                    event.respondWith(String.format("You match the following bot users: %s",
+                            users.stream().map(BotUser::getName).collect(Collectors.joining(", "))));
+                }
+                break;
+
             default:
+                log.debug("Unknown command {}", command);
                 break;
         }
     }
