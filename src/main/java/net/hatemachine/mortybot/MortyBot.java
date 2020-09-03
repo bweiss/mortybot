@@ -13,7 +13,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import java.util.regex.Pattern;
+
+import static java.util.stream.Collectors.toList;
 
 public class MortyBot extends PircBotX {
 
@@ -78,22 +79,13 @@ public class MortyBot extends PircBotX {
     }
 
     /**
-     * Returns a list of bot users that have hostmasks matching a specified userhost (nick!ident@hostname).
+     * Returns a list of bot users that have hostmasks matching a specified userhost.
      *
-     * @param userhost - userhost in the form of nick!ident@hostname
+     * @param userhost in the form of nick!ident@hostname
      * @return List of BotUser objects that matched
      */
     public final List<BotUser> findBotUsersByUserhost(String userhost) {
-        List<BotUser> matches = new ArrayList<>();
-        for (BotUser user : users) {
-            for (String hostmask : user.getHostmasks()) {
-                String regex = StringUtils.wildcardToRegex(hostmask);
-                if (Pattern.matches(regex, userhost)) {
-                    matches.add(user);
-                }
-            }
-        }
-        return matches;
+        return users.stream().filter(u -> u.hasMatchingHostmask(userhost)).collect(toList());
     }
 
     public List<BotUser> getBotUsers() {

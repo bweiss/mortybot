@@ -20,8 +20,7 @@ public class BotUser {
     }
 
     public boolean hasMatchingHostmask(String userhost) {
-        return hostmasks.stream()
-                .anyMatch(h -> Pattern.matches(wildcardToRegex(h), userhost));
+        return hostmasks.stream().anyMatch(h -> Pattern.matches(wildcardToRegex(h), userhost));
     }
 
     public boolean addHostmask(String hostmask) {

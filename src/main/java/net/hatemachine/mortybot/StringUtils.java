@@ -30,7 +30,7 @@ public class StringUtils {
     /**
      * Converts a string containing wildcard characters (*, ?) into a regex string so it can be
      * used for pattern matching. In the context of the bot, this is mostly useful for matching
-     * hostmasks to userhosts (e.g. "*!?someguy@somedomain.com" to "derp!~someguy@somedomain.com).
+     * hostmasks to userhosts (e.g. "*!*@somedomain.com" to "derp!someguy@somedomain.com).
      *
      * Posted on stackoverflow.com by J. Hanney (https://stackoverflow.com/users/7326283/j-hanney)
      *

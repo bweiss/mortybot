@@ -1,5 +1,6 @@
 package net.hatemachine.mortybot;
 
+import net.hatemachine.mortybot.commands.TestCommand;
 import org.pircbotx.Channel;
 import org.pircbotx.User;
 import org.pircbotx.hooks.ListenerAdapter;
@@ -14,11 +15,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class MessageListener extends ListenerAdapter {
-
+public class MessageListener extends ListenerAdapter
+{
     private static final Logger log = LoggerFactory.getLogger(MessageListener.class);
 
-    private enum Origin {
+    public enum Origin {
         PRIVATE,
         PUBLIC
     }
@@ -33,23 +34,25 @@ public class MessageListener extends ListenerAdapter {
 
     @Override
     public void onMessage(final MessageEvent event) {
-        if (event.getMessage().startsWith(getCommandPrefix())) {
-            commandHandler(event, Origin.PUBLIC);
-        } else {
-            chatHandler(event);
-        }
+        log.debug("onMessage triggered: {}", event);
+        messageHandler(event, Origin.PUBLIC);
     }
 
     @Override
     public void onPrivateMessage(final PrivateMessageEvent event) {
+        log.debug("onPrivateMessage triggered: {}", event);
+        messageHandler(event, Origin.PRIVATE);
+    }
+
+    private void messageHandler(final GenericMessageEvent event, Origin origin) {
         if (event.getMessage().startsWith(getCommandPrefix())) {
-            commandHandler(event, Origin.PRIVATE);
+            commandHandler(event, origin);
         } else {
-            chatHandler(event);
+            chatHandler(event, origin);
         }
     }
 
-    private void chatHandler (final GenericMessageEvent event) {
+    private void chatHandler (final GenericMessageEvent event, Origin origin) {
         if (event.getMessage().equalsIgnoreCase("Hello")) {
             event.respond("Hi there!");
         }
@@ -58,29 +61,23 @@ public class MessageListener extends ListenerAdapter {
         }
     }
 
-    /**
-     * Takes a message event that contains a command for the bot.
-     *
-     * @param event
-     * @param origin
-     */
-    private void commandHandler(GenericMessageEvent event, Origin origin) {
-
+    private void commandHandler(final GenericMessageEvent event, Origin origin)
+    {
         MortyBot bot = event.getBot();
         User user = event.getUser();
         String userhost = String.format("%s!%s@%s", user.getNick(), user.getLogin(), user.getHostname());
-        Optional<Channel> channel = Optional.of(((MessageEvent) event).getChannel());
+        Optional<Channel> channel = (origin.equals(Origin.PUBLIC) ? Optional.of(((MessageEvent) event).getChannel()) : Optional.empty());
         List<String> tokens = Arrays.asList(event.getMessage().split(" "));
         String command = tokens.get(0).substring(getCommandPrefix().length()).toUpperCase();
         List<String> args = tokens.subList(1, tokens.size());
 
-        log.info("Command {} triggered by {}, origin: {}, args: {}", command, user, origin, args);
+        log.info("Command {} triggered by {}, args: {}", command, user, args);
 
-        switch (command) {
-
+        switch (command)
+        {
             case "DEOP":
                 if (origin == Origin.PUBLIC) {
-                    bot.sendIRC().mode(channel.get().getName(), "-o " + (args.isEmpty() ? user.getNick() : args.get(0)));
+                    bot.sendIRC().mode(channel.toString(), "-o " + (args.isEmpty() ? user.getNick() : args.get(0)));
                 }
                 break;
 
@@ -103,7 +100,7 @@ public class MessageListener extends ListenerAdapter {
                 break;
 
             case "OP":
-                if (origin == Origin.PUBLIC) {
+                if (channel.isPresent()) {
                     bot.sendIRC().mode(channel.get().getName(), "+o " + (args.isEmpty() ? user.getNick() : args.get(0)));
                 }
                 break;
@@ -111,7 +108,7 @@ public class MessageListener extends ListenerAdapter {
             case "PART":
                 if (args.size() > 0) {
                     event.getBot().sendRaw().rawLine("PART " + args.get(0));
-                } else if (origin == Origin.PUBLIC) {
+                } else if (channel.isPresent()) {
                     event.getBot().sendRaw().rawLine("PART " + channel.get().getName());
                 }
                 break;
@@ -123,6 +120,10 @@ public class MessageListener extends ListenerAdapter {
                 } else {
                     event.getBot().sendIRC().quitServer();
                 }
+                break;
+
+            case "TEST":
+                doCommand(new TestCommand(event), args);
                 break;
 
             case "TIME":
@@ -142,9 +143,13 @@ public class MessageListener extends ListenerAdapter {
                 break;
 
             default:
-                log.debug("Unknown command {}", command);
+                log.info("Unknown command {} from {}", command, event.getUser());
                 break;
         }
+    }
+
+    private void doCommand(final BotCommand command, List<String> args) {
+        command.execute(args);
     }
 
     public String getCommandPrefix() {
