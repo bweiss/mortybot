@@ -11,12 +11,18 @@ public class BotUser {
 
     private String name;
     private final Set<String> hostmasks = new HashSet<>();
-    private boolean adminFlag;
+    private final Type type;
 
-    public BotUser(String name, String hostmask, boolean adminFlag) {
+    public enum Type {
+        ADMIN,
+        USER,
+        GUEST
+    }
+
+    public BotUser(String name, String hostmask, Type type) {
         this.name = validateString(name);
         this.hostmasks.add(validateString(hostmask));
-        this.adminFlag = adminFlag;
+        this.type = type;
     }
 
     public boolean hasMatchingHostmask(String userhost) {
@@ -43,11 +49,7 @@ public class BotUser {
         return hostmasks;
     }
 
-    public boolean isAdmin() {
-        return this.adminFlag;
-    }
-
-    public void setAdminFlag(boolean adminFlag) {
-        this.adminFlag = adminFlag;
+    public Type getType() {
+        return type;
     }
 }

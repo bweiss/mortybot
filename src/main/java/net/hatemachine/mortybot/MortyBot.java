@@ -9,10 +9,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
 
@@ -20,7 +21,7 @@ public class MortyBot extends PircBotX {
 
     private static final Logger log = LoggerFactory.getLogger(MortyBot.class);
     private static final Properties props = new Properties();
-    private static final List<BotUser> users = new ArrayList<>();
+    private static final Set<BotUser> users = new HashSet<>();
 
     public MortyBot(Configuration configuration) {
         super(configuration);
@@ -52,7 +53,7 @@ public class MortyBot extends PircBotX {
                     .setAutoReconnectAttempts(Integer.parseInt(props.getProperty("autoReconnectAttempts", "5")))
                     .setAutoNickChange(props.getProperty("autoNickChange").equalsIgnoreCase("true"))
                     .addAutoJoinChannels(Arrays.asList(props.getProperty("channels").split(" ")))
-                    .addListener(new MessageListener(props.getProperty("commandPrefix", "!")))
+                    .addListener(new CommandListener(props.getProperty("commandPrefix", "!")))
                     .buildConfiguration();
         } catch (NumberFormatException e) {
             log.error("Invalid server port", e);
@@ -65,9 +66,9 @@ public class MortyBot extends PircBotX {
         }
 
         // setup a couple of users for testing
-        users.add(new BotUser("brian", "*!brian@hatemachine.net", true));
-        users.add(new BotUser("bmw", "*!brian@*.beerandloathing.org", false));
-        users.add(new BotUser("megan", "*!megan@hugmachine.net", true));
+        users.add(new BotUser("brian", "*!brian@hatemachine.net", BotUser.Type.ADMIN));
+        users.add(new BotUser("bmw", "*!brian@*.beerandloathing.org", BotUser.Type.USER));
+        users.add(new BotUser("megan", "*!megan@hugmachine.net", BotUser.Type.GUEST));
 
         // Start the bot and connect to a server
         try (MortyBot bot = new MortyBot(config)) {
@@ -84,11 +85,11 @@ public class MortyBot extends PircBotX {
      * @param userhost in the form of nick!ident@hostname
      * @return List of BotUser objects that matched
      */
-    public final List<BotUser> findBotUsersByUserhost(String userhost) {
+    public final List<BotUser> getBotUsersByUserhost(String userhost) {
         return users.stream().filter(u -> u.hasMatchingHostmask(userhost)).collect(toList());
     }
 
-    public List<BotUser> getBotUsers() {
+    public Set<BotUser> getBotUsers() {
         return users;
     }
 }
