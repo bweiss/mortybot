@@ -14,13 +14,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static net.hatemachine.mortybot.CommandListener.Source.*;
-
 public class CommandListener extends ListenerAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(CommandListener.class);
 
-    public enum Source {
+    public enum MessageSource {
         PRIVATE,
         PUBLIC
     }
@@ -37,7 +35,7 @@ public class CommandListener extends ListenerAdapter {
     public void onMessage(final MessageEvent event) {
         log.debug("onMessage triggered: {}", event);
         if (event.getMessage().startsWith(getCommandPrefix())) {
-            commandHandler(event, PUBLIC);
+            commandHandler(event, MessageSource.PUBLIC);
         }
     }
 
@@ -45,40 +43,38 @@ public class CommandListener extends ListenerAdapter {
     public void onPrivateMessage(final PrivateMessageEvent event) {
         log.debug("onPrivateMessage triggered: {}", event);
         if (event.getMessage().startsWith(getCommandPrefix())) {
-            commandHandler(event, PRIVATE);
+            commandHandler(event, MessageSource.PRIVATE);
         }
     }
 
     /**
+     * Handle a command from a user.
      *
-     * @param event
-     * @param source
+     * @param event the event that contained a command
+     * @param source the source of the command, public or private message
      */
-    private void commandHandler(final GenericMessageEvent event, Source source) {
-
-        MortyBot bot = event.getBot();
-        User user = event.getUser();
-        Optional<Channel> channel = (source.equals(PUBLIC) ? Optional.of(((MessageEvent) event).getChannel()) : Optional.empty());
+    private void commandHandler(final GenericMessageEvent event, MessageSource source) {
         List<String> tokens = Arrays.asList(event.getMessage().split(" "));
         String command = tokens.get(0).substring(getCommandPrefix().length()).toUpperCase();
         List<String> args = tokens.subList(1, tokens.size());
+        Optional<Channel> channel = (source.equals(MessageSource.PUBLIC) ? Optional.of(((MessageEvent) event).getChannel()) : Optional.empty());
 
-        log.info("Command {} triggered by {}, args: {}", command, user, args);
+        log.info("Command {} triggered by {}, args: {}", command, event.getUser(), args);
 
         switch (command) {
-            case "DEOP" -> deopCommand(source, bot, user, channel, args);
-            case "JOIN" -> joinCommand(bot, args);
-            case "MSG" -> msgCommand(event, bot, args);
-            case "OP" -> opCommand(bot, user, channel, args);
+            case "DEOP" -> deopCommand(source, event.getBot(), event.getUser(), channel, args);
+            case "JOIN" -> joinCommand(event.getBot(), args);
+            case "MSG" -> msgCommand(event, event.getBot(), args);
+            case "OP" -> opCommand(event.getBot(), event.getUser(), channel, args);
             case "PART" -> partCommand(event, channel, args);
-            case "QUIT" -> quitCommand(bot, args);
-            case "TEST" -> runCommand(new TestCommand(event), args);
+            case "QUIT" -> quitCommand(event, args);
+            case "TEST" -> runBotCommand(new TestCommand(event), args);
             default -> log.info("Unknown command {} from {}", command, event.getUser());
         }
     }
 
-    private void deopCommand(Source source, MortyBot bot, User user, Optional<Channel> channel, List<String> args) {
-        if (source == PUBLIC) {
+    private void deopCommand(MessageSource source, MortyBot bot, User user, Optional<Channel> channel, List<String> args) {
+        if (source == MessageSource.PUBLIC) {
             bot.sendIRC().mode(channel.toString(), "-o " + (args.isEmpty() ? user.getNick() : args.get(0)));
         }
     }
@@ -102,6 +98,7 @@ public class CommandListener extends ListenerAdapter {
     }
 
     private void opCommand(MortyBot bot, User user, Optional<Channel> channel, List<String> args) {
+        // TODO: rewrite me! need to clearly define the parameters and behavior for this command
         channel.ifPresent(value -> bot.sendIRC().mode(value.getName(), "+o " + (args.isEmpty() ? user.getNick() : args.get(0))));
     }
 
@@ -113,12 +110,13 @@ public class CommandListener extends ListenerAdapter {
         }
     }
 
-    private void quitCommand(MortyBot bot, List<String> args) {
+    private void quitCommand(GenericMessageEvent event, List<String> args) {
+        MortyBot bot = event.getBot();
         bot.stopBotReconnect();
         bot.sendIRC().quitServer(args.isEmpty() ? "" : String.join(" ", args));
     }
 
-    private void runCommand(final BotCommand command, List<String> args) {
+    private void runBotCommand(final BotCommand command, List<String> args) {
         command.execute(args);
     }
 
