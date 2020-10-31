@@ -1,5 +1,6 @@
 package net.hatemachine.mortybot;
 
+import net.hatemachine.mortybot.commands.IpLookupCommand;
 import net.hatemachine.mortybot.commands.TestCommand;
 import org.pircbotx.Channel;
 import org.pircbotx.User;
@@ -63,6 +64,7 @@ public class CommandListener extends ListenerAdapter {
 
         switch (command) {
             case "DEOP" -> deopCommand(source, event.getBot(), event.getUser(), channel, args);
+            case "IPLOOKUP" -> runBotCommand(new IpLookupCommand(event), args);
             case "JOIN" -> joinCommand(event.getBot(), args);
             case "MSG" -> msgCommand(event, event.getBot(), args);
             case "OP" -> opCommand(event.getBot(), event.getUser(), channel, args);
