@@ -34,7 +34,7 @@ public class CommandListener extends ListenerAdapter {
 
     @Override
     public void onMessage(final MessageEvent event) {
-        log.debug("onMessage triggered: {}", event);
+        log.debug("onMessage event: {}", event);
         if (event.getMessage().startsWith(getCommandPrefix())) {
             commandHandler(event, MessageSource.PUBLIC);
         }
@@ -42,14 +42,19 @@ public class CommandListener extends ListenerAdapter {
 
     @Override
     public void onPrivateMessage(final PrivateMessageEvent event) {
-        log.debug("onPrivateMessage triggered: {}", event);
+        log.debug("onPrivateMessage event: {}", event);
         if (event.getMessage().startsWith(getCommandPrefix())) {
             commandHandler(event, MessageSource.PRIVATE);
         }
     }
 
     /**
-     * Handle a command from a user.
+     * Handle a command from a user. For now this can either be a public command from a channel
+     * or a private message from a user but could be expanded to other sources (e.g. CTCP or DCC).
+     *
+     * Simple commands are implemented directly within this class (e.g. the join command) but more
+     * complex commands can be implemented in their own class using the BotCommand interface
+     * and the runBotCommand method (see TestCommand for an example).
      *
      * @param event the event that contained a command
      * @param source the source of the command, public or private message
@@ -60,7 +65,7 @@ public class CommandListener extends ListenerAdapter {
         List<String> args = tokens.subList(1, tokens.size());
         Optional<Channel> channel = (source.equals(MessageSource.PUBLIC) ? Optional.of(((MessageEvent) event).getChannel()) : Optional.empty());
 
-        log.info("Command {} triggered by {}, args: {}", command, event.getUser(), args);
+        log.debug("Command {} triggered by {}, args: {}", command, event.getUser(), args);
 
         switch (command) {
             case "DEOP" -> deopCommand(source, event.getBot(), event.getUser(), channel, args);
@@ -118,6 +123,12 @@ public class CommandListener extends ListenerAdapter {
         bot.sendIRC().quitServer(args.isEmpty() ? "" : String.join(" ", args));
     }
 
+    /**
+     * Run a bot command implemented with the BotCommand interface.
+     *
+     * @param command instance of the command you want to run
+     * @param args additional arguments for the command
+     */
     private void runBotCommand(final BotCommand command, List<String> args) {
         command.execute(args);
     }

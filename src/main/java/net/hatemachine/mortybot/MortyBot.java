@@ -29,12 +29,13 @@ public class MortyBot extends PircBotX {
     public static void main(String[] args) {
 
         // Load our bot properties
-        try (InputStream inputStream = MortyBot.class.getClassLoader().getResourceAsStream("bot.properties")) {
+        String propertiesFile = "bot.properties";
+        try (InputStream inputStream = MortyBot.class.getClassLoader().getResourceAsStream(propertiesFile)) {
             if (inputStream != null) {
                 props.load(inputStream);
             }
         } catch (IOException e) {
-            log.warn("Unable to read bot properties file (defaults will be used)", e);
+            log.warn("Unable to read properties file {} (defaults will be used)", propertiesFile, e);
         }
 
         // Build the bot configuration
@@ -53,6 +54,7 @@ public class MortyBot extends PircBotX {
                     .setAutoNickChange(props.getProperty("autoNickChange").equalsIgnoreCase("true"))
                     .addAutoJoinChannels(Arrays.asList(props.getProperty("channels").split(" ")))
                     .addListener(new CommandListener(props.getProperty("commandPrefix", "!")))
+                    .addListener(new LinkListener())
                     .buildConfiguration();
         } catch (NumberFormatException e) {
             log.error("Invalid server port", e);
@@ -84,6 +86,21 @@ public class MortyBot extends PircBotX {
         }
     }
 
+    public String getProperty(String key) {
+        return props.getProperty(key);
+    }
+
+    public String getProperty(String key, String defaultValue) {
+        return props.getProperty(key, defaultValue);
+    }
+
+    /**
+     * @return list of all bot users
+     */
+    public List<BotUser> getBotUsers() {
+        return botUserDao.getAllBotUsers();
+    }
+
     /**
      * Returns a list of bot users that have hostmasks matching a specified userhost.
      *
@@ -92,13 +109,6 @@ public class MortyBot extends PircBotX {
      */
     public final List<BotUser> getBotUsersByUserhost(String userhost) {
         return botUserDao.getAllBotUsers().stream().filter(u -> u.hasMatchingHostmask(userhost)).collect(toList());
-    }
-
-    /**
-     * @return list of all bot users
-     */
-    public List<BotUser> getBotUsers() {
-        return botUserDao.getAllBotUsers();
     }
 
     /**
