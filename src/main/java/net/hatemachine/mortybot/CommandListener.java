@@ -19,6 +19,8 @@ public class CommandListener extends ListenerAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(CommandListener.class);
 
+    private String commandPrefix;
+
     public enum MessageSource {
         PRIVATE,
         PUBLIC
@@ -140,6 +142,4 @@ public class CommandListener extends ListenerAdapter {
     public void setCommandPrefix(String commandPrefix) {
         this.commandPrefix = commandPrefix;
     }
-
-    private String commandPrefix;
 }

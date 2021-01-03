@@ -8,57 +8,41 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 
 import static java.util.stream.Collectors.toList;
 
 public class MortyBot extends PircBotX {
 
     private static final Logger log = LoggerFactory.getLogger(MortyBot.class);
-    private static final Properties props = new Properties();
-    private static final BotUserDao botUserDao = new InMemoryBotUserDao();
 
-    public MortyBot(Configuration configuration) {
+    private static final BotUserDao botUserDao = new InMemoryBotUserDao();
+    private static BotConfiguration botConfig = null;
+
+    MortyBot(Configuration configuration) {
         super(configuration);
     }
 
     public static void main(String[] args) {
-
-        // Load our bot properties
-        String propertiesFile = "bot.properties";
-        try (InputStream inputStream = MortyBot.class.getClassLoader().getResourceAsStream(propertiesFile)) {
-            if (inputStream != null) {
-                props.load(inputStream);
-            }
-        } catch (IOException e) {
-            log.warn("Unable to read properties file {} (defaults will be used)", propertiesFile, e);
-        }
-
-        // Build the bot configuration
+        botConfig = new BotConfiguration();
+        botConfig.init();
         Configuration config = null;
-        try {
-            config = new Configuration.Builder()
-                    .setName(props.getProperty("botName", "morty"))
-                    .setLogin(props.getProperty("botLogin", "morty"))
-                    .setRealName(props.getProperty("botRealName", "Someone should change me!"))
-                    .addServer(props.getProperty("ircServer", "irc.hatemachine.net"),
-                            Integer.parseInt(props.getProperty("ircPort", "6667")))
-                    .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
-                    .setAutoReconnect(props.getProperty("autoReconnect").equalsIgnoreCase("true"))
-                    .setAutoReconnectDelay(Integer.parseInt(props.getProperty("autoReconnectDelay", "60000")))
-                    .setAutoReconnectAttempts(Integer.parseInt(props.getProperty("autoReconnectAttempts", "5")))
-                    .setAutoNickChange(props.getProperty("autoNickChange").equalsIgnoreCase("true"))
-                    .addAutoJoinChannels(Arrays.asList(props.getProperty("channels").split(" ")))
-                    .addListener(new CommandListener(props.getProperty("commandPrefix", "!")))
-                    .addListener(new LinkListener())
-                    .buildConfiguration();
-        } catch (NumberFormatException e) {
-            log.error("Invalid server port", e);
-        }
+        config = new Configuration.Builder()
+                .setName(botConfig.getBotName())
+                .setLogin(botConfig.getBotLogin())
+                .setRealName(botConfig.getBotRealName())
+                .addServer(botConfig.getIrcServer(), botConfig.getIrcPort())
+                .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
+                .setAutoReconnect(botConfig.isAutoReconnect())
+                .setAutoReconnectDelay(botConfig.getAutoReconnectDelay())
+                .setAutoReconnectAttempts(botConfig.getAutoReconnectAttempts())
+                .setAutoNickChange(botConfig.isAutoNickChange())
+                .addAutoJoinChannels(Collections.singletonList(botConfig.getChannels()))
+                .addListener(new CommandListener(botConfig.getCommandPrefix()))
+                .addListener(new LinkListener())
+                .buildConfiguration();
 
         // extra sanity check
         if (config == null) {
@@ -66,16 +50,15 @@ public class MortyBot extends PircBotX {
             return;
         }
 
-        // Add some users for testing
+        // Add some users
         try {
             addBotUsers(botUserDao);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        List<BotUser> botUsers = botUserDao.getAllBotUsers();
-        log.info("Number of bot users: {}", botUsers.size());
-        botUsers.forEach(u -> log.info("User: {}", u));
+        log.debug("Bot users:");
+        botUserDao.getAllBotUsers().forEach(u -> log.debug(u.toString()));
 
         // Start the bot and connect to a server
         try (MortyBot bot = new MortyBot(config)) {
@@ -86,12 +69,12 @@ public class MortyBot extends PircBotX {
         }
     }
 
-    public String getProperty(String key) {
-        return props.getProperty(key);
-    }
-
-    public String getProperty(String key, String defaultValue) {
-        return props.getProperty(key, defaultValue);
+    /**
+     * Retrieve the bot's configuration
+     * @return
+     */
+    public BotConfiguration getBotConfig() {
+        return botConfig;
     }
 
     /**

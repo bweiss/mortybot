@@ -21,7 +21,7 @@ public class LinkListener extends ListenerAdapter {
 
     // default maximum number of URLs to process in a single message from a user
     // the value for LinkListener.maxLinks in bot.properties will override this if present
-    private static final String DEFAULT_MAX_LINKS = "2";
+    private static final int MAX_LINKS_DEFAULT = 2;
 
     // the regex pattern used to match URLs
     private static final Pattern URL_PATTERN = Pattern.compile("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&\\/\\/=]*)");
@@ -29,51 +29,61 @@ public class LinkListener extends ListenerAdapter {
     private static final Logger log = LoggerFactory.getLogger(LinkListener.class);
 
     @Override
-    public void onMessage(final MessageEvent event) {
+    public void onMessage(final MessageEvent event) throws InterruptedException {
+        log.debug("onMessage event: {}", event);
         MortyBot bot = event.getBot();
-        if (bot.getProperty("LinkListener.watchChannels").equalsIgnoreCase("true")) {
-            log.debug("onMessage event: {}", event);
+        boolean watchChannels = bot.getBotConfig().getStringProperty("LinkListener.watchChannels").equalsIgnoreCase("true");
+        if (watchChannels) {
             handleMessage(event);
         }
     }
 
     @Override
-    public void onPrivateMessage(final PrivateMessageEvent event) {
+    public void onPrivateMessage(final PrivateMessageEvent event) throws InterruptedException {
+        log.debug("onPrivateMessage event: {}", event);
         MortyBot bot = event.getBot();
-        if (bot.getProperty("LinkListener.watchPrivateMessages").equalsIgnoreCase("true")) {
-            log.debug("onPrivateMessage event: {}", event);
+        boolean watchPrivateMessages = bot.getBotConfig().getStringProperty("LinkListener.watchPrivateMessages").equalsIgnoreCase("true");
+        if (watchPrivateMessages) {
             handleMessage(event);
         }
     }
 
-    private void handleMessage(final GenericMessageEvent event) {
+    /**
+     * Handle a message event, checking for links.
+     *
+     * @param event the event being handled
+     */
+    private void handleMessage(final GenericMessageEvent event) throws InterruptedException {
         MortyBot bot = event.getBot();
+        BotConfiguration config = bot.getBotConfig();
+        int maxLinks = config.getIntProperty("LinkListener.maxLinks", MAX_LINKS_DEFAULT);
+        boolean shortenLinks = config.getStringProperty("LinkListener.shortenLinks").equalsIgnoreCase("true");
+        boolean showTitles = config.getStringProperty("LinkListener.showTitles").equalsIgnoreCase("true");
 
-        // parse the event message looking for links
+        log.debug("Parsing message for links [maxLinks={}, shortenLinks={}, showTitles={}]", maxLinks, shortenLinks, showTitles);
+
         List<String> links = parseMessage(event.getMessage());
 
-        // maximum number of links to process in a single message
-        int maxLinks = Integer.parseInt(bot.getProperty("LinkListener.maxLinks", DEFAULT_MAX_LINKS));
+        log.debug("Found {} links", links.size());
 
         for (int i = 0; i < links.size() && i < maxLinks; i++) {
             String link = links.get(i);
-
-            // build our response string
             StringBuilder responseString = new StringBuilder();
             responseString.append("[");
 
-            // shorten the link if shortenLinks property is true
-            if (bot.getProperty("LinkListener.shortenLinks").equalsIgnoreCase("true")) {
+            if (shortenLinks) {
                 Optional<String> shortLink = Optional.empty();
                 try {
+                    log.debug("Shortening link: {}", link);
                     shortLink = Bitly.shorten(link);
-                } catch (IOException | InterruptedException e) {
-                    log.error("Error while attempting to shorten link: {}", link);
+                } catch (IOException e) {
+                    log.error("Error while attempting to shorten link: {}", e.getMessage());
                 } finally {
                     if (shortLink.isPresent()) {
+                        log.debug("Shortened link to: {}", shortLink.get());
                         responseString.append(shortLink.get());
                     } else {
-                        log.warn("Unable to shorten link ({}), falling back to long url", link);
+                        log.warn("Unable to shorten link, falling back to long url");
                         responseString.append(link);
                     }
                 }
@@ -83,22 +93,20 @@ public class LinkListener extends ListenerAdapter {
 
             responseString.append("]");
 
-            // append the title if showTitles property is true
-            if (bot.getProperty("LinkListener.showTitles").equalsIgnoreCase("true")) {
-                // todo consider moving this into its own method
-                // get the page and parse it into a DOM
+            if (showTitles) {
                 Document doc = null;
                 try {
+                    log.debug("Fetching title for link: {}", link);
                     doc = Jsoup.connect(link).get();
                 } catch (IOException e) {
-                    log.error("Failed to fetch link: {} - {}", link, e.getMessage());
+                    log.error("Failed to fetch link: {}", e.getMessage());
                 }
                 if (doc != null) {
+                    log.debug("Title: {}", doc.title());
                     responseString.append(" ").append(doc.title());
                 }
             }
 
-            // respond to the event
             event.respondWith(responseString.toString());
         }
     }

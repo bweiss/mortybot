@@ -19,6 +19,7 @@ public class Bitly {
 
     private static final Logger log = LoggerFactory.getLogger(Bitly.class);
     private static final Properties props = new Properties();
+
     private static final HttpClient client = HttpClient.newBuilder()
             .followRedirects(HttpClient.Redirect.NORMAL)
             .version(HttpClient.Version.HTTP_1_1)
@@ -36,6 +37,8 @@ public class Bitly {
         }
     }
 
+    private Bitly() {}
+
     public static Optional<String> shorten(String url) throws IOException, InterruptedException {
         if (url == null || url.trim().isEmpty()) {
             String msg = "url cannot be null or empty";
@@ -43,11 +46,11 @@ public class Bitly {
             throw new IllegalArgumentException(msg);
         }
 
-        String apiEndpoint = props.getProperty("apiEndpoint");
-        String apiKey = props.getProperty("apiKey");
+        String apiEndpoint = props.getProperty("bitly.api.endpoint.shorten");
+        String apiKey = props.getProperty("bitly.api.key");
 
         if ((apiEndpoint == null || apiEndpoint.trim().isEmpty()) || apiKey == null || apiKey.trim().isEmpty()) {
-            String msg = "apiEndpoint and apiKey cannot be null or empty";
+            String msg = "apiEndpoint and apiKey cannot be null or empty, check properties file";
             log.error(msg);
             throw new IllegalArgumentException(msg);
         }
