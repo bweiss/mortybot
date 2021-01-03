@@ -31,8 +31,7 @@ public class LinkListener extends ListenerAdapter {
     @Override
     public void onMessage(final MessageEvent event) throws InterruptedException {
         log.debug("onMessage event: {}", event);
-        MortyBot bot = event.getBot();
-        boolean watchChannels = bot.getBotConfig().getStringProperty("LinkListener.watchChannels").equalsIgnoreCase("true");
+        boolean watchChannels = MortyBot.getStringProperty("LinkListener.watchChannels").equalsIgnoreCase("true");
         if (watchChannels) {
             handleMessage(event);
         }
@@ -41,8 +40,7 @@ public class LinkListener extends ListenerAdapter {
     @Override
     public void onPrivateMessage(final PrivateMessageEvent event) throws InterruptedException {
         log.debug("onPrivateMessage event: {}", event);
-        MortyBot bot = event.getBot();
-        boolean watchPrivateMessages = bot.getBotConfig().getStringProperty("LinkListener.watchPrivateMessages").equalsIgnoreCase("true");
+        boolean watchPrivateMessages = MortyBot.getStringProperty("LinkListener.watchPrivateMessages").equalsIgnoreCase("true");
         if (watchPrivateMessages) {
             handleMessage(event);
         }
@@ -54,17 +52,10 @@ public class LinkListener extends ListenerAdapter {
      * @param event the event being handled
      */
     private void handleMessage(final GenericMessageEvent event) throws InterruptedException {
-        MortyBot bot = event.getBot();
-        BotConfiguration config = bot.getBotConfig();
-        int maxLinks = config.getIntProperty("LinkListener.maxLinks", MAX_LINKS_DEFAULT);
-        boolean shortenLinks = config.getStringProperty("LinkListener.shortenLinks").equalsIgnoreCase("true");
-        boolean showTitles = config.getStringProperty("LinkListener.showTitles").equalsIgnoreCase("true");
-
-        log.debug("Parsing message for links [maxLinks={}, shortenLinks={}, showTitles={}]", maxLinks, shortenLinks, showTitles);
-
+        int maxLinks = MortyBot.getIntProperty("LinkListener.maxLinks", MAX_LINKS_DEFAULT);
+        boolean shortenLinks = MortyBot.getStringProperty("LinkListener.shortenLinks").equalsIgnoreCase("true");
+        boolean showTitles = MortyBot.getStringProperty("LinkListener.showTitles").equalsIgnoreCase("true");
         List<String> links = parseMessage(event.getMessage());
-
-        log.debug("Found {} links", links.size());
 
         for (int i = 0; i < links.size() && i < maxLinks; i++) {
             String link = links.get(i);
@@ -102,8 +93,9 @@ public class LinkListener extends ListenerAdapter {
                     log.error("Failed to fetch link: {}", e.getMessage());
                 }
                 if (doc != null) {
-                    log.debug("Title: {}", doc.title());
-                    responseString.append(" ").append(doc.title());
+                    String title = doc.title();
+                    log.debug("Title: {}", title);
+                    responseString.append(" ").append(title);
                 }
             }
 
@@ -125,7 +117,7 @@ public class LinkListener extends ListenerAdapter {
         while (m.find()) {
             links.add(m.group(0));
         }
-        log.debug("Found {} links {}", links.size(), links);
+        log.debug("Found {} links: {}", links.size(), links);
         return links;
     }
 }
