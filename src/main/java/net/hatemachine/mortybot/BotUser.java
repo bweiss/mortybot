@@ -5,8 +5,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static net.hatemachine.mortybot.StringUtils.validateString;
-import static net.hatemachine.mortybot.StringUtils.wildcardToRegex;
+import static net.hatemachine.mortybot.util.StringUtils.validateString;
+import static net.hatemachine.mortybot.util.StringUtils.wildcardToRegex;
 
 public class BotUser {
 

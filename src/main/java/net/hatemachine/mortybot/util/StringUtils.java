@@ -1,4 +1,4 @@
-package net.hatemachine.mortybot;
+package net.hatemachine.mortybot.util;
 
 import java.text.NumberFormat;
 import java.text.ParsePosition;
