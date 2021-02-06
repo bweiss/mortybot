@@ -71,13 +71,13 @@ public class CommandListener extends ListenerAdapter {
 
         switch (command) {
             case "DEOP" -> deopCommand(source, event.getBot(), event.getUser(), channel, args);
-            case "IPLOOKUP" -> runBotCommand(new IpLookupCommand(event), args);
+            case "IPLOOKUP" -> runBotCommand(new IpLookupCommand(event, args));
             case "JOIN" -> joinCommand(event.getBot(), args);
             case "MSG" -> msgCommand(event, event.getBot(), args);
             case "OP" -> opCommand(event.getBot(), event.getUser(), channel, args);
             case "PART" -> partCommand(event, channel, args);
             case "QUIT" -> quitCommand(event, args);
-            case "TEST" -> runBotCommand(new TestCommand(event), args);
+            case "TEST" -> runBotCommand(new TestCommand(event, args));
             default -> log.info("Unknown command {} from {}", command, event.getUser());
         }
     }
@@ -129,10 +129,9 @@ public class CommandListener extends ListenerAdapter {
      * Run a bot command implemented with the BotCommand interface.
      *
      * @param command instance of the command you want to run
-     * @param args additional arguments for the command
      */
-    private void runBotCommand(final BotCommand command, List<String> args) {
-        command.execute(args);
+    private void runBotCommand(final BotCommand command) {
+        command.execute();
     }
 
     public String getCommandPrefix() {

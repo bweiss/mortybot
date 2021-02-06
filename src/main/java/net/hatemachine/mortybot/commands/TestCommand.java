@@ -8,13 +8,15 @@ import java.util.List;
 public class TestCommand implements BotCommand {
 
     private final GenericMessageEvent event;
+    private final List<String> args;
 
-    public TestCommand(final GenericMessageEvent event) {
+    public TestCommand(GenericMessageEvent event, List<String> args) {
         this.event = event;
+        this.args = args;
     }
 
     @Override
-    public void execute(List<String> args) {
+    public void execute() {
         event.respondWith("It worked! args: " + args);
     }
 }

@@ -23,13 +23,15 @@ public class IpLookupCommand implements BotCommand {
     private static final Logger log = LoggerFactory.getLogger(IpLookupCommand.class);
     private static final String GEOLITE2_CITY_DB = "GeoLite2-City.mmdb";
     private final GenericMessageEvent event;
+    private final List<String> args;
 
-    public IpLookupCommand(GenericMessageEvent event) {
+    public IpLookupCommand(GenericMessageEvent event, List<String> args) {
         this.event = event;
+        this.args = args;
     }
 
     @Override
-    public void execute(List<String> args) {
+    public void execute() {
         File database = null;
         DatabaseReader reader = null;
         CityResponse response = null;
