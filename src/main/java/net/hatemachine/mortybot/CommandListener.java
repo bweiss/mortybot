@@ -1,6 +1,7 @@
 package net.hatemachine.mortybot;
 
 import net.hatemachine.mortybot.commands.IpLookupCommand;
+import net.hatemachine.mortybot.commands.StockCommand;
 import net.hatemachine.mortybot.commands.TestCommand;
 import org.pircbotx.Channel;
 import org.pircbotx.User;
@@ -76,6 +77,7 @@ public class CommandListener extends ListenerAdapter {
             case "MSG" -> msgCommand(event, event.getBot(), args);
             case "OP" -> opCommand(event.getBot(), event.getUser(), channel, args);
             case "PART" -> partCommand(event, channel, args);
+            case "Q", "STOCK" -> runBotCommand(new StockCommand(event, args));
             case "QUIT" -> quitCommand(event, args);
             case "TEST" -> runBotCommand(new TestCommand(event, args));
             default -> log.info("Unknown command {} from {}", command, event.getUser());
