@@ -36,6 +36,29 @@ public class StockCommand implements BotCommand {
     private final GenericMessageEvent event;
     private final List<String> args;
 
+    static {
+        // This is needed to use JsonPath with Jackson
+        Configuration.setDefaults(new Configuration.Defaults() {
+            private final JsonProvider jsonProvider = new JacksonJsonProvider();
+            private final MappingProvider mappingProvider = new JacksonMappingProvider();
+
+            @Override
+            public JsonProvider jsonProvider() {
+                return jsonProvider;
+            }
+
+            @Override
+            public MappingProvider mappingProvider() {
+                return mappingProvider;
+            }
+
+            @Override
+            public Set<Option> options() {
+                return EnumSet.noneOf(Option.class);
+            }
+        });
+    }
+
     public StockCommand(GenericMessageEvent event, List<String> args) {
         this.event = event;
         this.args = args;
@@ -80,28 +103,6 @@ public class StockCommand implements BotCommand {
 
     private static String parseQuote(String json) {
         validateString(json);
-
-        // This is needed to use JsonPath with Jackson
-        Configuration.setDefaults(new Configuration.Defaults() {
-            private final JsonProvider jsonProvider = new JacksonJsonProvider();
-            private final MappingProvider mappingProvider = new JacksonMappingProvider();
-
-            @Override
-            public JsonProvider jsonProvider() {
-                return jsonProvider;
-            }
-
-            @Override
-            public MappingProvider mappingProvider() {
-                return mappingProvider;
-            }
-
-            @Override
-            public Set<Option> options() {
-                return EnumSet.noneOf(Option.class);
-            }
-        });
-
         Configuration conf = Configuration.defaultConfiguration();
         JsonNode metaNode = JsonPath.using(conf)
                 .parse(json)
