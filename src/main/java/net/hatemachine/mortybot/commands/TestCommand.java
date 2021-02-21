@@ -19,4 +19,12 @@ public class TestCommand implements BotCommand {
     public void execute() {
         event.respondWith("It worked! args: " + args);
     }
+
+    public GenericMessageEvent getEvent() {
+        return event;
+    }
+
+    public List<String> getArgs() {
+        return args;
+    }
 }

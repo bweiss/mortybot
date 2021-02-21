@@ -14,6 +14,7 @@
         <encoding>UTF-8</encoding>
         <java.version>15</java.version>
         <fully.qualified.main.class>net.hatemachine.mortybot.MortyBot</fully.qualified.main.class>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
@@ -107,10 +108,33 @@
                             <goal>copy-dependencies</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <outputDirectory>${project.build.directory}/${project.build.finalName}/lib</outputDirectory>
                             <overWriteReleases>false</overWriteReleases>
                             <overWriteSnapshots>false</overWriteSnapshots>
                             <overWriteIfNewer>true</overWriteIfNewer>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/${project.build.finalName}/conf</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>conf</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
                         </configuration>
                     </execution>
                 </executions>
@@ -121,10 +145,11 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.2.0</version>
                 <configuration>
+                    <outputDirectory>${project.build.directory}/${project.build.finalName}</outputDirectory>
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <classpathPrefix>${project.build.finalName}/lib/</classpathPrefix>
+                            <classpathPrefix>lib/</classpathPrefix>
                             <mainClass>${fully.qualified.main.class}</mainClass>
                         </manifest>
                     </archive>
@@ -144,12 +169,12 @@
                         </goals>
                         <configuration>
                             <target>
-                                <property name="final.name" value="${project.build.directory}/${project.build.finalName}"/>
-                                <property name="archive.includes" value="${project.build.finalName}.${project.packaging} lib/*"/>
+                                <property name="archive.finalName" value="${project.build.directory}/${project.build.finalName}"/>
+                                <property name="archive.includes" value="${project.build.finalName}/${project.build.finalName}.${project.packaging} ${project.build.finalName}/lib/* ${project.build.finalName}/conf/*"/>
                                 <!--suppress UnresolvedMavenProperty -->
-                                <property name="tar.destfile" value="${final.name}.tar"/>
+                                <property name="tar.destfile" value="${archive.finalName}.tar"/>
                                 <!--suppress UnresolvedMavenProperty -->
-                                <zip basedir="${project.build.directory}" destfile="${final.name}.zip" includes="${archive.includes}" />
+                                <zip basedir="${project.build.directory}" destfile="${archive.finalName}.zip" includes="${archive.includes}" />
                                 <!--suppress UnresolvedMavenProperty -->
                                 <tar basedir="${project.build.directory}" destfile="${tar.destfile}" includes="${archive.includes}" />
                                 <!--suppress UnresolvedMavenProperty -->

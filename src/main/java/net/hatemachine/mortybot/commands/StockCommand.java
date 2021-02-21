@@ -117,4 +117,12 @@ public class StockCommand implements BotCommand {
 
         return String.format("[Q] %s %.2f [%s %s]%n", symbol, marketPrice, dt.format(df), timezone);
     }
+
+    public GenericMessageEvent getEvent() {
+        return event;
+    }
+
+    public List<String> getArgs() {
+        return args;
+    }
 }

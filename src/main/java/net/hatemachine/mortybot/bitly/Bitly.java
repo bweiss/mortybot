@@ -1,12 +1,12 @@
 package net.hatemachine.mortybot.bitly;
 
 import com.google.gson.Gson;
-import net.hatemachine.mortybot.MortyBot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -17,23 +17,22 @@ import java.util.Properties;
 
 public class Bitly {
 
-    private static final Logger log = LoggerFactory.getLogger(Bitly.class);
-    private static final Properties props = new Properties();
+    private static final String PROPERTIES_FILE = "bitly.properties";
 
-    private static final HttpClient client = HttpClient.newBuilder()
-            .followRedirects(HttpClient.Redirect.NORMAL)
-            .version(HttpClient.Version.HTTP_1_1)
-            .connectTimeout(Duration.ofSeconds(10))
-            .build();
+    private static final Logger log = LoggerFactory.getLogger(Bitly.class);
+    private static final Properties properties = new Properties();
 
     static {
-        String propertiesFile = "bitly.properties";
-        try (InputStream inputStream = MortyBot.class.getClassLoader().getResourceAsStream(propertiesFile)) {
-            if (inputStream != null) {
-                props.load(inputStream);
-            }
+        String propertiesFile = System.getenv("MORTYBOT_HOME") + "/conf/" + PROPERTIES_FILE;
+        log.info("Attempting to load properties from {}", propertiesFile);
+        try (FileReader reader = new FileReader(propertiesFile)) {
+            properties.load(reader);
+        } catch (FileNotFoundException e) {
+            String msg = "file not found: " + propertiesFile;
+            log.error(msg, e.getMessage());
         } catch (IOException e) {
-            log.error("Unable to read properties file {}", propertiesFile, e);
+            String msg = "unable to read file: " + propertiesFile;
+            log.error(msg, e.getMessage());
         }
     }
 
@@ -46,19 +45,24 @@ public class Bitly {
             throw new IllegalArgumentException(msg);
         }
 
-        String apiEndpoint = props.getProperty("bitly.api.endpoint.shorten");
-        String apiKey = props.getProperty("bitly.api.key");
+        String apiEndpoint = properties.getProperty("bitly.api.endpoint", System.getenv("BITLY_API_ENDPOINT"));
+        String apiKey = properties.getProperty("bitly.api.key", System.getenv("BITLY_API_KEY"));
 
         if ((apiEndpoint == null || apiEndpoint.trim().isEmpty()) || apiKey == null || apiKey.trim().isEmpty()) {
-            String msg = "apiEndpoint and apiKey cannot be null or empty, check properties file";
-            log.error(msg);
-            throw new IllegalArgumentException(msg);
+            log.error("apiEndpoint and apiKey cannot be null or empty, check properties file or set BITLY_API_ENDPOINT and BITLY_API_KEY environment variables");
+            return Optional.empty();
         }
 
         String requestJson = "{\n" +
                 "    \"domain\": \"bit.ly\",  \n" +
                 "    \"long_url\": \"" + url + "\"  \n" +
                 "}";
+
+        HttpClient client = HttpClient.newBuilder()
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .version(HttpClient.Version.HTTP_1_1)
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(apiEndpoint))

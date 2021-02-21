@@ -70,4 +70,12 @@ public class IpLookupCommand implements BotCommand {
             log.error("Unable to locate address: {}", e.getMessage());
         }
     }
+
+    public GenericMessageEvent getEvent() {
+        return event;
+    }
+
+    public List<String> getArgs() {
+        return args;
+    }
 }

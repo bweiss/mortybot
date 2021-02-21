@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static net.hatemachine.mortybot.BotUserType.*;
 import static net.hatemachine.mortybot.util.StringUtils.validateString;
 import static net.hatemachine.mortybot.util.StringUtils.wildcardToRegex;
 
@@ -13,19 +14,13 @@ public class BotUser {
     private final int id;
     private String name;
     private final Set<String> hostmasks = new HashSet<>();
-    private Type type;
-
-    public enum Type {
-        ADMIN,
-        USER,
-        GUEST
-    }
+    private BotUserType type;
 
     public BotUser(final int id, final String name, final String hostmask) {
-        this(id, name, hostmask, Type.USER);
+        this(id, name, hostmask, MORTY);
     }
 
-    public BotUser(final int id, final String name, final String hostmask, final Type type) {
+    public BotUser(final int id, final String name, final String hostmask, final BotUserType type) {
         this.id = id;
         this.name = validateString(name);
         this.hostmasks.add(validateString(hostmask));
@@ -60,11 +55,11 @@ public class BotUser {
         return hostmasks;
     }
 
-    public Type getType() {
+    public BotUserType getType() {
         return type;
     }
 
-    public void setType(Type type) {
+    public void setType(BotUserType type) {
         this.type = type;
     }
 
