@@ -73,16 +73,45 @@ public class CommandListener extends ListenerAdapter {
         log.debug("Command {} triggered by {}, args: {}", command, user, args);
 
         switch (command) {
-            case "DEOP" -> deopCommand(event, source, args);
-            case "IPLOOKUP" -> runBotCommand((BotCommand)BotCommandProxy.newInstance(new IpLookupCommand(event, args)));
-            case "JOIN" -> joinCommand(event, args);
-            case "MSG" -> msgCommand(event, args);
-            case "OP" -> opCommand(event, source, args);
-            case "PART" -> partCommand(event, source, args);
-            case "Q", "STOCK" -> runBotCommand((BotCommand)BotCommandProxy.newInstance(new StockCommand(event, args)));
-            case "QUIT" -> quitCommand(event, args);
-            case "TEST" -> runBotCommand((BotCommand)BotCommandProxy.newInstance(new TestCommand(event, args)));
-            default -> log.info("Unknown command {} from {}", command, event.getUser());
+            case "DEOP":
+                deopCommand(event, source, args);
+                break;
+
+            case "IPLOOKUP":
+                runBotCommand((BotCommand)BotCommandProxy.newInstance(new IpLookupCommand(event, args)));
+                break;
+
+            case "JOIN":
+                joinCommand(event, args);
+                break;
+
+            case "MSG":
+                msgCommand(event, args);
+                break;
+
+            case "OP":
+                opCommand(event, source, args);
+                break;
+
+            case "PART":
+                partCommand(event, source, args);
+                break;
+
+            case "Q":
+            case "STOCK":
+                runBotCommand((BotCommand)BotCommandProxy.newInstance(new StockCommand(event, args)));
+                break;
+
+            case "QUIT":
+                quitCommand(event, args);
+                break;
+
+            case "TEST":
+                runBotCommand((BotCommand)BotCommandProxy.newInstance(new TestCommand(event, args)));
+                break;
+
+            default:
+                log.info("Unknown command {} from {}", command, event.getUser());
         }
     }
 
