@@ -12,7 +12,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -45,11 +45,17 @@ public class MortyBot extends PircBotX {
 
     public static void main(String[] args) {
 
+        if (System.getenv("MORTYBOT_HOME") == null) {
+            log.error("MORTYBOT_HOME not set, exiting...");
+            return;
+        }
+
         // try to load some bot properties
         String propertiesFile = System.getenv("MORTYBOT_HOME") + "/conf/" + PROPERTIES_FILE;
-        log.info("Attempting to load properties from {}", propertiesFile);
+        log.debug("Attempting to load properties from {}", propertiesFile);
         try (FileReader reader = new FileReader(propertiesFile)) {
             properties.load(reader);
+            log.debug("Loaded {} properties", properties.size());
         } catch (FileNotFoundException e) {
             String msg = "file not found: " + propertiesFile;
             log.error(msg, e.getMessage());
@@ -74,7 +80,7 @@ public class MortyBot extends PircBotX {
                 .setAutoReconnectDelay(getIntProperty("autoReconnectDelay", AUTO_RECONNECT_DELAY_DEFAULT))
                 .setAutoReconnectAttempts(getIntProperty("autoReconnectAttempts", AUTO_RECONNECT_ATTEMPTS_DEFAULT))
                 .setAutoNickChange(getBooleanProperty("autoNickChange", AUTO_NICK_CHANGE_DEFAULT))
-                .addAutoJoinChannels(Collections.singletonList(getStringProperty("autoJoinChannels", AUTO_JOIN_CHANNELS_DEFAULT)))
+                .addAutoJoinChannels(Arrays.asList(getStringProperty("autoJoinChannels", AUTO_JOIN_CHANNELS_DEFAULT).split(" ")))
                 .addListener(new CommandListener(getStringProperty("commandPrefix", COMMAND_PREFIX_DEFAULT)))
                 .addListener(new LinkListener())
                 .buildConfiguration();
