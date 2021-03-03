@@ -29,10 +29,17 @@
             <artifactId>slf4j-api</artifactId>
             <version>1.7.30</version>
         </dependency>
+
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.30</version>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
         </dependency>
 
         <dependency>
@@ -122,7 +129,7 @@
                 <version>3.2.0</version>
                 <executions>
                     <execution>
-                        <id>copy-resources</id>
+                        <id>copy-resources-conf</id>
                         <phase>package</phase>
                         <goals>
                             <goal>copy-resources</goal>
@@ -131,7 +138,23 @@
                             <outputDirectory>${project.build.directory}/${project.build.finalName}/conf</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>conf</directory>
+                                    <directory>${basedir}/conf</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-resources-non-packaged</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/${project.build.finalName}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/src/main/non-packaged-resources</directory>
                                     <filtering>true</filtering>
                                 </resource>
                             </resources>
@@ -170,7 +193,7 @@
                         <configuration>
                             <target>
                                 <property name="archive.finalName" value="${project.build.directory}/${project.build.finalName}"/>
-                                <property name="archive.includes" value="${project.build.finalName}/${project.build.finalName}.${project.packaging} ${project.build.finalName}/lib/* ${project.build.finalName}/conf/*"/>
+                                <property name="archive.includes" value="${project.build.finalName}/${project.build.finalName}.${project.packaging} ${project.build.finalName}/lib/* ${project.build.finalName}/conf/* ${project.build.finalName}/run.sh"/>
                                 <!--suppress UnresolvedMavenProperty -->
                                 <property name="tar.destfile" value="${archive.finalName}.tar"/>
                                 <!--suppress UnresolvedMavenProperty -->
