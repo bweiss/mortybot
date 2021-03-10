@@ -78,7 +78,7 @@ public class CommandListener extends ListenerAdapter {
                 break;
 
             case "IPLOOKUP":
-                runBotCommand((BotCommand)BotCommandProxy.newInstance(new IpLookupCommand(event, args)));
+                runBotCommand(BotCommandProxy.newInstance(new IpLookupCommand(event, args)));
                 break;
 
             case "JOIN":
@@ -99,7 +99,7 @@ public class CommandListener extends ListenerAdapter {
 
             case "Q":
             case "STOCK":
-                runBotCommand((BotCommand)BotCommandProxy.newInstance(new StockCommand(event, args)));
+                runBotCommand(BotCommandProxy.newInstance(new StockCommand(event, args)));
                 break;
 
             case "QUIT":
@@ -107,7 +107,7 @@ public class CommandListener extends ListenerAdapter {
                 break;
 
             case "TEST":
-                runBotCommand((BotCommand)BotCommandProxy.newInstance(new TestCommand(event, args)));
+                runBotCommand(BotCommandProxy.newInstance(new TestCommand(event, args)));
                 break;
 
             default:
