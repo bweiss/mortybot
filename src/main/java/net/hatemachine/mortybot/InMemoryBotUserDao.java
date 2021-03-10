@@ -7,33 +7,33 @@ import java.util.Map;
 
 public class InMemoryBotUserDao implements BotUserDao {
 
-    private final Map<Integer, BotUser> idToBotUser = new HashMap<>();
+    private final Map<String, BotUser> nameToBotUser = new HashMap<>();
 
     @Override
-    public BotUser getById(final int id) {
-        return idToBotUser.get(id);
+    public BotUser getByName(final String name) {
+        return nameToBotUser.get(name);
     }
 
     @Override
     public boolean add(final BotUser botUser) {
-        idToBotUser.put(botUser.getId(), botUser);
+        nameToBotUser.put(botUser.getName(), botUser);
         return true;
     }
 
     @Override
     public boolean update(final BotUser botUser) {
-        idToBotUser.remove(botUser.getId());
-        idToBotUser.put(botUser.getId(), botUser);
+        nameToBotUser.remove(botUser.getName());
+        nameToBotUser.put(botUser.getName(), botUser);
         return true;
     }
 
     @Override
     public boolean delete(final BotUser botUser) {
-        return idToBotUser.remove(botUser.getId()) != null;
+        return nameToBotUser.remove(botUser.getName()) != null;
     }
 
     @Override
     public List<BotUser> getAllBotUsers() {
-        return new ArrayList<>(idToBotUser.values());
+        return new ArrayList<>(nameToBotUser.values());
     }
 }

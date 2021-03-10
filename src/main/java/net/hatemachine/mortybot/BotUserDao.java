@@ -5,11 +5,11 @@ import java.util.List;
 public interface BotUserDao {
 
     /**
-     * @param id unique identifier for the bot user.
-     * @return a bot user if one exists with unique identifier <code>id</code>
+     * @param name unique identifier for the bot user.
+     * @return a bot user if one exists with unique identifier <code>name</code>
      * @throws Exception if any error occurs.
      */
-    BotUser getById(int id) throws Exception;
+    BotUser getByName(String name) throws Exception;
 
     /**
      * @param botUser the bot user to be added.

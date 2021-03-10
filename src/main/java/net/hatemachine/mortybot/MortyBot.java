@@ -190,9 +190,10 @@ public class MortyBot extends PircBotX {
      */
     private static List<BotUser> generateBotUsers() {
         final List<BotUser> botUsers = new ArrayList<>();
-        botUsers.add(new BotUser(1, "brian", "*!brian@hatemachine.net", BotUserType.RICK));
-        botUsers.add(new BotUser(3, "megan", "*!megan@hugmachine.net", BotUserType.MORTY));
-        botUsers.add(new BotUser(2, "drgonzo", "*!gonzo@*.beerandloathing.org", BotUserType.JERRY));
+        botUsers.add(new BotUser("brian", "*!brian@hatemachine.net", BotUserType.RICK));
+        botUsers.add(new BotUser("megan", "*!megan@hugmachine.net", BotUserType.MORTY));
+        botUsers.add(new BotUser("megan", "*!megan@hatemachine.net", BotUserType.JERRY));
+        botUsers.add(new BotUser("drgonzo", "*!gonzo@*.beerandloathing.org", BotUserType.JERRY));
         return botUsers;
     }
 
