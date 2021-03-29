@@ -1,5 +1,6 @@
 package net.hatemachine.mortybot;
 
+import net.hatemachine.mortybot.exception.BotUserException;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
@@ -56,10 +57,12 @@ public class MortyBot extends PircBotX {
         try (FileReader reader = new FileReader(propertiesFile)) {
             properties.load(reader);
             log.debug("Loaded {} properties", properties.size());
-        } catch (FileNotFoundException e) {
+        }
+        catch (FileNotFoundException e) {
             String msg = "file not found: " + propertiesFile;
             log.error(msg, e.getMessage());
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             String msg = "unable to read file: " + propertiesFile;
             log.error(msg, e.getMessage());
         }
@@ -92,11 +95,7 @@ public class MortyBot extends PircBotX {
         }
 
         // Add some users
-        try {
-            addBotUsers(botUserDao);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        addBotUsers(botUserDao);
 
         log.debug("Bot users:");
         botUserDao.getAllBotUsers().forEach(u -> log.debug(u.toString()));
@@ -105,7 +104,8 @@ public class MortyBot extends PircBotX {
         try (MortyBot bot = new MortyBot(config)) {
             log.info("Starting bot with nick: {}", bot.getNick());
             bot.startBot();
-        } catch (IOException | IrcException e) {
+        }
+        catch (IOException | IrcException e) {
             log.error("Failed to start bot, exiting...", e);
         }
     }
@@ -175,11 +175,16 @@ public class MortyBot extends PircBotX {
      * Add some users to the bot.
      *
      * @param botUserDao the BotUserDao object we're using
-     * @throws Exception if anything goes wrong
      */
-    private static void addBotUsers(BotUserDao botUserDao) throws Exception {
+    private static void addBotUsers(BotUserDao botUserDao) {
         for (BotUser botUser : generateBotUsers()) {
-            botUserDao.add(botUser);
+            try {
+                log.debug("Adding user: {}", botUser);
+                botUserDao.add(botUser);
+            }
+            catch (BotUserException e) {
+                log.debug(e.getMessage());
+            }
         }
     }
 
