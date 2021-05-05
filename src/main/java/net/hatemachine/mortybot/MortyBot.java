@@ -1,6 +1,7 @@
 package net.hatemachine.mortybot;
 
 import net.hatemachine.mortybot.exception.BotUserException;
+import org.pircbotx.Channel;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
@@ -45,7 +46,6 @@ public class MortyBot extends PircBotX {
     }
 
     public static void main(String[] args) {
-
         if (System.getenv("MORTYBOT_HOME") == null) {
             log.error("MORTYBOT_HOME not set, exiting...");
             return;
@@ -54,7 +54,7 @@ public class MortyBot extends PircBotX {
         // try to load some bot properties
         String propertiesFile = System.getenv("MORTYBOT_HOME") + "/conf/" + PROPERTIES_FILE;
         log.debug("Attempting to load properties from {}", propertiesFile);
-        try (FileReader reader = new FileReader(propertiesFile)) {
+        try (var reader = new FileReader(propertiesFile)) {
             properties.load(reader);
             log.debug("Loaded {} properties", properties.size());
         }
@@ -72,7 +72,7 @@ public class MortyBot extends PircBotX {
         }
 
         // build the bot configuration
-        Configuration config = new Configuration.Builder()
+        var config = new Configuration.Builder()
                 .setName(getStringProperty("botName", BOT_NAME_DEFAULT))
                 .setLogin(getStringProperty("botLogin", BOT_LOGIN_DEFAULT))
                 .setRealName(getStringProperty("botRealName", BOT_REAL_NAME_DEFAULT))
@@ -101,7 +101,7 @@ public class MortyBot extends PircBotX {
         botUserDao.getAllBotUsers().forEach(u -> log.debug(u.toString()));
 
         // Start the bot and connect to a server
-        try (MortyBot bot = new MortyBot(config)) {
+        try (var bot = new MortyBot(config)) {
             log.info("Starting bot with nick: {}", bot.getNick());
             bot.startBot();
         }
@@ -163,7 +163,7 @@ public class MortyBot extends PircBotX {
     /**
      * Validates the rickness of a user by their hostmask.
      *
-     * @param user that you want to check if they are a rick or morty
+     * @param user that you want to verify is a rick and not some morty
      * @return true if user is a rick
      */
     public boolean authorizeRick(User user) {
@@ -189,6 +189,16 @@ public class MortyBot extends PircBotX {
     }
 
     /**
+     * Find out if the bot has ops in a channel.
+     *
+     * @param channel that we want to see if the bot has operator status in
+     * @return true if the bot is oped in the channel
+     */
+    public boolean hasOps(Channel channel) {
+        return channel.getOps().stream().anyMatch(u -> u.getNick().equalsIgnoreCase(this.getNick()));
+    }
+
+    /**
      * Generate some bot users for testing.
      *
      * @return list of bot users
@@ -203,22 +213,22 @@ public class MortyBot extends PircBotX {
     }
 
     static String getStringProperty(String name, String defaultValue) {
-        String prop = getStringProperty(name);
+        var prop = getStringProperty(name);
         return prop == null ? defaultValue : prop;
     }
 
     static boolean getBooleanProperty(String name, boolean defaultValue) {
-        String prop = getStringProperty(name);
+        var prop = getStringProperty(name);
         return prop == null ? defaultValue : "true".equalsIgnoreCase(prop);
     }
 
     static int getIntProperty(String name, int defaultValue) {
-        String prop = getStringProperty(name);
+        var prop = getStringProperty(name);
         return prop == null ? defaultValue : Integer.parseInt(prop);
     }
 
     static String getStringProperty(String name) {
-        String prop = System.getProperty(name);
+        var prop = System.getProperty(name);
         return prop == null ? properties.getProperty(name) : prop;
     }
 }

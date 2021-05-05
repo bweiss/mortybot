@@ -1,9 +1,7 @@
 package net.hatemachine.mortybot;
 
-import org.pircbotx.User;
+import net.hatemachine.mortybot.exception.BotCommandException;
 import org.pircbotx.hooks.types.GenericMessageEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -12,9 +10,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class BotCommandProxy implements InvocationHandler {
+import static net.hatemachine.mortybot.exception.BotCommandException.Reason.COMMAND_NOT_ENABLED;
+import static net.hatemachine.mortybot.exception.BotCommandException.Reason.USER_UNAUTHORIZED;
 
-    private static final Logger log = LoggerFactory.getLogger(BotCommandProxy.class);
+public class BotCommandProxy implements InvocationHandler {
 
     private final BotCommand command;
 
@@ -29,21 +28,17 @@ public class BotCommandProxy implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method m, Object[] args) throws IllegalAccessException, InvocationTargetException {
-        Object result;
+        Object result = null;
         List<String> enabled = new ArrayList<>(Arrays.asList(MortyBot.getStringProperty("CommandListener.enabled.commands").split(",")));
         List<String> adminOnly = new ArrayList<>(Arrays.asList(MortyBot.getStringProperty("CommandListener.admin.commands").split(",")));
         GenericMessageEvent event = command.getEvent();
         MortyBot bot = event.getBot();
-        User user = event.getUser();
+        var user = event.getUser();
 
-        if (!enabled.contains(command.getClass().getSimpleName())) {
-            String msg = "command is not enabled";
-            log.warn(msg);
-            throw new IllegalAccessException(msg);
-        } else if (adminOnly.contains(command.getClass().getSimpleName()) && !bot.authorizeRick(user)) {
-            String msg = "not authorized to run this command";
-            log.warn(msg);
-            throw new IllegalAccessException(msg);
+        if (!enabled.contains(command.getName())) {
+            throw new BotCommandException(COMMAND_NOT_ENABLED, command.getName());
+        } else if (adminOnly.contains(command.getName()) && !bot.authorizeRick(user)) {
+            throw new BotCommandException(USER_UNAUTHORIZED, command.getName() + " " + user);
         } else {
             result = m.invoke(command, args);
         }

@@ -3,8 +3,8 @@ package net.hatemachine.mortybot;
 import net.hatemachine.mortybot.commands.IpLookupCommand;
 import net.hatemachine.mortybot.commands.StockCommand;
 import net.hatemachine.mortybot.commands.TestCommand;
+import net.hatemachine.mortybot.exception.BotCommandException;
 import org.pircbotx.Channel;
-import org.pircbotx.User;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
@@ -68,7 +68,7 @@ public class CommandListener extends ListenerAdapter {
         List<String> tokens = Arrays.asList(event.getMessage().split(" "));
         String command = tokens.get(0).substring(getCommandPrefix().length()).toUpperCase();
         List<String> args = tokens.subList(1, tokens.size());
-        User user = event.getUser();
+        var user = event.getUser();
 
         log.debug("Command {} triggered by {}, args: {}", command, user, args);
 
@@ -78,7 +78,7 @@ public class CommandListener extends ListenerAdapter {
                 break;
 
             case "IPLOOKUP":
-                runBotCommand(BotCommandProxy.newInstance(new IpLookupCommand(event, args)));
+                runBotCommand(new IpLookupCommand(event, args));
                 break;
 
             case "JOIN":
@@ -99,7 +99,7 @@ public class CommandListener extends ListenerAdapter {
 
             case "Q":
             case "STOCK":
-                runBotCommand(BotCommandProxy.newInstance(new StockCommand(event, args)));
+                runBotCommand(new StockCommand(event, args));
                 break;
 
             case "QUIT":
@@ -107,7 +107,7 @@ public class CommandListener extends ListenerAdapter {
                 break;
 
             case "TEST":
-                runBotCommand(BotCommandProxy.newInstance(new TestCommand(event, args)));
+                runBotCommand(new TestCommand(event, args));
                 break;
 
             default:
@@ -115,13 +115,28 @@ public class CommandListener extends ListenerAdapter {
         }
     }
 
+    /**
+     * Run a bot command implemented with the BotCommand interface.
+     * This will be executed via a BotCommandProxy instance to validate and authorize.
+     *
+     * @param command instance of the command you want to run
+     */
+    private void runBotCommand(final BotCommand command) {
+        try {
+            BotCommandProxy.newInstance(command).execute();
+        } catch (BotCommandException e) {
+            log.warn(e.getMessage());
+        }
+    }
+
     private void deopCommand(final GenericMessageEvent event, MessageSource source, List<String> args) {
         MortyBot bot = event.getBot();
-        User user = event.getUser();
+        var user = event.getUser();
+        String target = args.isEmpty() ? user.getNick() : args.get(0);
         // todo implement for privmsg
         if (source == PUBLIC && bot.authorizeRick(user)) {
-            Channel channel = ((MessageEvent) event).getChannel();
-            bot.sendIRC().mode(channel.toString(), "-o " + (args.isEmpty() ? user.getNick() : args.get(0)));
+            var channel = ((MessageEvent) event).getChannel();
+            bot.sendIRC().mode(channel.toString(), "-o " + target);
         }
     }
 
@@ -137,11 +152,11 @@ public class CommandListener extends ListenerAdapter {
         }
     }
 
-    private void msgCommand(GenericMessageEvent event, List<String> args) {
+    private void msgCommand(final GenericMessageEvent event, List<String> args) {
         MortyBot bot = event.getBot();
         if (bot.authorizeRick(event.getUser()) && args.size() > 1) {
             String target = args.get(0);
-            String message = String.join(" ", args.subList(1, args.size()));
+            var message = String.join(" ", args.subList(1, args.size()));
             bot.sendIRC().message(target, message);
             event.respondWith(String.format("-msg(%s) %s", target, message));
         }
@@ -149,27 +164,43 @@ public class CommandListener extends ListenerAdapter {
 
     private void opCommand(final GenericMessageEvent event, MessageSource source, List<String> args) {
         MortyBot bot = event.getBot();
-        User user = event.getUser();
-        // todo implement for privmsg
-        if (source == PUBLIC && bot.authorizeRick(user)) {
-            Channel channel = ((MessageEvent) event).getChannel();
-            bot.sendIRC().mode(channel.toString(), "+o " + (args.isEmpty() ? user.getNick() : args.get(0)));
+        var user = event.getUser();
+        String targetUser = args.isEmpty() ? user.getNick() : args.get(0);
+
+        if (bot.authorizeRick(user)) {
+            if (source == PUBLIC) {
+                var channel = ((MessageEvent) event).getChannel();
+                bot.sendIRC().mode(channel.getName(), "+o " + targetUser);
+            }
+            else if (source == PRIVATE) {
+                for (Channel channel : bot.getUserChannelDao().getAllChannels()) {
+                    if (!bot.hasOps(channel)) {
+                        log.debug("Bot does not have ops on {}, skipping...", channel.getName());
+                    } else {
+                        if (userHasOps(targetUser, channel)) {
+                            log.debug("{} is already an operator on {}", targetUser, channel.getName());
+                        } else {
+                            log.debug("Setting mode [+o {}] on {}", targetUser, channel.getName());
+                            bot.sendIRC().mode(channel.getName(), "+o " + targetUser);
+                        }
+                    }
+                }
+            }
         }
     }
 
     private void partCommand(final GenericMessageEvent event, MessageSource source, List<String> args) {
         MortyBot bot = event.getBot();
-        // todo implement for privmsg
-        if (source == PUBLIC && bot.authorizeRick(event.getUser())) {
-            if (args.isEmpty()) {
-                bot.sendRaw().rawLine("PART " + ((MessageEvent)event).getChannel());
-            } else {
+        if (bot.authorizeRick(event.getUser())) {
+            if (source == PUBLIC && args.isEmpty()) {
                 bot.sendRaw().rawLine("PART " + args.get(0));
+            } else if (!args.isEmpty()) {
+                bot.sendRaw().rawLine("PART " + ((MessageEvent) event).getChannel());
             }
         }
     }
 
-    private void quitCommand(GenericMessageEvent event, List<String> args) {
+    private void quitCommand(final GenericMessageEvent event, List<String> args) {
         MortyBot bot = event.getBot();
         if (bot.authorizeRick(event.getUser())) {
             bot.stopBotReconnect();
@@ -178,12 +209,16 @@ public class CommandListener extends ListenerAdapter {
     }
 
     /**
-     * Run a bot command implemented with the BotCommand interface.
+     * Find out if a user has operator status on a channel.
      *
-     * @param command instance of the command you want to run
+     * @param targetUser the user to check for operator status
+     * @param channel the channel you want to check
+     * @return true if user is oped on channel
      */
-    private void runBotCommand(final BotCommand command) {
-        command.execute();
+    private boolean userHasOps(String targetUser, Channel channel) {
+        return channel.getUsers()
+                .stream()
+                .anyMatch(u -> u.getNick().equalsIgnoreCase(targetUser));
     }
 
     public String getCommandPrefix() {

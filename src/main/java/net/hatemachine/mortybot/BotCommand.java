@@ -8,4 +8,8 @@ public interface BotCommand {
     void execute();
     GenericMessageEvent getEvent();
     List<String> getArgs();
+
+    default String getName() {
+        return this.getClass().getSimpleName();
+    }
 }
