@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LinkListener extends ListenerAdapter {
@@ -22,6 +21,9 @@ public class LinkListener extends ListenerAdapter {
     // default maximum number of URLs to process in a single message from a user
     // the value for LinkListener.maxLinks in bot.properties will override this if present
     private static final int MAX_LINKS_DEFAULT = 2;
+
+    // default minimum length of a URL for it to be shortened
+    private static final int MIN_LEN_TO_SHORTEN_DEFAULT = 30;
 
     // the regex pattern used to match URLs
     private static final Pattern URL_PATTERN = Pattern.compile("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&\\/\\/=]*)");
@@ -52,17 +54,19 @@ public class LinkListener extends ListenerAdapter {
      * @param event the event being handled
      */
     private void handleMessage(final GenericMessageEvent event) throws InterruptedException {
-        int maxLinks = MortyBot.getIntProperty("LinkListener.maxLinks", MAX_LINKS_DEFAULT);
+        var maxLinks = MortyBot.getIntProperty("LinkListener.maxLinks", MAX_LINKS_DEFAULT);
+        var minLenToShorten = MortyBot.getIntProperty("LinkListener.minLenToShorten", MIN_LEN_TO_SHORTEN_DEFAULT);
         boolean shortenLinks = MortyBot.getStringProperty("LinkListener.shortenLinks").equalsIgnoreCase("true");
         boolean showTitles = MortyBot.getStringProperty("LinkListener.showTitles").equalsIgnoreCase("true");
+
         List<String> links = parseMessage(event.getMessage());
 
-        for (int i = 0; i < links.size() && i < maxLinks; i++) {
+        for (var i = 0; i < links.size() && i < maxLinks; i++) {
             String link = links.get(i);
-            StringBuilder responseString = new StringBuilder();
+            var responseString = new StringBuilder();
             responseString.append("[");
 
-            if (shortenLinks) {
+            if (shortenLinks && link.length() >= minLenToShorten) {
                 Optional<String> shortLink = Optional.empty();
                 try {
                     log.debug("Shortening link: {}", link);
@@ -112,7 +116,7 @@ public class LinkListener extends ListenerAdapter {
      */
     private static List<String> parseMessage(final String s) {
         log.debug("Parsing message for links: {} in ", s);
-        Matcher m = URL_PATTERN.matcher(s);
+        var m = URL_PATTERN.matcher(s);
         List<String> links = new ArrayList<>();
         while (m.find()) {
             links.add(m.group(0));
