@@ -9,6 +9,8 @@ import com.jayway.jsonpath.spi.json.JsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import net.hatemachine.mortybot.BotCommand;
+import net.hatemachine.mortybot.CommandListener;
+import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.util.WebClient;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
@@ -29,11 +31,17 @@ import static net.hatemachine.mortybot.util.StringUtils.validateString;
 
 public class StockCommand implements BotCommand {
 
-    private static final Logger log = LoggerFactory.getLogger(StockCommand.class);
+    // default maximum number of symbols a user can request in a single command
+    // the value for StockCommand.maxSymbolsPerCommand in bot.properties will override this if present
+    private static final int MAX_SYMBOLS_PER_COMMAND_DEFAULT = 4;
 
+    // the api endpoint to use - changing this will probably break things
     private static final String ENDPOINT_URL = "https://query1.finance.yahoo.com/v7/finance/chart/";
 
+    private static final Logger log = LoggerFactory.getLogger(StockCommand.class);
+
     private final GenericMessageEvent event;
+    private final CommandListener.MessageSource source;
     private final List<String> args;
 
     static {
@@ -59,14 +67,17 @@ public class StockCommand implements BotCommand {
         });
     }
 
-    public StockCommand(GenericMessageEvent event, List<String> args) {
+    public StockCommand(GenericMessageEvent event, CommandListener.MessageSource source, List<String> args) {
         this.event = event;
+        this.source = source;
         this.args = args;
     }
 
     @Override
     public void execute() {
-        for (String symbol : args) {
+        var maxSymbols = MortyBot.getIntProperty("StockCommand.maxSymbolsPerCommand", MAX_SYMBOLS_PER_COMMAND_DEFAULT);
+        for (var cnt = 0; cnt < maxSymbols; cnt++) {
+            String symbol = args.get(cnt);
             Optional<String> json = fetchQuote(symbol);
             if (json.isPresent()) {
                 String quote = parseQuote(json.get());
@@ -78,9 +89,11 @@ public class StockCommand implements BotCommand {
     private static Optional<String> fetchQuote(String symbol) {
         validateString(symbol);
         log.info("Fetching stock quote for {}", symbol);
+
         String url = ENDPOINT_URL + symbol;
-        WebClient client = new WebClient();
+        var client = new WebClient();
         HttpResponse<String> response = null;
+
         try {
             response = client.get(url);
         } catch (IOException e) {
@@ -89,6 +102,7 @@ public class StockCommand implements BotCommand {
             log.error("Interrupted while attempting to fetch quote {}", e.getMessage());
             Thread.currentThread().interrupt();
         }
+
         if (response != null) {
             int status = response.statusCode();
             if (status >= 200 && status <= 299) {
@@ -98,30 +112,38 @@ public class StockCommand implements BotCommand {
                 log.warn("Failed to fetch quote (HTTP response status: {}", status);
             }
         }
+
         return Optional.empty();
     }
 
     private static String parseQuote(String json) {
         validateString(json);
-        Configuration conf = Configuration.defaultConfiguration();
+        var conf = Configuration.defaultConfiguration();
         JsonNode metaNode = JsonPath.using(conf)
                 .parse(json)
                 .read("$.chart.result[0].meta", JsonNode.class);
         String symbol = metaNode.get("symbol").asText();
-        int marketTime = metaNode.get("regularMarketTime").asInt();
-        ZoneId zId = ZoneId.systemDefault();
-        ZonedDateTime dt = ZonedDateTime.ofInstant(Instant.ofEpochSecond(marketTime), zId);
-        DateTimeFormatter df = DateTimeFormatter.ofPattern("h:mma");
+        var marketTime = metaNode.get("regularMarketTime").asInt();
+        var zId = ZoneId.systemDefault();
+        var dt = ZonedDateTime.ofInstant(Instant.ofEpochSecond(marketTime), zId);
+        var df = DateTimeFormatter.ofPattern("h:mma");
         String timezone = metaNode.get("timezone").asText();
         Double marketPrice = metaNode.get("regularMarketPrice").asDouble();
 
         return String.format("[Q] %s %.2f [%s %s]%n", symbol, marketPrice, dt.format(df), timezone);
     }
 
+    @Override
     public GenericMessageEvent getEvent() {
         return event;
     }
 
+    @Override
+    public CommandListener.MessageSource getSource() {
+        return source;
+    }
+
+    @Override
     public List<String> getArgs() {
         return args;
     }
