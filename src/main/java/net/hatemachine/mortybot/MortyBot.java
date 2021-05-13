@@ -212,22 +212,22 @@ public class MortyBot extends PircBotX {
         return botUsers;
     }
 
-    static String getStringProperty(String name, String defaultValue) {
+    public static String getStringProperty(String name, String defaultValue) {
         var prop = getStringProperty(name);
         return prop == null ? defaultValue : prop;
     }
 
-    static boolean getBooleanProperty(String name, boolean defaultValue) {
+    public static boolean getBooleanProperty(String name, boolean defaultValue) {
         var prop = getStringProperty(name);
         return prop == null ? defaultValue : "true".equalsIgnoreCase(prop);
     }
 
-    static int getIntProperty(String name, int defaultValue) {
+    public static int getIntProperty(String name, int defaultValue) {
         var prop = getStringProperty(name);
         return prop == null ? defaultValue : Integer.parseInt(prop);
     }
 
-    static String getStringProperty(String name) {
+    public static String getStringProperty(String name) {
         var prop = System.getProperty(name);
         return prop == null ? properties.getProperty(name) : prop;
     }

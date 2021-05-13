@@ -115,7 +115,7 @@ public class LinkListener extends ListenerAdapter {
      * @return a list of link strings
      */
     private static List<String> parseMessage(final String s) {
-        log.debug("Parsing message for links: {} in ", s);
+        log.debug("Parsing message for links: {}", s);
         var m = URL_PATTERN.matcher(s);
         List<String> links = new ArrayList<>();
         while (m.find()) {

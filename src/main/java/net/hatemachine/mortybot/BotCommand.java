@@ -7,6 +7,7 @@ import java.util.List;
 public interface BotCommand {
     void execute();
     GenericMessageEvent getEvent();
+    CommandListener.MessageSource getSource();
     List<String> getArgs();
 
     default String getName() {

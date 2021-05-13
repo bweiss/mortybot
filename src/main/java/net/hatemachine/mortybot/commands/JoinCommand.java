@@ -2,17 +2,18 @@ package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.CommandListener;
+import net.hatemachine.mortybot.MortyBot;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;
 
-public class TestCommand implements BotCommand {
+public class JoinCommand implements BotCommand {
 
     private final GenericMessageEvent event;
     private final CommandListener.MessageSource source;
     private final List<String> args;
 
-    public TestCommand(GenericMessageEvent event, CommandListener.MessageSource source, List<String> args) {
+    public JoinCommand(GenericMessageEvent event, CommandListener.MessageSource source, List<String> args) {
         this.event = event;
         this.source = source;
         this.args = args;
@@ -20,7 +21,13 @@ public class TestCommand implements BotCommand {
 
     @Override
     public void execute() {
-        event.respondWith("It worked! args: " + args);
+        MortyBot bot = event.getBot();
+        if (args.size() == 1) {
+            bot.sendIRC().joinChannel(args.get(0));
+        } else if (args.size() > 1) {
+            // attempt to join with a key
+            bot.sendIRC().joinChannel(args.get(0), args.get(1));
+        }
     }
 
     @Override
