@@ -35,5 +35,5 @@ public interface BotUserDao {
     /**
      * @return list of all bot users.
      */
-    List<BotUser> getAllBotUsers();
+    List<BotUser> getAll();
 }

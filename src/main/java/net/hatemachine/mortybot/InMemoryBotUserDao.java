@@ -47,7 +47,7 @@ public class InMemoryBotUserDao implements BotUserDao {
     }
 
     @Override
-    public List<BotUser> getAllBotUsers() {
+    public List<BotUser> getAll() {
         return new ArrayList<>(nameToBotUser.values());
     }
 }

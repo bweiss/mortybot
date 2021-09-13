@@ -98,7 +98,7 @@ public class MortyBot extends PircBotX {
         addBotUsers(botUserDao);
 
         log.debug("Bot users:");
-        botUserDao.getAllBotUsers().forEach(u -> log.debug(u.toString()));
+        botUserDao.getAll().forEach(u -> log.debug(u.toString()));
 
         // Start the bot and connect to a server
         try (var bot = new MortyBot(config)) {
@@ -116,7 +116,7 @@ public class MortyBot extends PircBotX {
      * @return list of all bot users
      */
     public List<BotUser> getBotUsers() {
-        return botUserDao.getAllBotUsers();
+        return botUserDao.getAll();
     }
 
     /**
@@ -126,7 +126,7 @@ public class MortyBot extends PircBotX {
      * @return list of bot users matching the type
      */
     public List<BotUser> getBotUsers(BotUserType type) {
-        return botUserDao.getAllBotUsers()
+        return botUserDao.getAll()
                 .stream()
                 .filter(u -> u.getType().equals(type))
                 .collect(toList());
@@ -139,7 +139,7 @@ public class MortyBot extends PircBotX {
      * @return list of bot users with matching hostmasks
      */
     public List<BotUser> getBotUsers(String hostmask) {
-        return botUserDao.getAllBotUsers()
+        return botUserDao.getAll()
                 .stream()
                 .filter(u -> u.hasMatchingHostmask(hostmask))
                 .collect(toList());
@@ -153,7 +153,7 @@ public class MortyBot extends PircBotX {
      * @return list of bot users matching both the type and hostmask
      */
     public List<BotUser> getBotUsers(BotUserType type, String hostmask) {
-        return botUserDao.getAllBotUsers()
+        return botUserDao.getAll()
                 .stream()
                 .filter(u -> u.getType().equals(type))
                 .filter(u -> u.hasMatchingHostmask(hostmask))
