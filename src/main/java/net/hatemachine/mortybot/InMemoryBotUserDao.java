@@ -16,7 +16,7 @@ public class InMemoryBotUserDao implements BotUserDao {
     @Override
     public BotUser getByName(final String name) {
         if (!nameToBotUser.containsKey(name))
-            throw new BotUserException(UNKNOWN_BOT_USER, name);
+            throw new BotUserException(USER_NOT_FOUND, name);
 
         return nameToBotUser.get(name);
     }
@@ -24,7 +24,7 @@ public class InMemoryBotUserDao implements BotUserDao {
     @Override
     public void add(final BotUser botUser) {
         if (nameToBotUser.containsKey(botUser.getName()))
-            throw new BotUserException(BOT_USER_EXISTS, botUser.getName());
+            throw new BotUserException(USER_EXISTS, botUser.getName());
 
         nameToBotUser.put(botUser.getName(), botUser);
     }
@@ -32,7 +32,7 @@ public class InMemoryBotUserDao implements BotUserDao {
     @Override
     public void update(final BotUser botUser) {
         if (!nameToBotUser.containsKey(botUser.getName()))
-            throw new BotUserException(UNKNOWN_BOT_USER, botUser.getName());
+            throw new BotUserException(USER_NOT_FOUND, botUser.getName());
 
         nameToBotUser.remove(botUser.getName());
         nameToBotUser.put(botUser.getName(), botUser);
@@ -41,7 +41,7 @@ public class InMemoryBotUserDao implements BotUserDao {
     @Override
     public boolean delete(final BotUser botUser) {
         if (!nameToBotUser.containsKey(botUser.getName()))
-            throw new BotUserException(UNKNOWN_BOT_USER, botUser.getName());
+            throw new BotUserException(USER_NOT_FOUND, botUser.getName());
 
         return nameToBotUser.remove(botUser.getName()) != null;
     }

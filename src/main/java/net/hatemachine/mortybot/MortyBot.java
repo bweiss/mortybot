@@ -19,11 +19,15 @@ import java.util.List;
 import java.util.Properties;
 
 import static java.util.stream.Collectors.toList;
+import static net.hatemachine.mortybot.util.IrcUtils.validateHostmask;
+import static net.hatemachine.mortybot.util.StringUtils.validateString;
 
 public class MortyBot extends PircBotX {
 
+    // our main properties file
     private static final String  PROPERTIES_FILE = "bot.properties";
 
+    // setup some defaults
     private static final String  BOT_NAME_DEFAULT = "morty";
     private static final String  BOT_LOGIN_DEFAULT = "morty";
     private static final String  BOT_REAL_NAME_DEFAULT = "Aww jeez, Rick!";
@@ -45,6 +49,11 @@ public class MortyBot extends PircBotX {
         super(config);
     }
 
+    /**
+     * Main entry point for the bot. Responsible for initial configuration and setting up the bot users.
+     *
+     * @param args command line arguments for the bot
+     */
     public static void main(String[] args) {
         if (System.getenv("MORTYBOT_HOME") == null) {
             log.error("MORTYBOT_HOME not set, exiting...");
@@ -57,12 +66,10 @@ public class MortyBot extends PircBotX {
         try (var reader = new FileReader(propertiesFile)) {
             properties.load(reader);
             log.debug("Loaded {} properties", properties.size());
-        }
-        catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             String msg = "file not found: " + propertiesFile;
             log.error(msg, e.getMessage());
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             String msg = "unable to read file: " + propertiesFile;
             log.error(msg, e.getMessage());
         }
@@ -104,8 +111,7 @@ public class MortyBot extends PircBotX {
         try (var bot = new MortyBot(config)) {
             log.info("Starting bot with nick: {}", bot.getNick());
             bot.startBot();
-        }
-        catch (IOException | IrcException e) {
+        } catch (IOException | IrcException e) {
             log.error("Failed to start bot, exiting...", e);
         }
     }
@@ -122,7 +128,7 @@ public class MortyBot extends PircBotX {
     /**
      * Get all the bot users of a particular type.
      *
-     * @param type the bot user type
+     * @param type the type of user
      * @return list of bot users matching the type
      */
     public List<BotUser> getBotUsers(BotUserType type) {
@@ -148,7 +154,7 @@ public class MortyBot extends PircBotX {
     /**
      * Get all the bot users that match a particular type and hostmask.
      *
-     * @param type the bot user type
+     * @param type the type of user
      * @param hostmask the user's hostmask
      * @return list of bot users matching both the type and hostmask
      */
@@ -161,31 +167,98 @@ public class MortyBot extends PircBotX {
     }
 
     /**
-     * Validates the rickness of a user by their hostmask.
+     * Get a bot user by their name.
      *
-     * @param user that you want to verify is a rick and not some morty
-     * @return true if user is a rick
+     * @param name the name of the user you want to retrieve
+     * @return the BotUser if found
      */
-    public boolean authorizeRick(User user) {
-        List<BotUser> ricks = this.getBotUsers(BotUserType.RICK, user.getHostmask());
-        return !ricks.isEmpty();
+    public BotUser getBotUserByName(String name) {
+        return botUserDao.getByName(name);
     }
 
     /**
-     * Add some users to the bot.
+     * Add a bot user.
      *
-     * @param botUserDao the BotUserDao object we're using
+     * @param name the name of the bot user
+     * @param hostmask the initial hostmask for this user
+     * @param type the type of user
+     * @throws BotUserException if there is an issue adding the user
      */
-    private static void addBotUsers(BotUserDao botUserDao) {
-        for (BotUser botUser : generateBotUsers()) {
-            try {
-                log.debug("Adding user: {}", botUser);
-                botUserDao.add(botUser);
-            }
-            catch (BotUserException e) {
-                log.debug(e.getMessage());
-            }
+    public void addBotUser(String name, String hostmask, BotUserType type) throws BotUserException {
+        BotUser user = new BotUser(validateString(name), validateHostmask(hostmask), type);
+        botUserDao.add(user);
+    }
+
+    /**
+     * Remove a bot user.
+     *
+     * @param name the name of the user to be removed
+     * @throws BotUserException if there is an issue removing the user
+     */
+    public void removeBotUser(String name) throws BotUserException {
+        BotUser user = botUserDao.getByName(validateString(name));
+        botUserDao.delete(user);
+    }
+
+    /**
+     * Add a hostmask to a bot user.
+     *
+     * @param name the name of the user
+     * @param hostmask the hostmask to add
+     * @throws BotUserException if there is an issue adding the hostmask
+     */
+    public void addBotUserHostmask(String name, String hostmask) throws BotUserException {
+        BotUser user = botUserDao.getByName(validateString(name));
+        if (user.getHostmasks().contains(validateHostmask(hostmask))) {
+            throw new BotUserException(BotUserException.Reason.HOSTMASK_EXISTS, hostmask);
         }
+        if (user.addHostmask(hostmask)) {
+            botUserDao.update(user);
+        } else {
+            log.error("failed to add hostmask {} to user {}", hostmask, user.getName());
+        }
+    }
+
+    /**
+     * Remove a hostmask from a bot user.
+     *
+     * @param name the name of the user
+     * @param hostmask the hostmask to remove
+     * @throws BotUserException if there is an issue removing the hostmask
+     */
+    public void removeBotUserHostmask(String name, String hostmask) throws BotUserException {
+        BotUser user = botUserDao.getByName(validateString(name));
+        if (!user.getHostmasks().contains(validateHostmask(hostmask))) {
+            throw new BotUserException(BotUserException.Reason.HOSTMASK_NOT_FOUND, hostmask);
+        }
+        if (user.removeHostmask(hostmask)) {
+            botUserDao.update(user);
+        } else {
+            log.error("failed to remove hostmask {} from {}", hostmask, user.getName());
+        }
+    }
+
+    /**
+     * Change the type of user.
+     *
+     * @param name the name of the user to update
+     * @param type the type to set them to
+     */
+    public void setBotUserType(String name, BotUserType type) {
+        BotUser user = botUserDao.getByName(validateString(name));
+        user.setType(type);
+        botUserDao.update(user);
+    }
+
+    /**
+     * Lets you know if a user is a Rick or just some Morty.
+     *
+     * @param user that you want to verify
+     * @return true if user is a rick
+     */
+    public boolean isRick(User user) {
+        List<BotUser> ricks = this.getBotUsers(BotUserType.RICK, user.getHostmask());
+        return !ricks.isEmpty();
     }
 
     /**
@@ -196,20 +269,6 @@ public class MortyBot extends PircBotX {
      */
     public boolean hasOps(Channel channel) {
         return channel.getOps().stream().anyMatch(u -> u.getNick().equalsIgnoreCase(this.getNick()));
-    }
-
-    /**
-     * Generate some bot users for testing.
-     *
-     * @return list of bot users
-     */
-    private static List<BotUser> generateBotUsers() {
-        final List<BotUser> botUsers = new ArrayList<>();
-        botUsers.add(new BotUser("brian", "*!brian@hatemachine.net", BotUserType.RICK));
-        botUsers.add(new BotUser("megan", "*!megan@hugmachine.net", BotUserType.MORTY));
-        botUsers.add(new BotUser("megan", "*!megan@hatemachine.net", BotUserType.JERRY));
-        botUsers.add(new BotUser("drgonzo", "*!gonzo@*.beerandloathing.org", BotUserType.JERRY));
-        return botUsers;
     }
 
     public static String getStringProperty(String name, String defaultValue) {
@@ -230,5 +289,36 @@ public class MortyBot extends PircBotX {
     public static String getStringProperty(String name) {
         var prop = System.getProperty(name);
         return prop == null ? properties.getProperty(name) : prop;
+    }
+
+    /**
+     * Generate some bot users for testing.
+     *
+     * @return list of bot users
+     */
+    private static List<BotUser> generateBotUsers() {
+        final List<BotUser> botUsers = new ArrayList<>();
+        botUsers.add(new BotUser("brian", "*!brian@hatemachine.net", BotUserType.RICK));
+        botUsers.add(new BotUser("megan", "*!megan@hugmachine.net", BotUserType.MORTY));
+        botUsers.add(new BotUser("megan", "*!megan@hatemachine.net", BotUserType.JERRY));
+        botUsers.add(new BotUser("drgonzo", "*!gonzo@*.beerandloathing.org", BotUserType.JERRY));
+        return botUsers;
+    }
+
+    /**
+     * Add some users to the bot.
+     *
+     * @param botUserDao the BotUserDao object we're using
+     */
+    private static void addBotUsers(BotUserDao botUserDao) {
+        for (BotUser botUser : generateBotUsers()) {
+            try {
+                log.debug("Adding user: {}", botUser);
+                botUserDao.add(botUser);
+            }
+            catch (BotUserException e) {
+                log.debug(e.getMessage());
+            }
+        }
     }
 }
