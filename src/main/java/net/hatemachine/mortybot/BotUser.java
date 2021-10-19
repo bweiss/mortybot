@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import static net.hatemachine.mortybot.BotUserType.*;
-import static net.hatemachine.mortybot.util.StringUtils.validateString;
 import static net.hatemachine.mortybot.util.StringUtils.wildcardToRegex;
 
 public class BotUser {
@@ -20,8 +19,8 @@ public class BotUser {
     }
 
     public BotUser(final String name, final String hostmask, final BotUserType type) {
-        this.name = validateString(name);
-        this.hostmasks.add(validateString(hostmask));
+        this.name = name;
+        this.hostmasks.add(hostmask);
         this.type = type;
     }
 
@@ -30,7 +29,7 @@ public class BotUser {
     }
 
     public boolean addHostmask(String hostmask) {
-        return hostmasks.add(validateString(hostmask));
+        return hostmasks.add(hostmask);
     }
 
     public boolean removeHostmask(String hostmask) {
