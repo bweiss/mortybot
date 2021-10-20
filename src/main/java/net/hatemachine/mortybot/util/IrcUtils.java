@@ -207,7 +207,7 @@ public class IrcUtils {
      */
     public static String validateNickname(String s) {
         if (!isValidNickname(s)) {
-            throw new IllegalArgumentException("invalid nickname: " + s);
+            throw new IllegalArgumentException("Invalid nickname");
         }
         return s;
     }
@@ -221,7 +221,7 @@ public class IrcUtils {
      */
     public static String validateUsername(String s) {
         if (!isValidUsername(s)) {
-            throw new IllegalArgumentException("invalid username: " + s);
+            throw new IllegalArgumentException("Invalid username");
         }
         return s;
     }
@@ -235,7 +235,7 @@ public class IrcUtils {
      */
     public static String validateHostname(String s) {
         if (!isValidHostname(s)) {
-            throw new IllegalArgumentException("invalid hostname: " + s);
+            throw new IllegalArgumentException("Invalid hostname");
         }
         return s;
     }
@@ -249,7 +249,7 @@ public class IrcUtils {
      */
     public static String validateAddress(String s) {
         if (!isValidAddress(s)) {
-            throw new IllegalArgumentException("invalid address: " + s);
+            throw new IllegalArgumentException("Invalid address");
         }
         return s;
     }
@@ -263,7 +263,7 @@ public class IrcUtils {
      */
     public static String validateHostmask(String s) {
         if (!isValidHostmask(s)) {
-            throw new IllegalArgumentException("invalid hostmask: " + s);
+            throw new IllegalArgumentException("Invalid hostmask");
         }
         return s;
     }

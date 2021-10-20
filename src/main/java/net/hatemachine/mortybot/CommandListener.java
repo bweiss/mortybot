@@ -8,6 +8,7 @@ import net.hatemachine.mortybot.commands.PartCommand;
 import net.hatemachine.mortybot.commands.QuitCommand;
 import net.hatemachine.mortybot.commands.StockCommand;
 import net.hatemachine.mortybot.commands.TestCommand;
+import net.hatemachine.mortybot.commands.UserCommand;
 import net.hatemachine.mortybot.exception.BotCommandException;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.MessageEvent;
@@ -61,10 +62,6 @@ public class CommandListener extends ListenerAdapter {
      * Handle a command from a user. For now this can either be a public command from a channel
      * or a private message from a user but could be expanded to other sources (e.g. CTCP or DCC).
      *
-     * Simple commands are implemented directly within this class (e.g. the join command) but more
-     * complex commands can be implemented in their own class using the BotCommand interface
-     * and the execBotCommand method (see TestCommand for an example).
-     *
      * @param event the event that contained a command
      * @param source the source of the command, public or private message
      */
@@ -74,7 +71,7 @@ public class CommandListener extends ListenerAdapter {
         List<String> args = tokens.subList(1, tokens.size());
         var user = event.getUser();
 
-        log.info("Command {} triggered by {}, args: {}", command, user, args);
+        log.info("Command {} triggered by {}, args: {}", command, user.getNick(), args);
 
         switch (command) {
             case "IPLOOKUP":
@@ -108,6 +105,10 @@ public class CommandListener extends ListenerAdapter {
 
             case "TEST":
                 execBotCommand(new TestCommand(event, source, args));
+                break;
+
+            case "USER":
+                execBotCommand(new UserCommand(event, source, args));
                 break;
 
             default:

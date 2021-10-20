@@ -69,7 +69,7 @@ public class StringUtils {
     public static String validateBotUsername(String s) {
         String username = validateString(s);
         if (!isValidBotUsername(s)) {
-            throw new IllegalArgumentException("Invalid bot username: " + username);
+            throw new IllegalArgumentException("Invalid username");
         }
         return s;
     }

@@ -20,6 +20,7 @@ import java.util.Properties;
 
 import static java.util.stream.Collectors.toList;
 import static net.hatemachine.mortybot.util.IrcUtils.validateHostmask;
+import static net.hatemachine.mortybot.util.StringUtils.validateBotUsername;
 import static net.hatemachine.mortybot.util.StringUtils.validateString;
 
 public class MortyBot extends PircBotX {
@@ -185,8 +186,9 @@ public class MortyBot extends PircBotX {
      * @throws BotUserException if there is an issue adding the user
      */
     public void addBotUser(String name, String hostmask, BotUserType type) throws BotUserException {
-        BotUser user = new BotUser(validateString(name), validateHostmask(hostmask), type);
+        BotUser user = new BotUser(validateBotUsername(name), validateHostmask(hostmask), type);
         botUserDao.add(user);
+        log.info("Added bot user: {}", user.getName());
     }
 
     /**
@@ -198,6 +200,7 @@ public class MortyBot extends PircBotX {
     public void removeBotUser(String name) throws BotUserException {
         BotUser user = botUserDao.getByName(validateString(name));
         botUserDao.delete(user);
+        log.info("Removed bot user: {}", user.getName());
     }
 
     /**
@@ -214,8 +217,9 @@ public class MortyBot extends PircBotX {
         }
         if (user.addHostmask(hostmask)) {
             botUserDao.update(user);
+            log.info("Added hostmask {} to user {}", hostmask, user.getName());
         } else {
-            log.error("failed to add hostmask {} to user {}", hostmask, user.getName());
+            log.error("Failed to add hostmask {} to user {}", hostmask, user.getName());
         }
     }
 
@@ -228,13 +232,14 @@ public class MortyBot extends PircBotX {
      */
     public void removeBotUserHostmask(String name, String hostmask) throws BotUserException {
         BotUser user = botUserDao.getByName(validateString(name));
-        if (!user.getHostmasks().contains(validateHostmask(hostmask))) {
+        if (!user.getHostmasks().contains(validateString(hostmask))) {
             throw new BotUserException(BotUserException.Reason.HOSTMASK_NOT_FOUND, hostmask);
         }
         if (user.removeHostmask(hostmask)) {
             botUserDao.update(user);
+            log.info("Removed hostmask {} from user {}", hostmask, user.getName());
         } else {
-            log.error("failed to remove hostmask {} from {}", hostmask, user.getName());
+            log.error("Failed to remove hostmask {} from {}", hostmask, user.getName());
         }
     }
 
@@ -248,6 +253,7 @@ public class MortyBot extends PircBotX {
         BotUser user = botUserDao.getByName(validateString(name));
         user.setType(type);
         botUserDao.update(user);
+        log.info("User type for {} changed to {}", user.getName(), type);
     }
 
     /**
