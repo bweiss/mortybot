@@ -58,7 +58,7 @@ public class BotUser {
     @Override
     public String toString() {
         return "BotUser{" +
-                ", name='" + name + '\'' +
+                "name='" + name + '\'' +
                 ", hostmasks=" + hostmasks +
                 ", adminFlag=" + adminFlag +
                 '}';

@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,13 +22,15 @@ import java.util.Properties;
 
 import static java.util.stream.Collectors.toList;
 import static net.hatemachine.mortybot.util.IrcUtils.validateHostmask;
-import static net.hatemachine.mortybot.util.StringUtils.validateBotUsername;
-import static net.hatemachine.mortybot.util.StringUtils.validateString;
+import static net.hatemachine.mortybot.util.StringUtils.*;
 
 public class MortyBot extends PircBotX {
 
     // our main properties file
     private static final String  PROPERTIES_FILE = "bot.properties";
+
+    // file containing users to add to the bot
+    private static final String  BOT_USERS_FILE = "users.conf";
 
     // setup some defaults
     private static final String  BOT_NAME_DEFAULT = "morty";
@@ -103,8 +107,7 @@ public class MortyBot extends PircBotX {
         }
 
         // Add some users
-        addBotUsers(botUserDao);
-
+        loadBotUsersFromFile(System.getenv("MORTYBOT_HOME") + "/conf/" + BOT_USERS_FILE);
         log.debug("Bot users:");
         botUserDao.getAll().forEach(u -> log.debug(u.toString()));
 
@@ -297,32 +300,37 @@ public class MortyBot extends PircBotX {
     }
 
     /**
-     * Generate some bot users for testing.
+     * Load some bot users from a file.
      *
-     * @return list of bot users
+     * @param filename the name of the file to load users from
      */
-    private static List<BotUser> generateBotUsers() {
-        final List<BotUser> botUsers = new ArrayList<>();
-        botUsers.add(new BotUser("brian", "*!brian@hatemachine.net", true));
-        botUsers.add(new BotUser("megan", "*!megan@hugmachine.net", false));
-        botUsers.add(new BotUser("megan", "*!megan@hatemachine.net", false));
-        botUsers.add(new BotUser("drgonzo", "*!gonzo@*.beerandloathing.org", false));
-        return botUsers;
-    }
+    private static void loadBotUsersFromFile(String filename) {
+        List<String> lines = new ArrayList<>();
+        try {
+            lines = Files.readAllLines(Path.of(filename));
+        } catch (IOException e) {
+            log.error("Error reading file: {}", filename);
+            e.printStackTrace();
+        }
 
-    /**
-     * Add some users to the bot.
-     *
-     * @param botUserDao the BotUserDao object we're using
-     */
-    private static void addBotUsers(BotUserDao botUserDao) {
-        for (BotUser botUser : generateBotUsers()) {
-            try {
-                log.debug("Adding user: {}", botUser);
-                botUserDao.add(botUser);
-            }
-            catch (BotUserException e) {
-                log.debug(e.getMessage());
+        for (String line : lines) {
+            if (line.startsWith("//")) {
+                // comment, ignore...
+            } else if (isValidString(line)) {
+                List<String> tokens = Arrays.asList(line.split(" "));
+                if (tokens.size() == 3) {
+                    String name = validateBotUsername(tokens.get(0));
+                    String[] hostmasks = tokens.get(1).split(",");
+                    String adminFlag = tokens.get(2);
+                    BotUser user = new BotUser(name, validateHostmask(hostmasks[0]), adminFlag.equals("true"));
+                    if (hostmasks.length > 1) {
+                        for (int i = 1; i < hostmasks.length; i++) {
+                            user.addHostmask(validateHostmask(hostmasks[i]));
+                        }
+                    }
+                    log.debug("Adding user: {}", user);
+                    botUserDao.add(user);
+                }
             }
         }
     }
