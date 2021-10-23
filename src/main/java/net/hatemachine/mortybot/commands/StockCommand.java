@@ -41,7 +41,7 @@ public class StockCommand implements BotCommand {
     private static final Logger log = LoggerFactory.getLogger(StockCommand.class);
 
     private final GenericMessageEvent event;
-    private final CommandListener.MessageSource source;
+    private final CommandListener.CommandSource source;
     private final List<String> args;
 
     static {
@@ -67,7 +67,7 @@ public class StockCommand implements BotCommand {
         });
     }
 
-    public StockCommand(GenericMessageEvent event, CommandListener.MessageSource source, List<String> args) {
+    public StockCommand(GenericMessageEvent event, CommandListener.CommandSource source, List<String> args) {
         this.event = event;
         this.source = source;
         this.args = args;
@@ -139,7 +139,7 @@ public class StockCommand implements BotCommand {
     }
 
     @Override
-    public CommandListener.MessageSource getSource() {
+    public CommandListener.CommandSource getSource() {
         return source;
     }
 

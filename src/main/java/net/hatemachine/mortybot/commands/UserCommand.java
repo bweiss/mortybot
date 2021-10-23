@@ -23,10 +23,10 @@ public class UserCommand implements BotCommand {
     private static final Logger log = LoggerFactory.getLogger(UserCommand.class);
 
     private final GenericMessageEvent event;
-    private final CommandListener.MessageSource source;
+    private final CommandListener.CommandSource source;
     private final List<String> args;
 
-    public UserCommand(GenericMessageEvent event, CommandListener.MessageSource source, List<String> args) {
+    public UserCommand(GenericMessageEvent event, CommandListener.CommandSource source, List<String> args) {
         this.event = event;
         this.source = source;
         this.args = args;
@@ -272,7 +272,7 @@ public class UserCommand implements BotCommand {
     }
 
     @Override
-    public CommandListener.MessageSource getSource() {
+    public CommandListener.CommandSource getSource() {
         return source;
     }
 

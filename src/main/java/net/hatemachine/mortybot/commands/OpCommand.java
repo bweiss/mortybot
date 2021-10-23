@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import static net.hatemachine.mortybot.CommandListener.MessageSource.PRIVATE;
-import static net.hatemachine.mortybot.CommandListener.MessageSource.PUBLIC;
+import static net.hatemachine.mortybot.CommandListener.CommandSource.PRIVATE;
+import static net.hatemachine.mortybot.CommandListener.CommandSource.PUBLIC;
 import static net.hatemachine.mortybot.util.IrcUtils.userHasOps;
 
 public class OpCommand implements BotCommand {
@@ -20,10 +20,10 @@ public class OpCommand implements BotCommand {
     private static final Logger log = LoggerFactory.getLogger(OpCommand.class);
 
     private final GenericMessageEvent event;
-    private final CommandListener.MessageSource source;
+    private final CommandListener.CommandSource source;
     private final List<String> args;
 
-    public OpCommand(GenericMessageEvent event, CommandListener.MessageSource source, List<String> args) {
+    public OpCommand(GenericMessageEvent event, CommandListener.CommandSource source, List<String> args) {
         this.event = event;
         this.source = source;
         this.args = args;
@@ -60,7 +60,7 @@ public class OpCommand implements BotCommand {
     }
 
     @Override
-    public CommandListener.MessageSource getSource() {
+    public CommandListener.CommandSource getSource() {
         return source;
     }
 

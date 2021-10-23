@@ -24,10 +24,10 @@ public class IpLookupCommand implements BotCommand {
     private static final String GEOLITE2_CITY_DB = "GeoLite2-City.mmdb";
 
     private final GenericMessageEvent event;
-    private final CommandListener.MessageSource source;
+    private final CommandListener.CommandSource source;
     private final List<String> args;
 
-    public IpLookupCommand(GenericMessageEvent event, CommandListener.MessageSource source, List<String> args) {
+    public IpLookupCommand(GenericMessageEvent event, CommandListener.CommandSource source, List<String> args) {
         this.event = event;
         this.source = source;
         this.args = args;
@@ -80,7 +80,7 @@ public class IpLookupCommand implements BotCommand {
     }
 
     @Override
-    public CommandListener.MessageSource getSource() {
+    public CommandListener.CommandSource getSource() {
         return source;
     }
 

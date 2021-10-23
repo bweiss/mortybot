@@ -19,9 +19,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
-import static net.hatemachine.mortybot.CommandListener.MessageSource.PRIVATE;
-import static net.hatemachine.mortybot.CommandListener.MessageSource.PUBLIC;
+import static net.hatemachine.mortybot.CommandListener.CommandSource.PRIVATE;
+import static net.hatemachine.mortybot.CommandListener.CommandSource.PUBLIC;
 
 public class CommandListener extends ListenerAdapter {
 
@@ -29,7 +30,19 @@ public class CommandListener extends ListenerAdapter {
 
     private final String commandPrefix;
 
-    public enum MessageSource {
+    public enum Command {
+        IPLOOKUP,
+        JOIN,
+        MSG,
+        OP,
+        PART,
+        QUIT,
+        STOCK,
+        TEST,
+        USER;
+    }
+
+    public enum CommandSource {
         PRIVATE,
         PUBLIC
     }
@@ -65,54 +78,58 @@ public class CommandListener extends ListenerAdapter {
      * @param event the event that contained a command
      * @param source the source of the command, public or private message
      */
-    private void handleCommand(final GenericMessageEvent event, MessageSource source) {
+    private void handleCommand(final GenericMessageEvent event, CommandSource source) {
         List<String> tokens = Arrays.asList(event.getMessage().split(" "));
-        String command = tokens.get(0).substring(getCommandPrefix().length()).toUpperCase();
+        String commandStr = tokens.get(0).substring(getCommandPrefix().length()).toUpperCase(Locale.ROOT);
+        Command command;
         List<String> args = tokens.subList(1, tokens.size());
         var user = event.getUser();
 
-        log.info("Command {} triggered by {}, args: {}", command, user.getNick(), args);
+        try {
+            command = Enum.valueOf(Command.class, commandStr);
+        } catch (IllegalArgumentException e) {
+            log.info("Invalid command {} from {}", user.getNick(), commandStr);
+            return;
+        }
+
+        log.info("Command {} triggered by {}, args: {}", commandStr, user.getNick(), args);
 
         switch (command) {
-            case "IPLOOKUP":
+            case IPLOOKUP:
                 execBotCommand(new IpLookupCommand(event, source, args));
                 break;
 
-            case "JOIN":
+            case JOIN:
                 execBotCommand(new JoinCommand(event, source, args));
                 break;
 
-            case "MSG":
+            case MSG:
                 execBotCommand(new MessageCommand(event, source, args));
                 break;
 
-            case "OP":
+            case OP:
                 execBotCommand(new OpCommand(event, source, args));
                 break;
 
-            case "PART":
+            case PART:
                 execBotCommand(new PartCommand(event, source, args));
                 break;
 
-            case "Q":
-            case "STOCK":
+            case STOCK:
                 execBotCommand(new StockCommand(event, source, args));
                 break;
 
-            case "QUIT":
+            case QUIT:
                 execBotCommand(new QuitCommand(event, source, args));
                 break;
 
-            case "TEST":
+            case TEST:
                 execBotCommand(new TestCommand(event, source, args));
                 break;
 
-            case "USER":
+            case USER:
                 execBotCommand(new UserCommand(event, source, args));
                 break;
-
-            default:
-                log.info("Unknown command {} from {}", command, event.getUser());
         }
     }
 

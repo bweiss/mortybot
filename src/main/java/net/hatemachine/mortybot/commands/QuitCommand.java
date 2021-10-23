@@ -10,10 +10,10 @@ import java.util.List;
 public class QuitCommand implements BotCommand {
 
     private final GenericMessageEvent event;
-    private final CommandListener.MessageSource source;
+    private final CommandListener.CommandSource source;
     private final List<String> args;
 
-    public QuitCommand(GenericMessageEvent event, CommandListener.MessageSource source, List<String> args) {
+    public QuitCommand(GenericMessageEvent event, CommandListener.CommandSource source, List<String> args) {
         this.event = event;
         this.source = source;
         this.args = args;
@@ -32,7 +32,7 @@ public class QuitCommand implements BotCommand {
     }
 
     @Override
-    public CommandListener.MessageSource getSource() {
+    public CommandListener.CommandSource getSource() {
         return source;
     }
 
