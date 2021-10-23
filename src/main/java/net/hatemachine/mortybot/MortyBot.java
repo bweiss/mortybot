@@ -17,8 +17,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
+import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
 import static net.hatemachine.mortybot.util.IrcUtils.validateHostmask;
@@ -130,19 +133,6 @@ public class MortyBot extends PircBotX {
     }
 
     /**
-     * Get all the bot users that are or are not admins.
-     *
-     * @param adminFlag true or false if user is an admin
-     * @return list of bot users matching the type
-     */
-    public List<BotUser> getBotUsers(boolean adminFlag) {
-        return botUserDao.getAll()
-                .stream()
-                .filter(u -> u.getAdminFlag() == adminFlag)
-                .collect(toList());
-    }
-
-    /**
      * Get all the bot users that match a particular hostmask.
      *
      * @param hostmask the user's hostmask
@@ -156,16 +146,29 @@ public class MortyBot extends PircBotX {
     }
 
     /**
-     * Get all the bot users that have a matching hostmask and are or are not admins.
+     * Get all the bot users that have a specific user flag.
      *
-     * @param hostmask the user's hostmask
-     * @param adminFlag true or false if user is an admin
-     * @return list of bot users matching both the type and hostmask
+     * @param flag the user flag you are interested in
+     * @return list of bot users that have the flag
      */
-    public List<BotUser> getBotUsers(String hostmask, boolean adminFlag) {
+    public List<BotUser> getBotUsers(BotUser.Flag flag) {
         return botUserDao.getAll()
                 .stream()
-                .filter(u -> u.getAdminFlag() == adminFlag)
+                .filter(u -> u.getFlags().contains(flag))
+                .collect(toList());
+    }
+
+    /**
+     * Get all the bot users that have a matching hostmask and flag.
+     *
+     * @param hostmask the user's hostmask
+     * @param flag the user flag you are interested in
+     * @return list of bot users matching both the hostmask and flag
+     */
+    public List<BotUser> getBotUsers(String hostmask, BotUser.Flag flag) {
+        return botUserDao.getAll()
+                .stream()
+                .filter(u -> u.getFlags().contains(flag))
                 .filter(u -> u.hasMatchingHostmask(hostmask))
                 .collect(toList());
     }
@@ -239,23 +242,50 @@ public class MortyBot extends PircBotX {
         }
         if (user.removeHostmask(hostmask)) {
             botUserDao.update(user);
-            log.info("Removed hostmask {} from user {}", hostmask, user.getName());
+            log.info("Removed hostmask {} from {}", hostmask, user.getName());
         } else {
             log.error("Failed to remove hostmask {} from {}", hostmask, user.getName());
         }
     }
 
     /**
-     * Set the admin flag for a user.
+     * Add a flag to a bot user.
      *
-     * @param name the name of the user to update
-     * @param adminFlag the type to set them to
+     * @param name the name of the bot user
+     * @param flag the flag that you want to add
+     * @throws BotUserException if there is an issue adding the flag
      */
-    public void setBotUserAdminFlag(String name, boolean adminFlag) {
+    public void addBotUserFlag(String name, BotUser.Flag flag) throws BotUserException {
         BotUser user = botUserDao.getByName(validateString(name));
-        user.setAdminFlag(adminFlag);
-        botUserDao.update(user);
-        log.info("Set admin to {} for {}", adminFlag, user.getName());
+        if (user.getFlags().contains(flag)) {
+            throw new BotUserException(BotUserException.Reason.FLAG_EXISTS, flag.toString());
+        }
+        if (user.addFlag(flag)) {
+            botUserDao.update(user);
+            log.info("Added {} flag to {}", flag, user.getName());
+        } else {
+            log.error("Failed to add {} flag to {}", flag, user.getName());
+        }
+    }
+
+    /**
+     * Remove a flag from a bot user.
+     *
+     * @param name the name of the bot user
+     * @param flag the flag that you want to remove
+     * @throws BotUserException if there is an issue removing the flag
+     */
+    public void removeBotUserFlag(String name, BotUser.Flag flag) throws BotUserException {
+        BotUser user = botUserDao.getByName(validateString(name));
+        if (!user.getFlags().contains(flag)) {
+            throw new BotUserException(BotUserException.Reason.FLAG_NOT_FOUND, flag.toString());
+        }
+        if (user.removeFlag(flag)) {
+            botUserDao.update(user);
+            log.info("Removed {} flag from {}", flag, user.getName());
+        } else {
+            log.error("Failed to remove {} flag from {}", flag, user.getName());
+        }
     }
 
     /**
@@ -265,7 +295,7 @@ public class MortyBot extends PircBotX {
      * @return true if user is an admin
      */
     public boolean isAdmin(User user) {
-        List<BotUser> admins = this.getBotUsers(user.getHostmask(), true);
+        List<BotUser> admins = this.getBotUsers(user.getHostmask(), BotUser.Flag.ADMIN);
         return !admins.isEmpty();
     }
 
@@ -318,11 +348,14 @@ public class MortyBot extends PircBotX {
                 // comment, ignore...
             } else if (isValidString(line)) {
                 List<String> tokens = Arrays.asList(line.split(" "));
-                if (tokens.size() == 3) {
+                if (tokens.size() >= 2) {
                     String name = validateBotUsername(tokens.get(0));
                     String[] hostmasks = tokens.get(1).split(",");
-                    String adminFlag = tokens.get(2);
-                    BotUser user = new BotUser(name, validateHostmask(hostmasks[0]), adminFlag.equals("true"));
+                    Set<BotUser.Flag> flags = new HashSet<>();
+                    if (tokens.size() == 3) {
+                        flags = parseUserFlags(tokens.get(2));
+                    }
+                    BotUser user = new BotUser(name, validateHostmask(hostmasks[0]), flags);
                     if (hostmasks.length > 1) {
                         for (int i = 1; i < hostmasks.length; i++) {
                             user.addHostmask(validateHostmask(hostmasks[i]));
@@ -333,5 +366,25 @@ public class MortyBot extends PircBotX {
                 }
             }
         }
+    }
+
+    /**
+     * Parse a comma-delimited string of user flags into a set of enums representing those flags.
+     *
+     * @param flagList the comma-delimited list of flags
+     * @return a set of user flags
+     */
+    private static Set<BotUser.Flag> parseUserFlags(String flagList) {
+        Set<BotUser.Flag> flags = new HashSet<>();
+        for (String flagStr : flagList.split(",")) {
+            BotUser.Flag flag;
+            try {
+                flag = Enum.valueOf(BotUser.Flag.class, flagStr.toUpperCase(Locale.ROOT));
+                flags.add(flag);
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid user flag: {}", flagStr.toUpperCase(Locale.ROOT));
+            }
+        }
+        return flags;
     }
 }

@@ -11,16 +11,21 @@ public class BotUser {
 
     private String name;
     private final Set<String> hostmasks = new HashSet<>();
-    private boolean adminFlag;
+    private Set<Flag> flags = new HashSet<>();
 
-    public BotUser(final String name, final String hostmask) {
-        this(name, hostmask, false);
+    public enum Flag {
+        ADMIN,
+        AOP
     }
 
-    public BotUser(final String name, final String hostmask, final boolean adminFlag) {
+    public BotUser(final String name, final String hostmask) {
+        this(name, hostmask, new HashSet<>());
+    }
+
+    public BotUser(final String name, final String hostmask, final Set<Flag> flags) {
         this.name = name;
         this.hostmasks.add(hostmask);
-        this.adminFlag = adminFlag;
+        this.flags = flags;
     }
 
     public boolean hasMatchingHostmask(String userhost) {
@@ -35,6 +40,14 @@ public class BotUser {
         return hostmasks.remove(hostmask);
     }
 
+    public boolean addFlag(Flag flag) {
+        return flags.add(flag);
+    }
+
+    public boolean removeFlag(Flag flag) {
+        return flags.remove(flag);
+    }
+
     public String getName() {
         return name;
     }
@@ -47,12 +60,8 @@ public class BotUser {
         return hostmasks;
     }
 
-    public boolean getAdminFlag() {
-        return adminFlag;
-    }
-
-    public void setAdminFlag(boolean adminFlag) {
-        this.adminFlag = adminFlag;
+    public Set<Flag> getFlags() {
+        return flags;
     }
 
     @Override
@@ -60,7 +69,7 @@ public class BotUser {
         return "BotUser{" +
                 "name='" + name + '\'' +
                 ", hostmasks=" + hostmasks +
-                ", adminFlag=" + adminFlag +
+                ", flags=" + flags +
                 '}';
     }
 
@@ -69,11 +78,11 @@ public class BotUser {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BotUser botUser = (BotUser) o;
-        return name.equals(botUser.name) && hostmasks.equals(botUser.hostmasks) && adminFlag == botUser.adminFlag;
+        return name.equals(botUser.name) && hostmasks.equals(botUser.hostmasks) && flags == botUser.flags;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, hostmasks, adminFlag);
+        return Objects.hash(name, hostmasks, flags);
     }
 }

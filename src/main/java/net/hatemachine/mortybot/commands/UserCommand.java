@@ -43,6 +43,9 @@ public class UserCommand implements BotCommand {
                 case "ADD":
                     addCommand(newArgs);
                     break;
+                case "ADDFLAG":
+                    addFlagCommand(newArgs);
+                    break;
                 case "ADDHOSTMASK":
                     addHostmaskCommand(newArgs);
                     break;
@@ -52,11 +55,11 @@ public class UserCommand implements BotCommand {
                 case "REMOVE":
                     removeCommand(newArgs);
                     break;
+                case "REMOVEFLAG":
+                    removeFlagCommand(newArgs);
+                    break;
                 case "REMOVEHOSTMASK":
                     removeHostmaskCommand(newArgs);
-                    break;
-                case "SETADMIN":
-                    setAdminCommand(newArgs);
                     break;
                 case "SHOW":
                     showCommand(newArgs);
@@ -79,9 +82,9 @@ public class UserCommand implements BotCommand {
         if (args.size() < 2)
             throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
 
+        MortyBot bot = event.getBot();
         String name = args.get(0);
         String hostmask = args.get(1);
-        MortyBot bot = event.getBot();
 
         try {
             bot.addBotUser(name, hostmask);
@@ -90,6 +93,39 @@ public class UserCommand implements BotCommand {
             handleBotUserException(e, "addCommand", args);
         } catch (IllegalArgumentException e) {
             event.respondWith(e.getMessage());
+        }
+    }
+
+    /**
+     * Add a flag to a bot user.
+     *
+     * @param args the name of the bot user and the flag you want to add
+     * @throws IllegalArgumentException if there are not enough arguments
+     */
+    private void addFlagCommand(List<String> args) throws IllegalArgumentException {
+        if (args.size() < 2)
+            throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
+
+        MortyBot bot = event.getBot();
+        String name = args.get(0);
+        String flagStr = args.get(1).toUpperCase(Locale.ROOT);
+        BotUser.Flag flag = null;
+        try {
+            flag = Enum.valueOf(BotUser.Flag.class, flagStr);
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid user flag: {}", flagStr);
+            event.respondWith("Invalid flag");
+        }
+
+        if (flag != null) {
+            try {
+                bot.addBotUserFlag(name, flag);
+                event.respondWith("Flag added");
+            } catch (BotUserException e) {
+                handleBotUserException(e, "addFlagCommand", args);
+            } catch (IllegalArgumentException e) {
+                event.respondWith(e.getMessage());
+            }
         }
     }
 
@@ -103,9 +139,9 @@ public class UserCommand implements BotCommand {
         if (args.size() < 2)
             throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
 
+        MortyBot bot = event.getBot();
         String name = args.get(0);
         String hostmask = args.get(1);
-        MortyBot bot = event.getBot();
 
         try {
             bot.addBotUserHostmask(name, hostmask);
@@ -142,8 +178,8 @@ public class UserCommand implements BotCommand {
         if (args.isEmpty())
             throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
 
-        String name = args.get(0);
         MortyBot bot = event.getBot();
+        String name = args.get(0);
 
         try {
             bot.removeBotUser(name);
@@ -152,6 +188,39 @@ public class UserCommand implements BotCommand {
             handleBotUserException(e, "removeCommand", args);
         } catch (IllegalArgumentException e) {
             event.respondWith(e.getMessage());
+        }
+    }
+
+    /**
+     * Remove a flag from a bot user.
+     *
+     * @param args the name of the bot user and the flag that you want to remove
+     * @throws IllegalArgumentException if there is an issue removing the flag
+     */
+    private void removeFlagCommand(List<String> args) throws IllegalArgumentException {
+        if (args.size() < 2)
+            throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
+
+        MortyBot bot = event.getBot();
+        String name = args.get(0);
+        String flagStr = args.get(1).toUpperCase(Locale.ROOT);
+        BotUser.Flag flag = null;
+        try {
+            flag = Enum.valueOf(BotUser.Flag.class, flagStr);
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid user flag: {}", flagStr);
+            event.respondWith("Invalid flag");
+        }
+
+        if (flag != null) {
+            try {
+                bot.removeBotUserFlag(name, flag);
+                event.respondWith("Flag removed");
+            } catch (BotUserException e) {
+                handleBotUserException(e, "removeFlagCommand", args);
+            } catch (IllegalArgumentException e) {
+                event.respondWith(e.getMessage());
+            }
         }
     }
 
@@ -165,48 +234,15 @@ public class UserCommand implements BotCommand {
         if (args.size() < 2)
             throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
 
+        MortyBot bot = event.getBot();
         String name = args.get(0);
         String hostmask = args.get(1);
-        MortyBot bot = event.getBot();
 
         try {
             bot.removeBotUserHostmask(name, hostmask);
             event.respondWith("Hostmask removed");
         } catch (BotUserException e) {
             handleBotUserException(e, "removeHostmaskCommand", args);
-        } catch (IllegalArgumentException e) {
-            event.respondWith(e.getMessage());
-        }
-    }
-
-    /**
-     * Set the admin flag for a user to either true or false.
-     *
-     * @param args the name of the user that you want to change followed by either true or false
-     * @throws IllegalArgumentException if there are too few arguments, or they are invalid
-     */
-    private void setAdminCommand(List<String> args) throws IllegalArgumentException {
-        if (args.size() < 2)
-            throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
-
-        String name = args.get(0);
-        boolean adminFlag;
-        String adminFlagStr = args.get(1).toLowerCase(Locale.ROOT);
-        MortyBot bot = event.getBot();
-
-        if (adminFlagStr.equals("true")) {
-            adminFlag = true;
-        } else if (adminFlagStr.equals("false")) {
-            adminFlag = false;
-        } else {
-            throw new IllegalArgumentException("Not a valid boolean, expected true or false");
-        }
-
-        try {
-            bot.setBotUserAdminFlag(name, adminFlag);
-            event.respondWith("Set admin to " + adminFlag + " for " + name);
-        } catch (BotUserException e) {
-            handleBotUserException(e, "setTypeCommand", args);
         } catch (IllegalArgumentException e) {
             event.respondWith(e.getMessage());
         }
@@ -222,8 +258,8 @@ public class UserCommand implements BotCommand {
         if (args.isEmpty())
             throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
 
-        String name = args.get(0);
         MortyBot bot = event.getBot();
+        String name = args.get(0);
 
         try {
             BotUser user = bot.getBotUserByName(name);
@@ -246,6 +282,12 @@ public class UserCommand implements BotCommand {
     private void handleBotUserException(BotUserException e, String method, List<String> args) {
         String errMsg;
         switch (e.getReason()) {
+            case FLAG_EXISTS:
+                errMsg = "Flag already exists";
+                break;
+            case FLAG_NOT_FOUND:
+                errMsg = "Flag not found";
+                break;
             case HOSTMASK_EXISTS:
                 errMsg = "Hostmask already exists";
                 break;

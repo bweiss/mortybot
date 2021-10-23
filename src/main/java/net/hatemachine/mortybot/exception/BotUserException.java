@@ -4,6 +4,8 @@ public class BotUserException extends RuntimeException {
     protected final Reason reason;
 
     public enum Reason {
+        FLAG_EXISTS,
+        FLAG_NOT_FOUND,
         HOSTMASK_EXISTS,
         HOSTMASK_NOT_FOUND,
         USER_EXISTS,
