@@ -27,10 +27,9 @@ public interface BotUserDao {
 
     /**
      * @param botUser the bot user to be deleted.
-     * @return true if bot user exists and is successfully deleted, false otherwise.
      * @throws BotUserException if any error occurs.
      */
-    boolean delete(BotUser botUser) throws BotUserException;
+    void delete(BotUser botUser) throws BotUserException;
 
     /**
      * @return list of all bot users.

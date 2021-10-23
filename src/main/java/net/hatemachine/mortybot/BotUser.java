@@ -5,23 +5,22 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static net.hatemachine.mortybot.BotUserType.*;
 import static net.hatemachine.mortybot.util.StringUtils.wildcardToRegex;
 
 public class BotUser {
 
     private String name;
     private final Set<String> hostmasks = new HashSet<>();
-    private BotUserType type;
+    private boolean adminFlag;
 
     public BotUser(final String name, final String hostmask) {
-        this(name, hostmask, MORTY);
+        this(name, hostmask, false);
     }
 
-    public BotUser(final String name, final String hostmask, final BotUserType type) {
+    public BotUser(final String name, final String hostmask, final boolean adminFlag) {
         this.name = name;
         this.hostmasks.add(hostmask);
-        this.type = type;
+        this.adminFlag = adminFlag;
     }
 
     public boolean hasMatchingHostmask(String userhost) {
@@ -48,12 +47,12 @@ public class BotUser {
         return hostmasks;
     }
 
-    public BotUserType getType() {
-        return type;
+    public boolean getAdminFlag() {
+        return adminFlag;
     }
 
-    public void setType(BotUserType type) {
-        this.type = type;
+    public void setAdminFlag(boolean adminFlag) {
+        this.adminFlag = adminFlag;
     }
 
     @Override
@@ -61,7 +60,7 @@ public class BotUser {
         return "BotUser{" +
                 ", name='" + name + '\'' +
                 ", hostmasks=" + hostmasks +
-                ", type=" + type +
+                ", adminFlag=" + adminFlag +
                 '}';
     }
 
@@ -70,11 +69,11 @@ public class BotUser {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BotUser botUser = (BotUser) o;
-        return name.equals(botUser.name) && hostmasks.equals(botUser.hostmasks) && type == botUser.type;
+        return name.equals(botUser.name) && hostmasks.equals(botUser.hostmasks) && adminFlag == botUser.adminFlag;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, hostmasks, type);
+        return Objects.hash(name, hostmasks, adminFlag);
     }
 }

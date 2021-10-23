@@ -127,15 +127,15 @@ public class MortyBot extends PircBotX {
     }
 
     /**
-     * Get all the bot users of a particular type.
+     * Get all the bot users that are or are not admins.
      *
-     * @param type the type of user
+     * @param adminFlag true or false if user is an admin
      * @return list of bot users matching the type
      */
-    public List<BotUser> getBotUsers(BotUserType type) {
+    public List<BotUser> getBotUsers(boolean adminFlag) {
         return botUserDao.getAll()
                 .stream()
-                .filter(u -> u.getType().equals(type))
+                .filter(u -> u.getAdminFlag() == adminFlag)
                 .collect(toList());
     }
 
@@ -153,16 +153,16 @@ public class MortyBot extends PircBotX {
     }
 
     /**
-     * Get all the bot users that match a particular type and hostmask.
+     * Get all the bot users that have a matching hostmask and are or are not admins.
      *
-     * @param type the type of user
      * @param hostmask the user's hostmask
+     * @param adminFlag true or false if user is an admin
      * @return list of bot users matching both the type and hostmask
      */
-    public List<BotUser> getBotUsers(BotUserType type, String hostmask) {
+    public List<BotUser> getBotUsers(String hostmask, boolean adminFlag) {
         return botUserDao.getAll()
                 .stream()
-                .filter(u -> u.getType().equals(type))
+                .filter(u -> u.getAdminFlag() == adminFlag)
                 .filter(u -> u.hasMatchingHostmask(hostmask))
                 .collect(toList());
     }
@@ -182,11 +182,10 @@ public class MortyBot extends PircBotX {
      *
      * @param name the name of the bot user
      * @param hostmask the initial hostmask for this user
-     * @param type the type of user
      * @throws BotUserException if there is an issue adding the user
      */
-    public void addBotUser(String name, String hostmask, BotUserType type) throws BotUserException {
-        BotUser user = new BotUser(validateBotUsername(name), validateHostmask(hostmask), type);
+    public void addBotUser(String name, String hostmask) throws BotUserException {
+        BotUser user = new BotUser(validateBotUsername(name), validateHostmask(hostmask));
         botUserDao.add(user);
         log.info("Added bot user: {}", user.getName());
     }
@@ -244,27 +243,27 @@ public class MortyBot extends PircBotX {
     }
 
     /**
-     * Change the type of user.
+     * Set the admin flag for a user.
      *
      * @param name the name of the user to update
-     * @param type the type to set them to
+     * @param adminFlag the type to set them to
      */
-    public void setBotUserType(String name, BotUserType type) {
+    public void setBotUserAdminFlag(String name, boolean adminFlag) {
         BotUser user = botUserDao.getByName(validateString(name));
-        user.setType(type);
+        user.setAdminFlag(adminFlag);
         botUserDao.update(user);
-        log.info("User type for {} changed to {}", user.getName(), type);
+        log.info("Set admin to {} for {}", adminFlag, user.getName());
     }
 
     /**
-     * Lets you know if a user is a Rick or just some Morty.
+     * Find out if a user is an admin.
      *
      * @param user that you want to verify
-     * @return true if user is a rick
+     * @return true if user is an admin
      */
-    public boolean isRick(User user) {
-        List<BotUser> ricks = this.getBotUsers(BotUserType.RICK, user.getHostmask());
-        return !ricks.isEmpty();
+    public boolean isAdmin(User user) {
+        List<BotUser> admins = this.getBotUsers(user.getHostmask(), true);
+        return !admins.isEmpty();
     }
 
     /**
@@ -304,10 +303,10 @@ public class MortyBot extends PircBotX {
      */
     private static List<BotUser> generateBotUsers() {
         final List<BotUser> botUsers = new ArrayList<>();
-        botUsers.add(new BotUser("brian", "*!brian@hatemachine.net", BotUserType.RICK));
-        botUsers.add(new BotUser("megan", "*!megan@hugmachine.net", BotUserType.MORTY));
-        botUsers.add(new BotUser("megan", "*!megan@hatemachine.net", BotUserType.JERRY));
-        botUsers.add(new BotUser("drgonzo", "*!gonzo@*.beerandloathing.org", BotUserType.JERRY));
+        botUsers.add(new BotUser("brian", "*!brian@hatemachine.net", true));
+        botUsers.add(new BotUser("megan", "*!megan@hugmachine.net", false));
+        botUsers.add(new BotUser("megan", "*!megan@hatemachine.net", false));
+        botUsers.add(new BotUser("drgonzo", "*!gonzo@*.beerandloathing.org", false));
         return botUsers;
     }
 

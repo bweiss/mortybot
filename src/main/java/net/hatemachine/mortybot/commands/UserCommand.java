@@ -2,7 +2,6 @@ package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.BotUser;
-import net.hatemachine.mortybot.BotUserType;
 import net.hatemachine.mortybot.CommandListener;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.exception.BotUserException;
@@ -17,8 +16,7 @@ import static java.util.stream.Collectors.joining;
 
 public class UserCommand implements BotCommand {
 
-    private static final BotUserType DEFAULT_USER_TYPE = BotUserType.MORTY;
-    private static final String      NOT_ENOUGH_ARGS   = "Too few arguments";
+    private static final String NOT_ENOUGH_ARGS   = "Too few arguments";
 
     private static final Logger log = LoggerFactory.getLogger(UserCommand.class);
 
@@ -57,8 +55,8 @@ public class UserCommand implements BotCommand {
                 case "REMOVEHOSTMASK":
                     removeHostmaskCommand(newArgs);
                     break;
-                case "SETTYPE":
-                    setTypeCommand(newArgs);
+                case "SETADMIN":
+                    setAdminCommand(newArgs);
                     break;
                 case "SHOW":
                     showCommand(newArgs);
@@ -86,7 +84,7 @@ public class UserCommand implements BotCommand {
         MortyBot bot = event.getBot();
 
         try {
-            bot.addBotUser(name, hostmask, DEFAULT_USER_TYPE);
+            bot.addBotUser(name, hostmask);
             event.respondWith("User added");
         } catch (BotUserException e) {
             handleBotUserException(e, "addCommand", args);
@@ -182,32 +180,35 @@ public class UserCommand implements BotCommand {
     }
 
     /**
-     * Set a bot user's type.
+     * Set the admin flag for a user to either true or false.
      *
-     * @param args the name of the user and the type that you want to set in the form "name type"
-     * @throws IllegalArgumentException if there are too few arguments
+     * @param args the name of the user that you want to change followed by either true or false
+     * @throws IllegalArgumentException if there are too few arguments, or they are invalid
      */
-    private void setTypeCommand(List<String> args) throws IllegalArgumentException {
+    private void setAdminCommand(List<String> args) throws IllegalArgumentException {
         if (args.size() < 2)
             throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
 
         String name = args.get(0);
-        String typeStr = args.get(1);
+        boolean adminFlag;
+        String adminFlagStr = args.get(1).toLowerCase(Locale.ROOT);
         MortyBot bot = event.getBot();
 
+        if (adminFlagStr.equals("true")) {
+            adminFlag = true;
+        } else if (adminFlagStr.equals("false")) {
+            adminFlag = false;
+        } else {
+            throw new IllegalArgumentException("Not a valid boolean, expected true or false");
+        }
+
         try {
-            BotUserType type = Enum.valueOf(BotUserType.class, typeStr.toUpperCase(Locale.ROOT));
-            bot.setBotUserType(name, type);
-            event.respondWith("User type changed");
+            bot.setBotUserAdminFlag(name, adminFlag);
+            event.respondWith("Set admin to " + adminFlag + " for " + name);
         } catch (BotUserException e) {
             handleBotUserException(e, "setTypeCommand", args);
         } catch (IllegalArgumentException e) {
-            // handle invalid user types and give a more sanitized response
-            if (e.getMessage().startsWith("No enum constant")) {
-                event.respondWith("Invalid user type");
-            } else {
-                event.respondWith(e.getMessage());
-            }
+            event.respondWith(e.getMessage());
         }
     }
 
