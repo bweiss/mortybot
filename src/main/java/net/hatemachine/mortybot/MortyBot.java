@@ -111,8 +111,6 @@ public class MortyBot extends PircBotX {
 
         // Add some users
         loadBotUsersFromFile(System.getenv("MORTYBOT_HOME") + "/conf/" + BOT_USERS_FILE);
-        log.debug("Bot users:");
-        botUserDao.getAll().forEach(u -> log.debug(u.toString()));
 
         // Start the bot and connect to a server
         try (var bot = new MortyBot(config)) {
@@ -346,7 +344,7 @@ public class MortyBot extends PircBotX {
         }
 
         for (String line : lines) {
-            if (line.startsWith("//")) {
+            if (line.startsWith("#")) {
                 // comment, ignore...
             } else if (isValidString(line)) {
                 List<String> tokens = Arrays.asList(line.split(" "));
