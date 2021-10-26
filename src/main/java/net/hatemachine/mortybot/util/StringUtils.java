@@ -7,7 +7,8 @@ import java.util.regex.Pattern;
 
 public class StringUtils {
 
-    private static final Pattern BOT_USERNAME_PATTERN = Pattern.compile("[a-zA-Z0-9]+");
+    private static final Pattern BOT_USER_NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_]+");
+    private static final int MAX_BOT_USER_NAME_LENGTH = 16;
 
     private StringUtils() {}
 
@@ -41,8 +42,8 @@ public class StringUtils {
      * @return true if the string can be used as a valid username with the bot
      */
     public static boolean isValidBotUsername(String s) {
-        var matcher = BOT_USERNAME_PATTERN.matcher(s);
-        return matcher.matches();
+        var matcher = BOT_USER_NAME_PATTERN.matcher(s);
+        return s.length() <= MAX_BOT_USER_NAME_LENGTH && matcher.matches();
     }
 
     /**
@@ -67,7 +68,6 @@ public class StringUtils {
      * @throws IllegalArgumentException if the string is not valid as a bot username
      */
     public static String validateBotUsername(String s) {
-        String username = validateString(s);
         if (!isValidBotUsername(s)) {
             throw new IllegalArgumentException("Invalid username");
         }
@@ -87,7 +87,7 @@ public class StringUtils {
     public static String wildcardToRegex(String wildcardStr) {
         Pattern regex = Pattern.compile("[^*?\\\\]+|(\\*)|(\\?)|(\\\\)");
         Matcher m = regex.matcher(wildcardStr);
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         while (m.find()) {
             if (m.group(1) != null) m.appendReplacement(sb, ".*");
             else if (m.group(2) != null) m.appendReplacement(sb, ".");

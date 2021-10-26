@@ -85,9 +85,14 @@ public class UserCommand implements BotCommand {
         MortyBot bot = event.getBot();
         String name = args.get(0);
         String hostmask = args.get(1);
+        String flags = "";
+
+        if (args.size() > 2) {
+            flags = args.get(2);
+        }
 
         try {
-            bot.addBotUser(name, hostmask);
+            bot.addBotUser(name, hostmask, flags);
             event.respondWith("User added");
         } catch (BotUserException e) {
             handleBotUserException(e, "addCommand", args);
@@ -110,6 +115,7 @@ public class UserCommand implements BotCommand {
         String name = args.get(0);
         String flagStr = args.get(1).toUpperCase(Locale.ROOT);
         BotUser.Flag flag = null;
+
         try {
             flag = Enum.valueOf(BotUser.Flag.class, flagStr);
         } catch (IllegalArgumentException e) {
@@ -205,6 +211,7 @@ public class UserCommand implements BotCommand {
         String name = args.get(0);
         String flagStr = args.get(1).toUpperCase(Locale.ROOT);
         BotUser.Flag flag = null;
+
         try {
             flag = Enum.valueOf(BotUser.Flag.class, flagStr);
         } catch (IllegalArgumentException e) {
@@ -286,7 +293,7 @@ public class UserCommand implements BotCommand {
                 errMsg = "Flag already exists";
                 break;
             case FLAG_NOT_FOUND:
-                errMsg = "Flag not found";
+                errMsg = "Invalid user flag";
                 break;
             case HOSTMASK_EXISTS:
                 errMsg = "Hostmask already exists";
@@ -301,7 +308,7 @@ public class UserCommand implements BotCommand {
                 errMsg = "User not found";
                 break;
             default:
-                log.error("{} Unhandled BotUserException {} {}", method, e.getReason(), e.getMessage());
+                log.error("{} caused unhandled BotUserException {} {}", method, e.getReason(), e.getMessage());
                 e.printStackTrace();
                 return;
         }

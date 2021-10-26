@@ -188,10 +188,11 @@ public class MortyBot extends PircBotX {
      *
      * @param name the name of the bot user
      * @param hostmask the initial hostmask for this user
+     * @param flags the flags to add to this user in a comma-delimited string
      * @throws BotUserException if there is an issue adding the user
      */
-    public void addBotUser(String name, String hostmask) throws BotUserException {
-        BotUser user = new BotUser(validateBotUsername(name), validateHostmask(hostmask));
+    public void addBotUser(String name, String hostmask, String flags) throws BotUserException {
+        BotUser user = new BotUser(validateBotUsername(name), validateHostmask(hostmask), parseBotUserFlags(flags));
         botUserDao.add(user);
         log.info("Added bot user: {}", user.getName());
     }
@@ -224,7 +225,7 @@ public class MortyBot extends PircBotX {
             botUserDao.update(user);
             log.info("Added hostmask {} to user {}", hostmask, user.getName());
         } else {
-            log.error("Failed to add hostmask {} to user {}", hostmask, user.getName());
+            log.warn("Failed to add hostmask {} to user {}", hostmask, user.getName());
         }
     }
 
@@ -244,7 +245,7 @@ public class MortyBot extends PircBotX {
             botUserDao.update(user);
             log.info("Removed hostmask {} from {}", hostmask, user.getName());
         } else {
-            log.error("Failed to remove hostmask {} from {}", hostmask, user.getName());
+            log.warn("Failed to remove hostmask {} from {}", hostmask, user.getName());
         }
     }
 
@@ -264,7 +265,7 @@ public class MortyBot extends PircBotX {
             botUserDao.update(user);
             log.info("Added {} flag to {}", flag, user.getName());
         } else {
-            log.error("Failed to add {} flag to {}", flag, user.getName());
+            log.warn("Failed to add {} flag to {}", flag, user.getName());
         }
     }
 
@@ -284,7 +285,7 @@ public class MortyBot extends PircBotX {
             botUserDao.update(user);
             log.info("Removed {} flag from {}", flag, user.getName());
         } else {
-            log.error("Failed to remove {} flag from {}", flag, user.getName());
+            log.warn("Failed to remove {} flag from {}", flag, user.getName());
         }
     }
 
@@ -335,6 +336,7 @@ public class MortyBot extends PircBotX {
      * @param filename the name of the file to load users from
      */
     private static void loadBotUsersFromFile(String filename) {
+        log.info("Loading bot users from file: {}", filename);
         List<String> lines = new ArrayList<>();
         try {
             lines = Files.readAllLines(Path.of(filename));
@@ -349,20 +351,26 @@ public class MortyBot extends PircBotX {
             } else if (isValidString(line)) {
                 List<String> tokens = Arrays.asList(line.split(" "));
                 if (tokens.size() >= 2) {
-                    String name = validateBotUsername(tokens.get(0));
+                    String name = tokens.get(0);
                     String[] hostmasks = tokens.get(1).split(",");
                     Set<BotUser.Flag> flags = new HashSet<>();
+
+                    // parse any user flags if present
                     if (tokens.size() == 3) {
-                        flags = parseUserFlags(tokens.get(2));
+                        flags = parseBotUserFlags(tokens.get(2));
                     }
-                    BotUser user = new BotUser(name, validateHostmask(hostmasks[0]), flags);
+
+                    BotUser user = new BotUser(validateBotUsername(name), validateHostmask(hostmasks[0]), flags);
+
+                    // check for additional hostmasks and add them to the user
                     if (hostmasks.length > 1) {
                         for (int i = 1; i < hostmasks.length; i++) {
                             user.addHostmask(validateHostmask(hostmasks[i]));
                         }
                     }
-                    log.debug("Adding user: {}", user);
+
                     botUserDao.add(user);
+                    log.debug("Added user: {}", user);
                 }
             }
         }
@@ -374,15 +382,13 @@ public class MortyBot extends PircBotX {
      * @param flagList the comma-delimited list of flags
      * @return a set of user flags
      */
-    private static Set<BotUser.Flag> parseUserFlags(String flagList) {
+    private static Set<BotUser.Flag> parseBotUserFlags(String flagList) {
         Set<BotUser.Flag> flags = new HashSet<>();
         for (String flagStr : flagList.split(",")) {
-            BotUser.Flag flag;
             try {
-                flag = Enum.valueOf(BotUser.Flag.class, flagStr.toUpperCase(Locale.ROOT));
-                flags.add(flag);
+                flags.add(Enum.valueOf(BotUser.Flag.class, flagStr.toUpperCase(Locale.ROOT)));
             } catch (IllegalArgumentException e) {
-                log.warn("Invalid user flag: {}", flagStr.toUpperCase(Locale.ROOT));
+                log.warn("Invalid bot user flag: {}", flagStr.toUpperCase(Locale.ROOT));
             }
         }
         return flags;
