@@ -34,7 +34,7 @@ public class AutoOpListener extends ListenerAdapter {
         UserHostmask uh = event.getUserHostmask();
         List<BotUser> autoOpUsers = bot.getBotUsers(uh.getHostmask(), BotUser.Flag.AOP);
 
-        if (!uh.getNick().equals(bot.getNick()) && bot.hasOps(channel) && !autoOpUsers.isEmpty()) {
+        if (bot.hasOps(channel) && !autoOpUsers.isEmpty()) {
             log.info("Automatically granting channel operator status to {} on {}", uh.getNick(), channel.getName());
             bot.sendIRC().mode(channel.getName(), "+o " + uh.getNick());
         }
