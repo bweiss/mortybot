@@ -17,7 +17,6 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 public class LinkListener extends ListenerAdapter {
-
     // default maximum number of URLs to process in a single message from a user
     // the value for LinkListener.maxLinks in bot.properties will override this if present
     private static final int MAX_LINKS_DEFAULT = 2;
@@ -63,47 +62,24 @@ public class LinkListener extends ListenerAdapter {
 
         for (var i = 0; i < links.size() && i < maxLinks; i++) {
             String link = links.get(i);
-            var responseString = new StringBuilder();
-            responseString.append("[");
+            Optional<String> shortLink = Optional.empty();
+            Optional<String> title = Optional.empty();
 
             if (shortenLinks && link.length() >= minLenToShorten) {
-                Optional<String> shortLink = Optional.empty();
                 try {
-                    log.debug("Shortening link: {}", link);
                     shortLink = Bitly.shorten(link);
                 } catch (IOException e) {
                     log.error("Error while attempting to shorten link: {}", e.getMessage());
-                } finally {
-                    if (shortLink.isPresent()) {
-                        log.debug("Shortened link to: {}", shortLink.get());
-                        responseString.append(shortLink.get());
-                    } else {
-                        log.warn("Unable to shorten link, falling back to long url");
-                        responseString.append(link);
-                    }
                 }
-            } else {
-                responseString.append(link);
-            }
-
-            responseString.append("]");
-
-            if (showTitles) {
-                Document doc = null;
-                try {
-                    log.debug("Fetching title for link: {}", link);
-                    doc = Jsoup.connect(link).get();
-                } catch (IOException e) {
-                    log.error("Failed to fetch link: {}", e.getMessage());
+                if (showTitles) {
+                    title = fetchTitle(link);
                 }
-                if (doc != null) {
-                    String title = doc.title();
-                    log.debug("Title: {}", title);
-                    responseString.append(" ").append(title);
+                if (shortLink.isPresent() && title.isPresent()) {
+                    event.respondWith(String.format("%s :: %s", shortLink.get(), title.get()));
+                } else if (shortLink.isPresent()) {
+                    event.respondWith(shortLink.get());
                 }
             }
-
-            event.respondWith(responseString.toString());
         }
     }
 
@@ -114,7 +90,7 @@ public class LinkListener extends ListenerAdapter {
      * @param s string that may or may not contain links
      * @return a list of link strings
      */
-    private static List<String> parseMessage(final String s) {
+    private List<String> parseMessage(final String s) {
         log.debug("Parsing message for links: {}", s);
         var m = URL_PATTERN.matcher(s);
         List<String> links = new ArrayList<>();
@@ -123,5 +99,28 @@ public class LinkListener extends ListenerAdapter {
         }
         log.debug("Found {} links: {}", links.size(), links);
         return links;
+    }
+
+    /**
+     * Fetch the title of a web link.
+     *
+     * @param link the link that you want to fetch
+     * @return an optional containing the link's title
+     */
+    private Optional<String> fetchTitle(final String link) {
+        log.debug("Fetching title for link: {}", link);
+        Document doc = null;
+        try {
+            doc = Jsoup.connect(link).get();
+        } catch (IOException e) {
+            log.error("Failed to fetch link: {}", e.getMessage());
+        }
+        if (doc != null) {
+            String title = doc.title();
+            log.debug("Title: {}", title);
+            return Optional.of(title);
+        } else {
+            return Optional.empty();
+        }
     }
 }
