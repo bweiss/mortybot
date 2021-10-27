@@ -99,6 +99,7 @@ public class MortyBot extends PircBotX {
                 .setAutoReconnectAttempts(getIntProperty("autoReconnectAttempts", AUTO_RECONNECT_ATTEMPTS_DEFAULT))
                 .setAutoNickChange(getBooleanProperty("autoNickChange", AUTO_NICK_CHANGE_DEFAULT))
                 .addAutoJoinChannels(Arrays.asList(getStringProperty("autoJoinChannels", AUTO_JOIN_CHANNELS_DEFAULT).split(" ")))
+                .addListener(new AutoOpListener())
                 .addListener(new CommandListener(getStringProperty("commandPrefix", COMMAND_PREFIX_DEFAULT)))
                 .addListener(new LinkListener())
                 .buildConfiguration();
@@ -315,7 +316,7 @@ public class MortyBot extends PircBotX {
 
     public static boolean getBooleanProperty(String name, boolean defaultValue) {
         var prop = getStringProperty(name);
-        return prop == null ? defaultValue : "true".equalsIgnoreCase(prop);
+        return prop == null ? defaultValue : prop.equalsIgnoreCase("true");
     }
 
     public static int getIntProperty(String name, int defaultValue) {
