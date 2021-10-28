@@ -14,7 +14,7 @@ public class AutoOpListener extends ListenerAdapter {
     private static final Logger log = LoggerFactory.getLogger(AutoOpListener.class);
 
     @Override
-    public void onJoin(final JoinEvent event) {
+    public void onJoin(final JoinEvent event) throws InterruptedException {
         log.debug("onJoin event: {}", event);
         boolean enabled = MortyBot.getBooleanProperty("AutoOpListener.enabled", false);
         if (enabled) {
@@ -28,13 +28,14 @@ public class AutoOpListener extends ListenerAdapter {
      *
      * @param event the JoinEvent
      */
-    private void handleJoin(final JoinEvent event) {
+    private void handleJoin(final JoinEvent event) throws InterruptedException {
         MortyBot bot = event.getBot();
         Channel channel = event.getChannel();
         UserHostmask uh = event.getUserHostmask();
         List<BotUser> autoOpUsers = bot.getBotUsers(uh.getHostmask(), BotUser.Flag.AOP);
 
         if (bot.hasOps(channel) && !autoOpUsers.isEmpty()) {
+            Thread.sleep(4000);
             log.info("Automatically granting channel operator status to {} on {}", uh.getNick(), channel.getName());
             bot.sendIRC().mode(channel.getName(), "+o " + uh.getNick());
         }
