@@ -69,20 +69,28 @@ public class LinkListener extends ListenerAdapter {
             Optional<String> shortLink = Optional.empty();
             Optional<String> title = Optional.empty();
 
-            if (shortenLinks && link.length() >= minLenToShorten) {
-                try {
-                    shortLink = Bitly.shorten(link);
-                } catch (IOException e) {
-                    log.error("Error while attempting to shorten link: {}", e.getMessage());
+            if (shortenLinks) {
+                if (link.length() < minLenToShorten) {
+                    shortLink = Optional.of(link);
+                } else {
+                    try {
+                        shortLink = Bitly.shorten(link);
+                    } catch (IOException e) {
+                        log.error("Error while attempting to shorten link: {}", e.getMessage());
+                    }
                 }
-                if (showTitles) {
-                    title = fetchTitle(link);
-                }
-                if (shortLink.isPresent() && title.isPresent()) {
-                    event.respondWith(String.format("%s :: %s", shortLink.get(), trimTitle(title.get(), maxTitleLength, "...")));
-                } else if (shortLink.isPresent()) {
-                    event.respondWith(shortLink.get());
-                }
+            }
+
+            if (showTitles) {
+                title = fetchTitle(link);
+            }
+
+            if (shortLink.isPresent() && title.isEmpty()) {
+                event.respondWith(shortLink.get());
+            } else if (title.isPresent() && shortLink.isEmpty()) {
+                event.respondWith(trimTitle(title.get(), maxTitleLength, "..."));
+            } else if (shortLink.isPresent()) {
+                event.respondWith(String.format("%s :: %s", shortLink.get(), trimTitle(title.get(), maxTitleLength, "...")));
             }
         }
     }
