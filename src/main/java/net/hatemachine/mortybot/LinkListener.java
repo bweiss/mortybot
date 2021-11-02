@@ -22,7 +22,10 @@ public class LinkListener extends ListenerAdapter {
     private static final int MAX_LINKS_DEFAULT = 2;
 
     // default minimum length of a URL for it to be shortened
-    private static final int MIN_LEN_TO_SHORTEN_DEFAULT = 30;
+    private static final int MIN_LENGTH_TO_SHORTEN_DEFAULT = 30;
+
+    // maximum number of characters to show for the title
+    private static final int MAX_TITLE_LENGTH_DEFAULT = 200;
 
     // the regex pattern used to match URLs
     private static final Pattern URL_PATTERN = Pattern.compile("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&\\/\\/=]*)");
@@ -54,7 +57,8 @@ public class LinkListener extends ListenerAdapter {
      */
     private void handleMessage(final GenericMessageEvent event) throws InterruptedException {
         var maxLinks = MortyBot.getIntProperty("LinkListener.maxLinks", MAX_LINKS_DEFAULT);
-        var minLenToShorten = MortyBot.getIntProperty("LinkListener.minLenToShorten", MIN_LEN_TO_SHORTEN_DEFAULT);
+        var minLenToShorten = MortyBot.getIntProperty("LinkListener.minLengthToShorten", MIN_LENGTH_TO_SHORTEN_DEFAULT);
+        var maxTitleLength = MortyBot.getIntProperty("LinkListener.maxTitleLength", MAX_TITLE_LENGTH_DEFAULT);
         boolean shortenLinks = MortyBot.getBooleanProperty("LinkListener.shortenLinks", false);
         boolean showTitles = MortyBot.getBooleanProperty("LinkListener.showTitles", true);
 
@@ -75,7 +79,7 @@ public class LinkListener extends ListenerAdapter {
                     title = fetchTitle(link);
                 }
                 if (shortLink.isPresent() && title.isPresent()) {
-                    event.respondWith(String.format("%s :: %s", shortLink.get(), title.get()));
+                    event.respondWith(String.format("%s :: %s", shortLink.get(), trimTitle(title.get(), maxTitleLength, "...")));
                 } else if (shortLink.isPresent()) {
                     event.respondWith(shortLink.get());
                 }
@@ -122,5 +126,27 @@ public class LinkListener extends ListenerAdapter {
         } else {
             return Optional.empty();
         }
+    }
+
+    /**
+     * Trim the title down to a maximum length.
+     *
+     * @param title the title you want to trim
+     * @param maxLength the maximum length of the string to return
+     * @param suffix the suffix to append if the string was trimmed
+     * @return the original string, trimmed if it exceeds the max length
+     */
+    private String trimTitle(String title, int maxLength, String suffix) {
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < title.length(); i++) {
+            if (i == maxLength) {
+                sb.append(suffix);
+                return sb.toString();
+            } else {
+                char c = title.charAt(i);
+                sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 }
