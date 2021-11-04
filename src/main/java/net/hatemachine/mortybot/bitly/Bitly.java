@@ -15,6 +15,8 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.Properties;
 
+import static net.hatemachine.mortybot.util.StringUtils.validateString;
+
 public class Bitly {
 
     private static final String PROPERTIES_FILE = "bitly.properties";
@@ -39,23 +41,21 @@ public class Bitly {
     private Bitly() {}
 
     public static Optional<String> shorten(String url) throws IOException, InterruptedException {
-        if (url == null || url.trim().isEmpty()) {
-            String msg = "url cannot be null or empty";
-            log.error(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
         String apiEndpoint = properties.getProperty("bitly.api.endpoint", System.getenv("BITLY_API_ENDPOINT"));
         String apiKey = properties.getProperty("bitly.api.key", System.getenv("BITLY_API_KEY"));
+        validateString(url);
+        validateString(apiEndpoint);
+        validateString(apiKey);
+        URI uri = URI.create(url);
 
-        if ((apiEndpoint == null || apiEndpoint.trim().isEmpty()) || apiKey == null || apiKey.trim().isEmpty()) {
-            log.error("apiEndpoint and apiKey cannot be null or empty, check properties file or set BITLY_API_ENDPOINT and BITLY_API_KEY environment variables");
+        if (uri.getHost().equalsIgnoreCase("bit.ly")) {
+            log.debug("bit.ly host encountered, skipping...");
             return Optional.empty();
         }
 
         String requestJson = "{\n" +
                 "    \"domain\": \"bit.ly\",  \n" +
-                "    \"long_url\": \"" + url + "\"  \n" +
+                "    \"long_url\": \"" + uri.toASCIIString() + "\"  \n" +
                 "}";
 
         HttpClient client = HttpClient.newBuilder()
