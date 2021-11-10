@@ -109,7 +109,7 @@ public class StockCommand implements BotCommand {
                 String json = response.body();
                 return Optional.of(json);
             } else {
-                log.warn("Failed to fetch quote (HTTP response status: {}", status);
+                log.warn("Failed to fetch quote (HTTP response status: {})", status);
             }
         }
 
