@@ -9,6 +9,7 @@ import net.hatemachine.mortybot.commands.QuitCommand;
 import net.hatemachine.mortybot.commands.StockCommand;
 import net.hatemachine.mortybot.commands.TestCommand;
 import net.hatemachine.mortybot.commands.UserCommand;
+import net.hatemachine.mortybot.commands.WeatherCommand;
 import net.hatemachine.mortybot.exception.BotCommandException;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.MessageEvent;
@@ -39,7 +40,8 @@ public class CommandListener extends ListenerAdapter {
         QUIT,
         STOCK,
         TEST,
-        USER;
+        USER,
+        WZ;
     }
 
     public enum CommandSource {
@@ -129,6 +131,10 @@ public class CommandListener extends ListenerAdapter {
 
             case USER:
                 execBotCommand(new UserCommand(event, source, args));
+                break;
+
+            case WZ:
+                execBotCommand(new WeatherCommand(event, source, args));
                 break;
         }
     }
