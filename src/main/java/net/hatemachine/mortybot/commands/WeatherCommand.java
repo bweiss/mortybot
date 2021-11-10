@@ -1,5 +1,7 @@
 package net.hatemachine.mortybot.commands;
 
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.CommandListener;
@@ -113,13 +115,15 @@ public class WeatherCommand implements BotCommand {
             throw new IllegalArgumentException("null or empty argument: json");
         }
 
-        String description = JsonPath.read(json, "$.weather[0].description");
-        Double temp = JsonPath.read(json, "$.main.temp");
-        Integer humidity = JsonPath.read(json, "$.main.humidity");
-        Double windSpeed = JsonPath.read(json, "$.wind.speed");
-        String country = JsonPath.read(json, "$.sys.country");
-        String city = JsonPath.read(json, "$.name");
+        Configuration conf = Configuration.defaultConfiguration();
+        DocumentContext parsedJson = JsonPath.using(conf).parse(json);
+        String description = parsedJson.read("$.weather[0].description");
+        Double temp = Double.parseDouble(parsedJson.read("$.main.temp").toString());
+        Integer humidity = Integer.parseInt(parsedJson.read("$.main.humidity").toString());
+        Double windSpeed = Double.parseDouble(parsedJson.read("$.wind.speed").toString());
+        String country = parsedJson.read("$.sys.country");
+        String city = parsedJson.read("$.name");
 
-        return String.format("%s, %s (%.1f°/%s) H:%d%% W:%s%n", city, country, temp, description, humidity, windSpeed);
+        return String.format("%s, %s (%.1f°/%s) H:%d%% W:%.1f%n", city, country, temp, description, humidity, windSpeed);
     }
 }
