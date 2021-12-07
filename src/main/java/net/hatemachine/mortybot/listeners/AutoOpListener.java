@@ -87,7 +87,13 @@ public class AutoOpListener extends ListenerAdapter {
      */
     private synchronized void processQueue(final JoinEvent event, final String channelName) {
         MortyBot bot = event.getBot();
-        int modesPerCommand = MortyBot.getIntProperty("AutoOpListener.modes_per_command", MODES_PER_COMMAND_DEFAULT);
+        Map<String, String> serverSupport = bot.getServerSupport();
+        int modesPerCommand = MODES_PER_COMMAND_DEFAULT;
+        try {
+            modesPerCommand = Integer.parseInt(serverSupport.get("MODES"));
+        } catch (NumberFormatException e) {
+            log.warn("Invalid value for server support parameter MODES. Falling back to default...");
+        }
 
         if (pending.containsKey(channelName)) {
             Queue<String> queue = pending.get(channelName);
