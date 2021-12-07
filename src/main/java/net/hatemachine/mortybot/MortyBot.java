@@ -4,6 +4,7 @@ import net.hatemachine.mortybot.exception.BotUserException;
 import net.hatemachine.mortybot.listeners.AutoOpListener;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.listeners.LinkListener;
+import net.hatemachine.mortybot.listeners.ServerSupportListener;
 import org.pircbotx.Channel;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
@@ -20,9 +21,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -55,6 +58,7 @@ public class MortyBot extends PircBotX {
 
     private static final BotUserDao botUserDao = new InMemoryBotUserDao();
     private static final Properties properties = new Properties();
+    private static final Map<String, String> serverSupportMap = new HashMap<>();
 
     MortyBot(Configuration config) {
         super(config);
@@ -102,6 +106,7 @@ public class MortyBot extends PircBotX {
                 .setAutoReconnectAttempts(getIntProperty("autoReconnectAttempts", AUTO_RECONNECT_ATTEMPTS_DEFAULT))
                 .setAutoNickChange(getBooleanProperty("autoNickChange", AUTO_NICK_CHANGE_DEFAULT))
                 .addAutoJoinChannels(Arrays.asList(getStringProperty("autoJoinChannels", AUTO_JOIN_CHANNELS_DEFAULT).split(" ")))
+                .addListener(new ServerSupportListener())
                 .addListener(new AutoOpListener())
                 .addListener(new CommandListener(getStringProperty("commandPrefix", COMMAND_PREFIX_DEFAULT)))
                 .addListener(new LinkListener())
@@ -123,6 +128,25 @@ public class MortyBot extends PircBotX {
         } catch (IOException | IrcException e) {
             log.error("Failed to start bot, exiting...", e);
         }
+    }
+
+    /**
+     * Get a map of the server support (005 numeric).
+     *
+     * @return map of the server support parameters and their values
+     */
+    public Map<String, String> getServerSupport() {
+        return serverSupportMap;
+    }
+
+    /**
+     * Set the value for a server support (005 numeric) parameter.
+     *
+     * @param key the key you want to set
+     * @param value the value to assign to that key
+     */
+    public void setServerSupportKey(String key, String value) {
+        serverSupportMap.put(key, value);
     }
 
     /**
