@@ -1,6 +1,9 @@
 package net.hatemachine.mortybot;
 
 import net.hatemachine.mortybot.exception.BotUserException;
+import net.hatemachine.mortybot.listeners.AutoOpListener;
+import net.hatemachine.mortybot.listeners.CommandListener;
+import net.hatemachine.mortybot.listeners.LinkListener;
 import org.pircbotx.Channel;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
@@ -345,9 +348,7 @@ public class MortyBot extends PircBotX {
         }
 
         for (String line : lines) {
-            if (line.startsWith("#")) {
-                // comment, ignore...
-            } else if (isValidString(line)) {
+            if (isValidString(line) && !line.startsWith("#")) {
                 List<String> tokens = Arrays.asList(line.split(" "));
                 if (tokens.size() >= 2) {
                     String name = tokens.get(0);

@@ -1,5 +1,7 @@
-package net.hatemachine.mortybot;
+package net.hatemachine.mortybot.listeners;
 
+import net.hatemachine.mortybot.BotCommand;
+import net.hatemachine.mortybot.BotCommandProxy;
 import net.hatemachine.mortybot.commands.IpLookupCommand;
 import net.hatemachine.mortybot.commands.JoinCommand;
 import net.hatemachine.mortybot.commands.MessageCommand;
@@ -22,8 +24,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import static net.hatemachine.mortybot.CommandListener.CommandSource.PRIVATE;
-import static net.hatemachine.mortybot.CommandListener.CommandSource.PUBLIC;
+import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.PRIVATE;
+import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.PUBLIC;
 
 public class CommandListener extends ListenerAdapter {
 

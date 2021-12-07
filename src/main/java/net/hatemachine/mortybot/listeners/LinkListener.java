@@ -1,5 +1,6 @@
-package net.hatemachine.mortybot;
+package net.hatemachine.mortybot.listeners;
 
+import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.bitly.Bitly;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;

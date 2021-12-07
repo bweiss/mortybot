@@ -1,7 +1,7 @@
 package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.CommandListener;
+import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.MortyBot;
 import org.pircbotx.Channel;
 import org.pircbotx.hooks.events.MessageEvent;
@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import static net.hatemachine.mortybot.CommandListener.CommandSource.PRIVATE;
-import static net.hatemachine.mortybot.CommandListener.CommandSource.PUBLIC;
+import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.PRIVATE;
+import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.PUBLIC;
 import static net.hatemachine.mortybot.util.IrcUtils.userHasOps;
 
 public class OpCommand implements BotCommand {

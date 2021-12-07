@@ -1,5 +1,7 @@
-package net.hatemachine.mortybot;
+package net.hatemachine.mortybot.listeners;
 
+import net.hatemachine.mortybot.BotUser;
+import net.hatemachine.mortybot.MortyBot;
 import org.pircbotx.Channel;
 import org.pircbotx.UserHostmask;
 import org.pircbotx.hooks.ListenerAdapter;
