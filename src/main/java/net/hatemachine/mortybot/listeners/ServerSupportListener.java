@@ -2,6 +2,7 @@ package net.hatemachine.mortybot.listeners;
 
 import net.hatemachine.mortybot.MortyBot;
 import org.pircbotx.hooks.ListenerAdapter;
+import org.pircbotx.hooks.events.DisconnectEvent;
 import org.pircbotx.hooks.events.ServerResponseEvent;
 
 /**
@@ -10,7 +11,7 @@ import org.pircbotx.hooks.events.ServerResponseEvent;
  */
 public class ServerSupportListener extends ListenerAdapter {
 
-    private static final int RPL_SERVERSUPPORT = 005;
+    private static final int RPL_SERVERSUPPORT = 5; // 005 numeric
 
     @Override
     public void onServerResponse(final ServerResponseEvent event) {
@@ -24,5 +25,11 @@ public class ServerSupportListener extends ListenerAdapter {
                 bot.setServerSupportKey(param[0], param.length > 1 ? param[1] : "");
             }
         }
+    }
+
+    @Override
+    public void onDisconnect(DisconnectEvent event) {
+        MortyBot bot = event.getBot();
+        bot.clearServerSupport();
     }
 }

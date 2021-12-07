@@ -96,7 +96,7 @@ public class CommandListener extends ListenerAdapter {
             return;
         }
 
-        log.info("Command {} triggered by {}, args: {}", commandStr, user.getNick(), args);
+        log.info("{} command triggered by {}, args: {}", commandStr, user.getNick(), args);
 
         switch (command) {
             case IPLOOKUP:

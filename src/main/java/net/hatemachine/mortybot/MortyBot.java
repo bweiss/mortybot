@@ -58,10 +58,12 @@ public class MortyBot extends PircBotX {
 
     private static final BotUserDao botUserDao = new InMemoryBotUserDao();
     private static final Properties properties = new Properties();
-    private static final Map<String, String> serverSupportMap = new HashMap<>();
+
+    private final Map<String, String> serverSupport;
 
     MortyBot(Configuration config) {
         super(config);
+        this.serverSupport = new HashMap<>();
     }
 
     /**
@@ -75,25 +77,15 @@ public class MortyBot extends PircBotX {
             return;
         }
 
-        // try to load some bot properties
         String propertiesFile = System.getenv("MORTYBOT_HOME") + "/conf/" + PROPERTIES_FILE;
-        log.debug("Attempting to load properties from {}", propertiesFile);
         try (var reader = new FileReader(propertiesFile)) {
             properties.load(reader);
-            log.debug("Loaded {} properties", properties.size());
         } catch (FileNotFoundException e) {
-            String msg = "file not found: " + propertiesFile;
-            log.error(msg, e.getMessage());
+            log.error("Properties file not found");
         } catch (IOException e) {
-            String msg = "unable to read file: " + propertiesFile;
-            log.error(msg, e.getMessage());
+            log.error("Unable to read properties file");
         }
 
-        if (properties.isEmpty()) {
-            log.warn("Unable to load bot properties (defaults will be used)");
-        }
-
-        // build the bot configuration
         var config = new Configuration.Builder()
                 .setName(getStringProperty("botName", BOT_NAME_DEFAULT))
                 .setLogin(getStringProperty("botLogin", BOT_LOGIN_DEFAULT))
@@ -111,12 +103,6 @@ public class MortyBot extends PircBotX {
                 .addListener(new CommandListener(getStringProperty("commandPrefix", COMMAND_PREFIX_DEFAULT)))
                 .addListener(new LinkListener())
                 .buildConfiguration();
-
-        // extra sanity check
-        if (config == null) {
-            log.error("Bot config not found, exiting...");
-            return;
-        }
 
         // Add some users
         loadBotUsersFromFile(System.getenv("MORTYBOT_HOME") + "/conf/" + BOT_USERS_FILE);
@@ -136,7 +122,14 @@ public class MortyBot extends PircBotX {
      * @return map of the server support parameters and their values
      */
     public Map<String, String> getServerSupport() {
-        return serverSupportMap;
+        return serverSupport;
+    }
+
+    /**
+     * Clear the server support map. Used for events like server disconnects.
+     */
+    public void clearServerSupport() {
+        serverSupport.clear();
     }
 
     /**
@@ -146,7 +139,7 @@ public class MortyBot extends PircBotX {
      * @param value the value to assign to that key
      */
     public void setServerSupportKey(String key, String value) {
-        serverSupportMap.put(key, value);
+        serverSupport.put(key, value);
     }
 
     /**

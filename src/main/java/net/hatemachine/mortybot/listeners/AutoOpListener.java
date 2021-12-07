@@ -53,7 +53,8 @@ public class AutoOpListener extends ListenerAdapter {
         final List<BotUser> matchedUsers = bot.getBotUsers(hostmask.getHostmask(), BotUser.Flag.AOP);
 
         if (bot.hasOps(channel) && !matchedUsers.isEmpty()) {
-            // add the user to our op queue for this channel
+            log.debug("Adding {} to auto-op queue for {}", nick, channel.getName());
+
             if (pending.containsKey(channel.getName())) {
                 Queue<String> queue = pending.get(channel.getName());
                 if (!queue.contains(nick)) {
@@ -64,7 +65,6 @@ public class AutoOpListener extends ListenerAdapter {
                 queue.add(nick);
                 pending.put(channel.getName(), queue);
 
-                // spin up a new thread that will eventually process the queue
                 new Thread(() -> {
                     try {
                         long delay = MortyBot.getIntProperty("AutoOpListener.delay_in_seconds", DELAY_IN_SECONDS_DEFAULT);
