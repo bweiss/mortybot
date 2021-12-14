@@ -5,6 +5,7 @@ import net.hatemachine.mortybot.listeners.AutoOpListener;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.listeners.LinkListener;
 import net.hatemachine.mortybot.listeners.ServerSupportListener;
+import net.hatemachine.mortybot.listeners.RejoinListener;
 import org.pircbotx.Channel;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
@@ -102,6 +103,7 @@ public class MortyBot extends PircBotX {
                 .addListener(new AutoOpListener())
                 .addListener(new CommandListener(getStringProperty("commandPrefix", COMMAND_PREFIX_DEFAULT)))
                 .addListener(new LinkListener())
+                .addListener(new RejoinListener())
                 .buildConfiguration();
 
         // Add some users
