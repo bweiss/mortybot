@@ -45,6 +45,7 @@ public class IrcUtils {
         if (!isValidAddress(address)) {
             throw new IllegalArgumentException("invalid address: " + address);
         }
+
         int firstExclamation = address.indexOf('!');
         int firstAt = address.indexOf('@');
         String nickname = address.substring(0, firstExclamation);
@@ -127,7 +128,7 @@ public class IrcUtils {
             hostnameMask = hostname.substring(0, colons.get(1) + 1) + "*";
         } else if (nonDigitCount == 0 && dots.size() == 3) {
             hostnameMask = hostname.substring(0, dots.get(2) + 1) + "*";
-        } else if (dots.size() >= 2){
+        } else if (dots.size() >= 2) {
             String domain = hostname.substring(dots.get(dots.size() - 2) + 1);
             if (domain.length() < 6) {
                 if (dots.size() >= 3) {
@@ -276,7 +277,7 @@ public class IrcUtils {
      * @return true if user is oped on channel
      */
     public static boolean userHasOps(String targetUser, Channel channel) {
-        return channel.getUsers()
+        return channel.getOps()
                 .stream()
                 .anyMatch(u -> u.getNick().equalsIgnoreCase(targetUser));
     }

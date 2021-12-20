@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
+import static net.hatemachine.mortybot.util.IrcUtils.userHasOps;
+
 public class AutoOpListener extends ListenerAdapter {
 
     private static final int MODES_PER_COMMAND_DEFAULT = 4;
@@ -69,7 +71,7 @@ public class AutoOpListener extends ListenerAdapter {
                     try {
                         long delay = MortyBot.getIntProperty("AutoOpListener.delay_in_seconds", DELAY_IN_SECONDS_DEFAULT);
                         Thread.sleep(delay * 1000);
-                        processQueue(event, channel.getName());
+                        processQueue(event, channel);
                     } catch (InterruptedException e) {
                         log.warn("thread interrupted!");
                         Thread.currentThread().interrupt();
@@ -83,9 +85,9 @@ public class AutoOpListener extends ListenerAdapter {
      * Process the op queue for a particular channel.
      *
      * @param event the join event that triggered the auto-op action
-     * @param channelName the channel it occurred on
+     * @param channel the channel it occurred on
      */
-    private synchronized void processQueue(final JoinEvent event, final String channelName) {
+    private synchronized void processQueue(final JoinEvent event, final Channel channel) {
         MortyBot bot = event.getBot();
         Map<String, String> serverSupport = bot.getServerSupport();
         int modesPerCommand = MODES_PER_COMMAND_DEFAULT;
@@ -95,24 +97,27 @@ public class AutoOpListener extends ListenerAdapter {
             log.warn("Invalid value for server support parameter MODES. Falling back to default...");
         }
 
-        if (pending.containsKey(channelName)) {
-            Queue<String> queue = pending.get(channelName);
+        if (pending.containsKey(channel.getName())) {
+            Queue<String> queue = pending.get(channel.getName());
 
-            log.info("Attempting to op {} users on {}", queue.size(), channelName);
+            log.info("Attempting to op {} users on {}", queue.size(), channel.getName());
 
             while (!queue.isEmpty()) {
                 StringBuilder modes = new StringBuilder();
                 List<String> targets = new ArrayList<>();
-                int queueSize = queue.size();
-                for (int i = 0; i < modesPerCommand && i < queueSize; i++) {
-                    modes.append("o");
-                    targets.add(queue.remove());
+
+                while (targets.size() < modesPerCommand && !queue.isEmpty()) {
+                    String userNick = queue.remove();
+                    if (!userHasOps(userNick, channel)) {
+                        modes.append("o");
+                        targets.add(userNick);
+                    }
                 }
 
-                bot.sendIRC().mode(channelName, "+" + modes + " " + String.join(" ", targets));
+                bot.sendIRC().mode(channel.getName(), "+" + modes + " " + String.join(" ", targets));
             }
 
-            pending.remove(channelName);
+            pending.remove(channel.getName());
         }
     }
 }
