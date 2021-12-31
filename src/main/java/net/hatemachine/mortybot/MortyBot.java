@@ -36,6 +36,8 @@ import static net.hatemachine.mortybot.util.StringUtils.*;
 
 public class MortyBot extends PircBotX {
 
+    public static final String   VERSION = "1.0-SNAPSHOT";
+
     // our main properties file
     private static final String  PROPERTIES_FILE = "bot.properties";
 

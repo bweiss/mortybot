@@ -33,13 +33,13 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <version>1.2.8</version>
+            <version>1.2.10</version>
         </dependency>
 
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.8</version>
+            <version>1.2.10</version>
         </dependency>
 
         <dependency>
@@ -63,22 +63,22 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
-            <version>2.13.0</version>
+            <version>2.13.1</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>2.13.0</version>
+            <version>2.13.1</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.13.0</version>
+            <version>2.13.1</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>2.13.0</version>
+            <version>2.13.1</version>
         </dependency>
 
         <dependency>
@@ -100,6 +100,30 @@
                     <target>${java.version}</target>
                     <debug>true</debug>
                     <debuglevel>lines,vars,source</debuglevel>
+                </configuration>
+            </plugin>
+
+            <!-- Update version in MortyBot.java -->
+            <plugin>
+                <groupId>com.google.code.maven-replacer-plugin</groupId>
+                <artifactId>maven-replacer-plugin</artifactId>
+                <version>1.4.1</version>
+                <executions>
+                    <execution>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>replace</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <file>src/main/java/net/hatemachine/mortybot/MortyBot.java</file>
+                    <replacements>
+                        <replacement>
+                            <token>public static final String   VERSION .+</token>
+                            <value>public static final String   VERSION = "${project.version}";</value>
+                        </replacement>
+                    </replacements>
                 </configuration>
             </plugin>
 
