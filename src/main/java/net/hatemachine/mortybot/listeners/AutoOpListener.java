@@ -108,13 +108,19 @@ public class AutoOpListener extends ListenerAdapter {
 
                 while (targets.size() < modesPerCommand && !queue.isEmpty()) {
                     String userNick = queue.remove();
-                    if (!userHasOps(userNick, channel)) {
+                    if (userHasOps(userNick, channel)) {
+                        log.debug("{} already has operator status on {}", userNick, channel.getName());
+                    } else {
                         modes.append("o");
                         targets.add(userNick);
                     }
                 }
 
-                bot.sendIRC().mode(channel.getName(), "+" + modes + " " + String.join(" ", targets));
+                if (targets.isEmpty()) {
+                    log.debug("No targets to op!");
+                } else {
+                    bot.sendIRC().mode(channel.getName(), "+" + modes + " " + String.join(" ", targets));
+                }
             }
 
             pending.remove(channel.getName());
