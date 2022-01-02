@@ -9,6 +9,7 @@ import net.hatemachine.mortybot.commands.MessageCommand;
 import net.hatemachine.mortybot.commands.OpCommand;
 import net.hatemachine.mortybot.commands.PartCommand;
 import net.hatemachine.mortybot.commands.QuitCommand;
+import net.hatemachine.mortybot.commands.RtCommand;
 import net.hatemachine.mortybot.commands.StockCommand;
 import net.hatemachine.mortybot.commands.TestCommand;
 import net.hatemachine.mortybot.commands.UserCommand;
@@ -42,6 +43,7 @@ public class CommandListener extends ListenerAdapter {
         OP,
         PART,
         QUIT,
+        RT,
         STOCK,
         TEST,
         USER,
@@ -123,6 +125,10 @@ public class CommandListener extends ListenerAdapter {
 
             case PART:
                 execBotCommand(new PartCommand(event, source, args));
+                break;
+
+            case RT:
+                execBotCommand(new RtCommand(event, source, args));
                 break;
 
             case STOCK:
