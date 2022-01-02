@@ -1,30 +1,26 @@
 package net.hatemachine.mortybot.commands;
 
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.DocumentContext;
-import com.jayway.jsonpath.JsonPath;
 import net.hatemachine.mortybot.BotCommand;
+import net.hatemachine.mortybot.MortyBot;
+import net.hatemachine.mortybot.imdb.IMDBHelper;
+import net.hatemachine.mortybot.imdb.SearchResult;
 import net.hatemachine.mortybot.listeners.CommandListener;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.pircbotx.hooks.types.GenericMessageEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoField;
 import java.util.List;
 
+/**
+ * Implements the IMDB bot command.
+ *
+ * Usage: IMDB [-l] query_str
+ *
+ * If the -l flag is present as the first argument, it will respond with a list of results.
+ * Otherwise, it will respond with the details for the top result.
+ */
 public class ImdbCommand implements BotCommand {
 
-    private static final String BASE_URL = "https://www.imdb.com";
-
-    private static final Logger log = LoggerFactory.getLogger(ImdbCommand.class);
+    private static final int    MAX_RESULTS_DEFAULT = 4;
+    private static final String RESPONSE_PREFIX = "[imdb] ";
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;
@@ -41,48 +37,53 @@ public class ImdbCommand implements BotCommand {
         if (args.isEmpty())
             throw new IllegalArgumentException("too few arguments");
 
-        String searchUrl = BASE_URL + "/find?q=" + URLEncoder.encode(String.join(" ", args), StandardCharsets.UTF_8);
+        boolean listResults = false;
+        int maxResults = MortyBot.getIntProperty("ImdbCommand.maxResults", MAX_RESULTS_DEFAULT);
+        String query;
 
-        Document searchResults = null;
-        try {
-            searchResults = Jsoup.connect(searchUrl).get();
-        } catch (IOException e) {
-            log.error(e.getMessage());
+        if (args.get(0).equals("-l")) {
+            listResults = true;
+            query = String.join(" ", args.subList(1, args.size()));
+        } else {
+            query = String.join(" ", args);
         }
 
-        if (searchResults != null) {
-            Element findSection = searchResults.select("div.findSection").first();
-            String sectionType = findSection.select("h3.findSectionHeader > a").first().attr("name");
-            Element resultText = findSection.select("td.result_text").first();
-            String name = resultText.text();
-            String href = resultText.select("a").attr("href");
-            String url = BASE_URL + href;
+        List<SearchResult> results = IMDBHelper.search(query);
 
-            if (!sectionType.equals("tt")) {
-                // Top result is not a title, just display name and url
-                event.respondWith(String.format("%s %s", name, url));
-            } else {
-                // Top result is a title, fetch the details to get the rating and description.
-                try {
-                    Document titleDetailsPage = Jsoup.connect(url).get();
-                    Element scriptTag = titleDetailsPage.select("script[type=\"application/ld+json\"]").first();
+        if (!results.isEmpty()) {
+            // -l flag present, list results
+            if (listResults) {
+                for (int i = 0; i < results.size() && i < maxResults; i++) {
+                    event.respondWith(RESPONSE_PREFIX + results.get(i));
+                }
+            }
 
-                    if (scriptTag != null) {
-                        String json = scriptTag.data();
-                        Configuration conf = Configuration.defaultConfiguration();
-                        DocumentContext parsedJson = JsonPath.using(conf).parse(json);
-                        name = parsedJson.read("$.name");
-                        url = BASE_URL + parsedJson.read("$.url");
-                        String description = parsedJson.read("$.description");
-                        Double rating = parsedJson.read("$.aggregateRating.ratingValue");
-                        Integer bestRating = parsedJson.read("$.aggregateRating.bestRating");
-                        LocalDate publishDate = LocalDate.parse(parsedJson.read("$.datePublished"), DateTimeFormatter.ISO_LOCAL_DATE);
+            // display details for top result
+            else {
+                SearchResult topResult = results.get(0);
 
-                        event.respondWith(String.format("[imdb] %s (%d) [%.1f/%d] %s", name, publishDate.get(ChronoField.YEAR), rating, bestRating, url));
-                        event.respondWith(String.format("[imdb] %s", description));
+                // Person
+                if (topResult.getType() == SearchResult.Type.PERSON) {
+                    var person = IMDBHelper.fetchPerson(topResult.getUrl());
+                    if (person.isPresent()) {
+                        var p = person.get();
+                        event.respondWith(RESPONSE_PREFIX + p);
+                        if (p.hasBio()) {
+                            event.respondWith(RESPONSE_PREFIX + p.getBio());
+                        }
                     }
-                } catch (IOException e) {
-                    log.error("Failed to fetch title details: {}", e.getMessage());
+                }
+
+                // Title
+                else if (topResult.getType() == SearchResult.Type.TITLE) {
+                    var title = IMDBHelper.fetchTitle(topResult.getUrl());
+                    if (title.isPresent()) {
+                        var t = title.get();
+                        event.respondWith(RESPONSE_PREFIX + t);
+                        if (t.hasDescription()) {
+                            event.respondWith(RESPONSE_PREFIX + t.getDescription());
+                        }
+                    }
                 }
             }
         }
