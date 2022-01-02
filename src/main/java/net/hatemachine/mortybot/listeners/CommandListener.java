@@ -2,6 +2,7 @@ package net.hatemachine.mortybot.listeners;
 
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.BotCommandProxy;
+import net.hatemachine.mortybot.commands.ImdbCommand;
 import net.hatemachine.mortybot.commands.IpLookupCommand;
 import net.hatemachine.mortybot.commands.JoinCommand;
 import net.hatemachine.mortybot.commands.MessageCommand;
@@ -34,6 +35,7 @@ public class CommandListener extends ListenerAdapter {
     private final String commandPrefix;
 
     public enum Command {
+        IMDB,
         IPLOOKUP,
         JOIN,
         MSG,
@@ -92,13 +94,17 @@ public class CommandListener extends ListenerAdapter {
         try {
             command = Enum.valueOf(Command.class, commandStr);
         } catch (IllegalArgumentException e) {
-            log.info("Invalid command {} from {}", user.getNick(), commandStr);
+            log.warn("Invalid command {} from {}", user.getNick(), commandStr);
             return;
         }
 
         log.info("{} command triggered by {}, args: {}", commandStr, user.getNick(), args);
 
         switch (command) {
+            case IMDB:
+                execBotCommand(new ImdbCommand(event, source, args));
+                break;
+
             case IPLOOKUP:
                 execBotCommand(new IpLookupCommand(event, source, args));
                 break;
@@ -151,7 +157,7 @@ public class CommandListener extends ListenerAdapter {
         try {
             BotCommandProxy.newInstance(command).execute();
         } catch (BotCommandException e) {
-            log.warn(e.getMessage());
+            log.error(e.getMessage());
         }
     }
 
