@@ -1,19 +1,22 @@
 package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.MortyBot;
+import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.Channel;
+import org.pircbotx.User;
+import org.pircbotx.UserChannelDao;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.PRIVATE;
 import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.PUBLIC;
-import static net.hatemachine.mortybot.util.IrcUtils.userHasOps;
 
 public class OpCommand implements BotCommand {
 
@@ -32,24 +35,20 @@ public class OpCommand implements BotCommand {
     @Override
     public void execute() {
         MortyBot bot = event.getBot();
-        var user = event.getUser();
-        String targetUser = args.isEmpty() ? user.getNick() : args.get(0);
+        UserChannelDao<User, Channel> dao = bot.getUserChannelDao();
+        User targetUser = args.isEmpty() ? event.getUser() : dao.getUser(args.get(0));
+        Set<Channel> targetChannels = new HashSet<>();
 
         if (source == PUBLIC) {
-            var channel = ((MessageEvent) event).getChannel();
-            bot.sendIRC().mode(channel.getName(), "+o " + targetUser);
+            targetChannels.add(((MessageEvent) event).getChannel());
         } else if (source == PRIVATE) {
-            for (Channel channel : bot.getUserChannelDao().getAllChannels()) {
-                if (!bot.hasOps(channel)) {
-                    log.debug("Bot does not have ops on {}, skipping...", channel.getName());
-                } else {
-                    if (userHasOps(targetUser, channel)) {
-                        log.debug("{} is already an operator on {}", targetUser, channel.getName());
-                    } else {
-                        log.debug("Setting mode [+o {}] on {}", targetUser, channel.getName());
-                        bot.sendIRC().mode(channel.getName(), "+o " + targetUser);
-                    }
-                }
+            targetChannels.addAll(dao.getChannels(targetUser));
+        }
+
+        for (Channel chan : targetChannels) {
+            if (chan.isOp(bot.getUserBot()) && !chan.isOp(targetUser)) {
+                log.info("Setting mode [+o {}] on {}", targetUser.getNick(), chan.getName());
+                bot.sendIRC().mode(chan.getName(), "+o " + targetUser.getNick());
             }
         }
     }
