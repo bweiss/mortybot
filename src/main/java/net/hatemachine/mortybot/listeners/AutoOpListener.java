@@ -16,8 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import static net.hatemachine.mortybot.util.IrcUtils.userHasOps;
-
 public class AutoOpListener extends ListenerAdapter {
 
     private static final int MODES_PER_COMMAND_DEFAULT = 4;
@@ -52,9 +50,9 @@ public class AutoOpListener extends ListenerAdapter {
         final Channel channel = event.getChannel();
         final UserHostmask hostmask = event.getUserHostmask();
         final String nick = hostmask.getNick();
-        final List<BotUser> matchedUsers = bot.getBotUsers(hostmask.getHostmask(), BotUser.Flag.AOP);
+        final List<BotUser> matchedUsers = bot.getBotUserDao().getAll(hostmask.getHostmask(), BotUser.Flag.AOP);
 
-        if (bot.hasOps(channel) && !matchedUsers.isEmpty()) {
+        if (!matchedUsers.isEmpty()) {
             log.debug("Adding {} to auto-op queue for {}", nick, channel.getName());
 
             if (pending.containsKey(channel.getName())) {
@@ -89,8 +87,9 @@ public class AutoOpListener extends ListenerAdapter {
      */
     private synchronized void processQueue(final JoinEvent event, final Channel channel) {
         MortyBot bot = event.getBot();
-        Map<String, String> serverSupport = bot.getServerSupport();
+        Map<String, String> serverSupport = bot.getServerSupportMap();
         int modesPerCommand = MODES_PER_COMMAND_DEFAULT;
+
         try {
             modesPerCommand = Integer.parseInt(serverSupport.get("MODES"));
         } catch (NumberFormatException e) {
@@ -108,7 +107,7 @@ public class AutoOpListener extends ListenerAdapter {
 
                 while (targets.size() < modesPerCommand && !queue.isEmpty()) {
                     String userNick = queue.remove();
-                    if (userHasOps(userNick, channel)) {
+                    if (channel.isOp(bot.getUserChannelDao().getUser(userNick))) {
                         log.debug("{} already has operator status on {}", userNick, channel.getName());
                     } else {
                         modes.append("o");
@@ -116,7 +115,9 @@ public class AutoOpListener extends ListenerAdapter {
                     }
                 }
 
-                if (targets.isEmpty()) {
+                if (!channel.isOp(bot.getUserBot())) {
+                    log.debug("Bot is not an operator on {}", channel.getName());
+                } else if (targets.isEmpty()) {
                     log.debug("No targets to op!");
                 } else {
                     bot.sendIRC().mode(channel.getName(), "+" + modes + " " + String.join(" ", targets));

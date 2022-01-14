@@ -1,15 +1,12 @@
 package net.hatemachine.mortybot;
 
-import net.hatemachine.mortybot.exception.BotUserException;
 import net.hatemachine.mortybot.listeners.AutoOpListener;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.listeners.LinkListener;
-import net.hatemachine.mortybot.listeners.ServerSupportListener;
 import net.hatemachine.mortybot.listeners.RejoinListener;
-import org.pircbotx.Channel;
+import net.hatemachine.mortybot.listeners.ServerSupportListener;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
-import org.pircbotx.User;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.exception.IrcException;
 import org.slf4j.Logger;
@@ -18,21 +15,10 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
-
-import static java.util.stream.Collectors.toList;
-import static net.hatemachine.mortybot.util.IrcUtils.validateHostmask;
-import static net.hatemachine.mortybot.util.StringUtils.*;
 
 public class MortyBot extends PircBotX {
 
@@ -40,9 +26,6 @@ public class MortyBot extends PircBotX {
 
     // our main properties file
     private static final String  PROPERTIES_FILE = "bot.properties";
-
-    // file containing users to add to the bot
-    private static final String  BOT_USERS_FILE = "users.conf";
 
     // setup some defaults
     private static final String  BOT_NAME_DEFAULT = "morty";
@@ -59,14 +42,17 @@ public class MortyBot extends PircBotX {
 
     private static final Logger log = LoggerFactory.getLogger(MortyBot.class);
 
-    private static final BotUserDao botUserDao = new InMemoryBotUserDao();
     private static final Properties properties = new Properties();
 
-    private final Map<String, String> serverSupport;
+    private final String botHome;
+    private final BotUserDao botUserDao;
+    private final Map<String, String> serverSupportMap;
 
     MortyBot(Configuration config) {
         super(config);
-        this.serverSupport = new HashMap<>();
+        this.botHome = System.getenv("MORTYBOT_HOME");
+        this.botUserDao = new BotUserDaoImpl(this);
+        this.serverSupportMap = new HashMap<>();
     }
 
     /**
@@ -89,7 +75,7 @@ public class MortyBot extends PircBotX {
             log.error("Unable to read properties file");
         }
 
-        var config = new Configuration.Builder()
+        Configuration config = new Configuration.Builder()
                 .setName(getStringProperty("botName", BOT_NAME_DEFAULT))
                 .setLogin(getStringProperty("botLogin", BOT_LOGIN_DEFAULT))
                 .setRealName(getStringProperty("botRealName", BOT_REAL_NAME_DEFAULT))
@@ -108,16 +94,25 @@ public class MortyBot extends PircBotX {
                 .addListener(new RejoinListener())
                 .buildConfiguration();
 
-        // Add some users
-        loadBotUsersFromFile(System.getenv("MORTYBOT_HOME") + "/conf/" + BOT_USERS_FILE);
-
         // Start the bot and connect to a server
-        try (var bot = new MortyBot(config)) {
+        try (MortyBot bot = new MortyBot(config)) {
             log.info("Starting bot with nick: {}", bot.getNick());
             bot.startBot();
-        } catch (IOException | IrcException e) {
-            log.error("Failed to start bot, exiting...", e);
+        } catch (IrcException e) {
+            log.error("IrcException: ", e);
+        } catch (IOException e ) {
+            log.error("IOException: ", e);
+        } catch (Exception e) {
+            log.error("Unhandled Exception: ", e);
         }
+    }
+
+    public String getBotHome() {
+        return botHome;
+    }
+
+    public BotUserDao getBotUserDao() {
+        return botUserDao;
     }
 
     /**
@@ -125,15 +120,8 @@ public class MortyBot extends PircBotX {
      *
      * @return map of the server support parameters and their values
      */
-    public Map<String, String> getServerSupport() {
-        return serverSupport;
-    }
-
-    /**
-     * Clear the server support map. Used for events like server disconnects.
-     */
-    public void clearServerSupport() {
-        serverSupport.clear();
+    public Map<String, String> getServerSupportMap() {
+        return serverSupportMap;
     }
 
     /**
@@ -143,194 +131,14 @@ public class MortyBot extends PircBotX {
      * @param value the value to assign to that key
      */
     public void setServerSupportKey(String key, String value) {
-        serverSupport.put(key, value);
+        serverSupportMap.put(key, value);
     }
 
     /**
-     * Get all the bot users for this bot.
-     *
-     * @return list of all bot users
+     * Clear the server support map. Used for events like server disconnects.
      */
-    public List<BotUser> getBotUsers() {
-        return botUserDao.getAll();
-    }
-
-    /**
-     * Get all the bot users that match a particular hostmask.
-     *
-     * @param hostmask the user's hostmask
-     * @return list of bot users with matching hostmasks
-     */
-    public List<BotUser> getBotUsers(String hostmask) {
-        return botUserDao.getAll()
-                .stream()
-                .filter(u -> u.hasMatchingHostmask(hostmask))
-                .collect(toList());
-    }
-
-    /**
-     * Get all the bot users that have a specific user flag.
-     *
-     * @param flag the user flag you are interested in
-     * @return list of bot users that have the flag
-     */
-    public List<BotUser> getBotUsers(BotUser.Flag flag) {
-        return botUserDao.getAll()
-                .stream()
-                .filter(u -> u.getFlags().contains(flag))
-                .collect(toList());
-    }
-
-    /**
-     * Get all the bot users that have a matching hostmask and flag.
-     *
-     * @param hostmask the user's hostmask
-     * @param flag the user flag you are interested in
-     * @return list of bot users matching both the hostmask and flag
-     */
-    public List<BotUser> getBotUsers(String hostmask, BotUser.Flag flag) {
-        return botUserDao.getAll()
-                .stream()
-                .filter(u -> u.getFlags().contains(flag))
-                .filter(u -> u.hasMatchingHostmask(hostmask))
-                .collect(toList());
-    }
-
-    /**
-     * Get a bot user by their name.
-     *
-     * @param name the name of the user you want to retrieve
-     * @return the BotUser if found
-     */
-    public BotUser getBotUserByName(String name) {
-        return botUserDao.getByName(name);
-    }
-
-    /**
-     * Add a bot user.
-     *
-     * @param name the name of the bot user
-     * @param hostmask the initial hostmask for this user
-     * @param flags the flags to add to this user in a comma-delimited string
-     * @throws BotUserException if there is an issue adding the user
-     */
-    public void addBotUser(String name, String hostmask, String flags) throws BotUserException {
-        BotUser user = new BotUser(validateBotUsername(name), validateHostmask(hostmask), parseBotUserFlags(flags));
-        botUserDao.add(user);
-        log.info("Added bot user: {}", user.getName());
-    }
-
-    /**
-     * Remove a bot user.
-     *
-     * @param name the name of the user to be removed
-     * @throws BotUserException if there is an issue removing the user
-     */
-    public void removeBotUser(String name) throws BotUserException {
-        BotUser user = botUserDao.getByName(validateString(name));
-        botUserDao.delete(user);
-        log.info("Removed bot user: {}", user.getName());
-    }
-
-    /**
-     * Add a hostmask to a bot user.
-     *
-     * @param name the name of the user
-     * @param hostmask the hostmask to add
-     * @throws BotUserException if there is an issue adding the hostmask
-     */
-    public void addBotUserHostmask(String name, String hostmask) throws BotUserException {
-        BotUser user = botUserDao.getByName(validateString(name));
-        if (user.getHostmasks().contains(validateHostmask(hostmask))) {
-            throw new BotUserException(BotUserException.Reason.HOSTMASK_EXISTS, hostmask);
-        }
-        if (user.addHostmask(hostmask)) {
-            botUserDao.update(user);
-            log.info("Added hostmask {} to user {}", hostmask, user.getName());
-        } else {
-            log.warn("Failed to add hostmask {} to user {}", hostmask, user.getName());
-        }
-    }
-
-    /**
-     * Remove a hostmask from a bot user.
-     *
-     * @param name the name of the user
-     * @param hostmask the hostmask to remove
-     * @throws BotUserException if there is an issue removing the hostmask
-     */
-    public void removeBotUserHostmask(String name, String hostmask) throws BotUserException {
-        BotUser user = botUserDao.getByName(validateString(name));
-        if (!user.getHostmasks().contains(validateString(hostmask))) {
-            throw new BotUserException(BotUserException.Reason.HOSTMASK_NOT_FOUND, hostmask);
-        }
-        if (user.removeHostmask(hostmask)) {
-            botUserDao.update(user);
-            log.info("Removed hostmask {} from {}", hostmask, user.getName());
-        } else {
-            log.warn("Failed to remove hostmask {} from {}", hostmask, user.getName());
-        }
-    }
-
-    /**
-     * Add a flag to a bot user.
-     *
-     * @param name the name of the bot user
-     * @param flag the flag that you want to add
-     * @throws BotUserException if there is an issue adding the flag
-     */
-    public void addBotUserFlag(String name, BotUser.Flag flag) throws BotUserException {
-        BotUser user = botUserDao.getByName(validateString(name));
-        if (user.getFlags().contains(flag)) {
-            throw new BotUserException(BotUserException.Reason.FLAG_EXISTS, flag.toString());
-        }
-        if (user.addFlag(flag)) {
-            botUserDao.update(user);
-            log.info("Added {} flag to {}", flag, user.getName());
-        } else {
-            log.warn("Failed to add {} flag to {}", flag, user.getName());
-        }
-    }
-
-    /**
-     * Remove a flag from a bot user.
-     *
-     * @param name the name of the bot user
-     * @param flag the flag that you want to remove
-     * @throws BotUserException if there is an issue removing the flag
-     */
-    public void removeBotUserFlag(String name, BotUser.Flag flag) throws BotUserException {
-        BotUser user = botUserDao.getByName(validateString(name));
-        if (!user.getFlags().contains(flag)) {
-            throw new BotUserException(BotUserException.Reason.FLAG_NOT_FOUND, flag.toString());
-        }
-        if (user.removeFlag(flag)) {
-            botUserDao.update(user);
-            log.info("Removed {} flag from {}", flag, user.getName());
-        } else {
-            log.warn("Failed to remove {} flag from {}", flag, user.getName());
-        }
-    }
-
-    /**
-     * Find out if a user is an admin.
-     *
-     * @param user that you want to verify
-     * @return true if user is an admin
-     */
-    public boolean isAdmin(User user) {
-        List<BotUser> admins = this.getBotUsers(user.getHostmask(), BotUser.Flag.ADMIN);
-        return !admins.isEmpty();
-    }
-
-    /**
-     * Find out if the bot has ops in a channel.
-     *
-     * @param channel that we want to see if the bot has operator status in
-     * @return true if the bot is oped in the channel
-     */
-    public boolean hasOps(Channel channel) {
-        return channel.getOps().stream().anyMatch(u -> u.getNick().equalsIgnoreCase(this.getNick()));
+    public void clearServerSupport() {
+        serverSupportMap.clear();
     }
 
     public static String getStringProperty(String name, String defaultValue) {
@@ -351,67 +159,5 @@ public class MortyBot extends PircBotX {
     public static String getStringProperty(String name) {
         var prop = System.getProperty(name);
         return prop == null ? properties.getProperty(name) : prop;
-    }
-
-    /**
-     * Load some bot users from a file.
-     *
-     * @param filename the name of the file to load users from
-     */
-    private static void loadBotUsersFromFile(String filename) {
-        log.info("Loading bot users from file: {}", filename);
-        List<String> lines = new ArrayList<>();
-        try {
-            lines = Files.readAllLines(Path.of(filename));
-        } catch (IOException e) {
-            log.error("Error reading file: {}", filename);
-            e.printStackTrace();
-        }
-
-        for (String line : lines) {
-            if (isValidString(line) && !line.startsWith("#")) {
-                List<String> tokens = Arrays.asList(line.split(" "));
-                if (tokens.size() >= 2) {
-                    String name = tokens.get(0);
-                    String[] hostmasks = tokens.get(1).split(",");
-                    Set<BotUser.Flag> flags = new HashSet<>();
-
-                    // parse any user flags if present
-                    if (tokens.size() == 3) {
-                        flags = parseBotUserFlags(tokens.get(2));
-                    }
-
-                    BotUser user = new BotUser(validateBotUsername(name), validateHostmask(hostmasks[0]), flags);
-
-                    // check for additional hostmasks and add them to the user
-                    if (hostmasks.length > 1) {
-                        for (int i = 1; i < hostmasks.length; i++) {
-                            user.addHostmask(validateHostmask(hostmasks[i]));
-                        }
-                    }
-
-                    botUserDao.add(user);
-                    log.debug("Added user: {}", user);
-                }
-            }
-        }
-    }
-
-    /**
-     * Parse a comma-delimited string of user flags into a set of enums representing those flags.
-     *
-     * @param flagList the comma-delimited list of flags
-     * @return a set of user flags
-     */
-    private static Set<BotUser.Flag> parseBotUserFlags(String flagList) {
-        Set<BotUser.Flag> flags = new HashSet<>();
-        for (String flagStr : flagList.split(",")) {
-            try {
-                flags.add(Enum.valueOf(BotUser.Flag.class, flagStr.toUpperCase(Locale.ROOT)));
-            } catch (IllegalArgumentException e) {
-                log.warn("Invalid bot user flag: {}", flagStr.toUpperCase(Locale.ROOT));
-            }
-        }
-        return flags;
     }
 }

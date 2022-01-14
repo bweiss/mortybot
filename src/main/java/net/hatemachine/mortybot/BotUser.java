@@ -1,6 +1,7 @@
 package net.hatemachine.mortybot;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -26,6 +27,18 @@ public class BotUser {
         this.name = name;
         this.hostmasks.add(hostmask);
         this.flags = flags;
+    }
+
+    public BotUser(final String name, final String hostmask, final String flags) {
+        this.name = name;
+        this.hostmasks.add(hostmask);
+        for (String flagStr : flags.split(",")) {
+            try {
+                this.flags.add(Enum.valueOf(BotUser.Flag.class, flagStr.toUpperCase(Locale.ROOT)));
+            } catch (IllegalArgumentException e) {
+                // discard unknown flags
+            }
+        }
     }
 
     public boolean hasMatchingHostmask(String userhost) {

@@ -37,7 +37,7 @@ public class BotCommandProxy implements InvocationHandler {
 
         if (!enabled.contains(command.getName())) {
             throw new BotCommandException(COMMAND_NOT_ENABLED, command.getName());
-        } else if (adminOnly.contains(command.getName()) && !bot.isAdmin(user)) {
+        } else if (adminOnly.contains(command.getName()) && !bot.getBotUserDao().isAdmin(user)) {
             throw new BotCommandException(USER_UNAUTHORIZED, command.getName() + " " + user);
         } else {
             result = m.invoke(command, args);

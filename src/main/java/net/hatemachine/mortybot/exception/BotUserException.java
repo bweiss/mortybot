@@ -1,15 +1,11 @@
 package net.hatemachine.mortybot.exception;
 
-public class BotUserException extends RuntimeException {
+public class BotUserException extends Exception {
     protected final Reason reason;
 
     public enum Reason {
-        FLAG_EXISTS,
-        FLAG_NOT_FOUND,
-        HOSTMASK_EXISTS,
-        HOSTMASK_NOT_FOUND,
-        USER_EXISTS,
-        USER_NOT_FOUND
+        UNKNOWN_USER,
+        USER_EXISTS
     }
 
     public BotUserException(Reason reason, String message) {

@@ -2,6 +2,7 @@ package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.BotUser;
+import net.hatemachine.mortybot.BotUserDao;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.exception.BotUserException;
@@ -13,6 +14,8 @@ import java.util.List;
 import java.util.Locale;
 
 import static java.util.stream.Collectors.joining;
+import static net.hatemachine.mortybot.util.IrcUtils.validateHostmask;
+import static net.hatemachine.mortybot.util.StringUtils.validateBotUsername;
 
 public class UserCommand implements BotCommand {
 
@@ -92,12 +95,10 @@ public class UserCommand implements BotCommand {
         }
 
         try {
-            bot.addBotUser(name, hostmask, flags);
+            bot.getBotUserDao().add(new BotUser(validateBotUsername(name), validateHostmask(hostmask), flags));
             event.respondWith("User added");
         } catch (BotUserException e) {
             handleBotUserException(e, "addCommand", args);
-        } catch (IllegalArgumentException e) {
-            event.respondWith(e.getMessage());
         }
     }
 
@@ -125,12 +126,15 @@ public class UserCommand implements BotCommand {
 
         if (flag != null) {
             try {
-                bot.addBotUserFlag(name, flag);
+                BotUserDao dao = bot.getBotUserDao();
+                BotUser botUser = dao.getByName(name);
+                botUser.addFlag(flag);
+                dao.update(botUser);
                 event.respondWith("Flag added");
             } catch (BotUserException e) {
                 handleBotUserException(e, "addFlagCommand", args);
             } catch (IllegalArgumentException e) {
-                event.respondWith(e.getMessage());
+                log.error("Error adding flag: {}", e.getMessage());
             }
         }
     }
@@ -150,12 +154,15 @@ public class UserCommand implements BotCommand {
         String hostmask = args.get(1);
 
         try {
-            bot.addBotUserHostmask(name, hostmask);
+            BotUserDao dao = bot.getBotUserDao();
+            BotUser botUser = dao.getByName(name);
+            botUser.addHostmask(validateHostmask(hostmask));
+            dao.update(botUser);
             event.respondWith("Hostmask added");
         } catch (BotUserException e) {
             handleBotUserException(e, "addHostmaskCommand", args);
         } catch (IllegalArgumentException e) {
-            event.respondWith(e.getMessage());
+            log.error("Error adding hostmask: {}", e.getMessage());
         }
     }
 
@@ -164,10 +171,10 @@ public class UserCommand implements BotCommand {
      */
     private void listCommand() {
         MortyBot bot = event.getBot();
-        List<BotUser> users = bot.getBotUsers();
+        List<BotUser> users = bot.getBotUserDao().getAll();
 
         if (!users.isEmpty()) {
-            // todo improve formatting and handling of larger user lists
+            // TODO: improve formatting and handling of larger user lists
             String usernames = users.stream().map(BotUser::getName).collect(joining(", "));
             event.respondWith("Bot Users: " + usernames);
             event.respondWith("USER SHOW <username> to see details");
@@ -188,12 +195,14 @@ public class UserCommand implements BotCommand {
         String name = args.get(0);
 
         try {
-            bot.removeBotUser(name);
+            BotUserDao dao = bot.getBotUserDao();
+            BotUser botUser = dao.getByName(name);
+            dao.delete(botUser);
             event.respondWith("User removed");
         } catch (BotUserException e) {
             handleBotUserException(e, "removeCommand", args);
         } catch (IllegalArgumentException e) {
-            event.respondWith(e.getMessage());
+            log.error("Error removing user: {}", e.getMessage());
         }
     }
 
@@ -221,12 +230,15 @@ public class UserCommand implements BotCommand {
 
         if (flag != null) {
             try {
-                bot.removeBotUserFlag(name, flag);
+                BotUserDao dao = bot.getBotUserDao();
+                BotUser botUser = dao.getByName(name);
+                botUser.removeFlag(flag);
+                dao.update(botUser);
                 event.respondWith("Flag removed");
             } catch (BotUserException e) {
                 handleBotUserException(e, "removeFlagCommand", args);
             } catch (IllegalArgumentException e) {
-                event.respondWith(e.getMessage());
+                log.error("Error removing flag: {}", e.getMessage());
             }
         }
     }
@@ -246,7 +258,10 @@ public class UserCommand implements BotCommand {
         String hostmask = args.get(1);
 
         try {
-            bot.removeBotUserHostmask(name, hostmask);
+            BotUserDao dao = bot.getBotUserDao();
+            BotUser botUser = dao.getByName(name);
+            botUser.removeHostmask(hostmask);
+            dao.update(botUser);
             event.respondWith("Hostmask removed");
         } catch (BotUserException e) {
             handleBotUserException(e, "removeHostmaskCommand", args);
@@ -269,13 +284,12 @@ public class UserCommand implements BotCommand {
         String name = args.get(0);
 
         try {
-            BotUser user = bot.getBotUserByName(name);
-            // todo improve format of this response
-            event.respondWith(user.toString());
+            BotUser botUser = bot.getBotUserDao().getByName(name);
+            event.respondWith(botUser.toString());
         } catch (BotUserException e) {
             handleBotUserException(e, "addCommand", args);
         } catch (IllegalArgumentException e) {
-            event.respondWith(e.getMessage());
+            log.error("Error showing usre: {}", e.getMessage());
         }
     }
 
@@ -289,23 +303,11 @@ public class UserCommand implements BotCommand {
     private void handleBotUserException(BotUserException e, String method, List<String> args) {
         String errMsg;
         switch (e.getReason()) {
-            case FLAG_EXISTS:
-                errMsg = "Flag already exists";
-                break;
-            case FLAG_NOT_FOUND:
-                errMsg = "Invalid user flag";
-                break;
-            case HOSTMASK_EXISTS:
-                errMsg = "Hostmask already exists";
-                break;
-            case HOSTMASK_NOT_FOUND:
-                errMsg = "Hostmask not found";
+            case UNKNOWN_USER:
+                errMsg = "User not found";
                 break;
             case USER_EXISTS:
                 errMsg = "User already exists";
-                break;
-            case USER_NOT_FOUND:
-                errMsg = "User not found";
                 break;
             default:
                 log.error("{} caused unhandled BotUserException {} {}", method, e.getReason(), e.getMessage());

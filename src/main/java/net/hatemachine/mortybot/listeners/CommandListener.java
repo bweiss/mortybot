@@ -96,7 +96,7 @@ public class CommandListener extends ListenerAdapter {
         try {
             command = Enum.valueOf(Command.class, commandStr);
         } catch (IllegalArgumentException e) {
-            log.warn("Invalid command {} from {}", user.getNick(), commandStr);
+            log.warn("Invalid command {} from {}", commandStr, user.getNick());
             return;
         }
 
