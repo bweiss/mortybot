@@ -1,19 +1,12 @@
 package net.hatemachine.mortybot.util;
 
-import org.pircbotx.Channel;
-
 import java.util.ArrayList;
-import java.util.regex.Pattern;
 
 public class IrcUtils {
 
-    public static final Pattern NICKNAME_PATTERN = Pattern.compile("[a-zA-Z0-9\\[\\]|_-]+");
-    public static final Pattern USERNAME_PATTERN = Pattern.compile("[a-zA-Z0-9~]+");
-    public static final Pattern HOSTNAME_PATTERN = Pattern.compile("[a-zA-Z0-9.:-]+");
-    public static final Pattern ADDRESS_PATTERN  = Pattern.compile("[a-zA-Z0-9\\[\\]|_-]+![a-zA-Z0-9~]+@[a-zA-Z0-9.:-]+");
-    public static final Pattern HOSTMASK_PATTERN = Pattern.compile("[\\\\*a-zA-Z0-9\\[\\]|_-]+![\\\\*a-zA-Z0-9~]+@[\\\\*a-zA-Z0-9.:-]+");
-
-    private IrcUtils() {}
+    private IrcUtils() {
+        throw new IllegalStateException("Utility class");
+    }
 
     /**
      * Returns address with a mask specified by type.
@@ -42,10 +35,7 @@ public class IrcUtils {
      * @return the masked address
      */
     public static String maskAddress(int method, String address) {
-        if (!isValidAddress(address)) {
-            throw new IllegalArgumentException("invalid address: " + address);
-        }
-
+        Validate.address(address);
         int firstExclamation = address.indexOf('!');
         int firstAt = address.indexOf('@');
         String nickname = address.substring(0, firstExclamation);
@@ -142,131 +132,6 @@ public class IrcUtils {
         }
 
         return hostnameMask;
-    }
-
-    /**
-     * See if a nickname is valid.
-     *
-     * @param s the string that you want to check
-     * @return true if the string is a valid nickname
-     */
-    public static boolean isValidNickname(String s) {
-        var matcher = NICKNAME_PATTERN.matcher(s);
-        return matcher.matches();
-    }
-
-    /**
-     * See if a username is valid.
-     *
-     * @param s the string that you want to check
-     * @return true if the string is a valid username
-     */
-    public static boolean isValidUsername(String s) {
-        var matcher = USERNAME_PATTERN.matcher(s);
-        return matcher.matches();
-    }
-
-    /**
-     * See if a hostname is valid.
-     *
-     * @param s the string that you want to check
-     * @return true if the string is a valid hostname
-     */
-    public static boolean isValidHostname(String s) {
-        var matcher = HOSTNAME_PATTERN.matcher(s);
-        return matcher.matches();
-    }
-
-    /**
-     * See if an address is valid. It should be in the form of "nick!user@host".
-     *
-     * @param s the string that you want to check
-     * @return true if the string is a valid address
-     */
-    public static boolean isValidAddress(String s) {
-        var matcher = ADDRESS_PATTERN.matcher(s);
-        return matcher.matches();
-    }
-
-    /**
-     * See if a hostmask is valid. It should be in the form of "nick!user@host" and may contain wildcards.
-     *
-     * @param s the string that you want to check
-     * @return true if the string is a valid hostmask
-     */
-    public static boolean isValidHostmask(String s) {
-        var matcher = HOSTMASK_PATTERN.matcher(s);
-        return matcher.matches();
-    }
-
-    /**
-     * Validate a nickname.
-     *
-     * @param s the string that you want to validate
-     * @return the input string if it is valid
-     * @throws IllegalArgumentException if the nickname is not valid
-     */
-    public static String validateNickname(String s) {
-        if (!isValidNickname(s)) {
-            throw new IllegalArgumentException("Invalid nickname");
-        }
-        return s;
-    }
-
-    /**
-     * Validate a username.
-     *
-     * @param s the string that you want to validate
-     * @return the input string if it is valid
-     * @throws IllegalArgumentException if the username is not valid
-     */
-    public static String validateUsername(String s) {
-        if (!isValidUsername(s)) {
-            throw new IllegalArgumentException("Invalid username");
-        }
-        return s;
-    }
-
-    /**
-     * Validate a hostname.
-     *
-     * @param s the string that you want to validate
-     * @return the input string if it is valid
-     * @throws IllegalArgumentException if the hostname is not valid
-     */
-    public static String validateHostname(String s) {
-        if (!isValidHostname(s)) {
-            throw new IllegalArgumentException("Invalid hostname");
-        }
-        return s;
-    }
-
-    /**
-     * Validate an address. It should be in the form of "nick!user@host".
-     *
-     * @param s the string that you want to validate
-     * @return the input string if it is valid
-     * @throws IllegalArgumentException if the address is not valid
-     */
-    public static String validateAddress(String s) {
-        if (!isValidAddress(s)) {
-            throw new IllegalArgumentException("Invalid address");
-        }
-        return s;
-    }
-
-    /**
-     * Validate a hostmask. It should be in the form of "nick!user@host" and may contain wildcards.
-     *
-     * @param s the string that you want to validate
-     * @return the input string if it is valid
-     * @throws IllegalArgumentException if the address is not valid
-     */
-    public static String validateHostmask(String s) {
-        if (!isValidHostmask(s)) {
-            throw new IllegalArgumentException("Invalid hostmask");
-        }
-        return s;
     }
 
     /**

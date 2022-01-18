@@ -6,6 +6,7 @@ import com.jayway.jsonpath.JsonPath;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.MortyBot;
+import net.hatemachine.mortybot.util.Validate;
 import net.hatemachine.mortybot.util.WebClient;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
@@ -20,8 +21,6 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 public class WeatherCommand implements BotCommand {
-
-    private static final Pattern ZIP_CODE_PATTERN = Pattern.compile("^\\d{5}(?:[-\\s]\\d{4})?$");
 
     private static final Logger log = LoggerFactory.getLogger(WeatherCommand.class);
 
@@ -62,59 +61,48 @@ public class WeatherCommand implements BotCommand {
     }
 
     private Optional<String> fetchWeatherByZip(String zipCode) {
+        Validate.zipCode(zipCode);
         Optional<String> json = Optional.empty();
         URI uri = null;
         var client = new WebClient();
         HttpResponse<String> response = null;
         String apiKey = MortyBot.getStringProperty("weather.api.key", System.getenv("WEATHER_API_KEY"));
 
-        if (isValidZipCode(zipCode)) {
+        try {
+            uri = new URI("https",
+                    null,
+                    "//api.openweathermap.org/data/2.5/weather",
+                    "zip=" + zipCode + "&units=imperial" + "&appid=" + apiKey,
+                    null);
+        } catch (URISyntaxException e) {
+            log.error(e.getMessage());
+        }
+
+        if (uri != null) {
             try {
-                uri = new URI("https",
-                        null,
-                        "//api.openweathermap.org/data/2.5/weather",
-                        "zip=" + zipCode + "&units=imperial" + "&appid=" + apiKey,
-                        null);
-            } catch (URISyntaxException e) {
-                log.error(e.getMessage());
+                response = client.get(uri.toASCIIString());
+            } catch (IOException e) {
+                log.error("Failed to fetch weather for {}: {}", zipCode, e.getMessage());
+            } catch (InterruptedException e) {
+                log.error("Interrupted while attempting to fetch weather {}", e.getMessage());
+                Thread.currentThread().interrupt();
             }
+        }
 
-            if (uri != null) {
-                try {
-                    response = client.get(uri.toASCIIString());
-                } catch (IOException e) {
-                    log.error("Failed to fetch weather for {}: {}", zipCode, e.getMessage());
-                } catch (InterruptedException e) {
-                    log.error("Interrupted while attempting to fetch weather {}", e.getMessage());
-                    Thread.currentThread().interrupt();
-                }
-            }
-
-            if (response != null) {
-                int status = response.statusCode();
-                if (status >= 200 && status <= 299) {
-                    json = Optional.of(response.body());
-                } else {
-                    log.warn("Failed to fetch weather (HTTP response status: {})", status);
-                }
+        if (response != null) {
+            int status = response.statusCode();
+            if (status >= 200 && status <= 299) {
+                json = Optional.of(response.body());
+            } else {
+                log.warn("Failed to fetch weather (HTTP response status: {})", status);
             }
         }
 
         return json;
     }
 
-    private boolean isValidZipCode(String zipCode) {
-        if (zipCode == null || zipCode.trim().isEmpty()) {
-            throw new IllegalArgumentException("null or empty argument: zipCode");
-        }
-        return ZIP_CODE_PATTERN.matcher(zipCode).matches();
-    }
-
     private String formatWeather(String json) {
-        if (json == null || json.trim().isEmpty()) {
-            throw new IllegalArgumentException("null or empty argument: json");
-        }
-
+        Validate.notNullOrEmpty(json);
         Configuration conf = Configuration.defaultConfiguration();
         DocumentContext parsedJson = JsonPath.using(conf).parse(json);
         String description = parsedJson.read("$.weather[0].description");

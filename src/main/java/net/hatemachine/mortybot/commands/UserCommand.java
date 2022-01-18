@@ -6,6 +6,7 @@ import net.hatemachine.mortybot.BotUserDao;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.exception.BotUserException;
+import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,8 +15,6 @@ import java.util.List;
 import java.util.Locale;
 
 import static java.util.stream.Collectors.joining;
-import static net.hatemachine.mortybot.util.IrcUtils.validateHostmask;
-import static net.hatemachine.mortybot.util.StringUtils.validateBotUsername;
 
 public class UserCommand implements BotCommand {
 
@@ -71,7 +70,7 @@ public class UserCommand implements BotCommand {
                     log.info("Unknown USER command {} from {}", command, event.getUser().getNick());
             }
         } catch (IllegalArgumentException e) {
-            log.info("{}: {}, args: {}", command, e.getMessage(), newArgs);
+            log.error("{}: {}, args: {}", command, e.getMessage(), newArgs);
         }
     }
 
@@ -95,10 +94,13 @@ public class UserCommand implements BotCommand {
         }
 
         try {
-            bot.getBotUserDao().add(new BotUser(validateBotUsername(name), validateHostmask(hostmask), flags));
+            bot.getBotUserDao().add(new BotUser(Validate.botUserName(name), Validate.hostmask(hostmask), flags));
             event.respondWith("User added");
         } catch (BotUserException e) {
             handleBotUserException(e, "addCommand", args);
+        } catch (IllegalArgumentException e) {
+            log.error("Error adding user: {}", e.getMessage());
+            event.respondWith(e.getMessage());
         }
     }
 
@@ -119,23 +121,16 @@ public class UserCommand implements BotCommand {
 
         try {
             flag = Enum.valueOf(BotUser.Flag.class, flagStr);
+            BotUserDao dao = bot.getBotUserDao();
+            BotUser botUser = dao.getByName(name);
+            botUser.addFlag(flag);
+            dao.update(botUser);
+            event.respondWith("Flag added");
+        } catch (BotUserException e) {
+            handleBotUserException(e, "addFlagCommand", args);
         } catch (IllegalArgumentException e) {
-            log.warn("Invalid user flag: {}", flagStr);
-            event.respondWith("Invalid flag");
-        }
-
-        if (flag != null) {
-            try {
-                BotUserDao dao = bot.getBotUserDao();
-                BotUser botUser = dao.getByName(name);
-                botUser.addFlag(flag);
-                dao.update(botUser);
-                event.respondWith("Flag added");
-            } catch (BotUserException e) {
-                handleBotUserException(e, "addFlagCommand", args);
-            } catch (IllegalArgumentException e) {
-                log.error("Error adding flag: {}", e.getMessage());
-            }
+            log.error("Error adding flag: {}", e.getMessage());
+            event.respondWith(e.getMessage());
         }
     }
 
@@ -156,13 +151,14 @@ public class UserCommand implements BotCommand {
         try {
             BotUserDao dao = bot.getBotUserDao();
             BotUser botUser = dao.getByName(name);
-            botUser.addHostmask(validateHostmask(hostmask));
+            botUser.addHostmask(Validate.hostmask(hostmask));
             dao.update(botUser);
             event.respondWith("Hostmask added");
         } catch (BotUserException e) {
             handleBotUserException(e, "addHostmaskCommand", args);
         } catch (IllegalArgumentException e) {
             log.error("Error adding hostmask: {}", e.getMessage());
+            event.respondWith(e.getMessage());
         }
     }
 
@@ -203,6 +199,7 @@ public class UserCommand implements BotCommand {
             handleBotUserException(e, "removeCommand", args);
         } catch (IllegalArgumentException e) {
             log.error("Error removing user: {}", e.getMessage());
+            event.respondWith(e.getMessage());
         }
     }
 
@@ -223,23 +220,16 @@ public class UserCommand implements BotCommand {
 
         try {
             flag = Enum.valueOf(BotUser.Flag.class, flagStr);
+            BotUserDao dao = bot.getBotUserDao();
+            BotUser botUser = dao.getByName(name);
+            botUser.removeFlag(flag);
+            dao.update(botUser);
+            event.respondWith("Flag removed");
+        } catch (BotUserException e) {
+            handleBotUserException(e, "removeFlagCommand", args);
         } catch (IllegalArgumentException e) {
-            log.warn("Invalid user flag: {}", flagStr);
-            event.respondWith("Invalid flag");
-        }
-
-        if (flag != null) {
-            try {
-                BotUserDao dao = bot.getBotUserDao();
-                BotUser botUser = dao.getByName(name);
-                botUser.removeFlag(flag);
-                dao.update(botUser);
-                event.respondWith("Flag removed");
-            } catch (BotUserException e) {
-                handleBotUserException(e, "removeFlagCommand", args);
-            } catch (IllegalArgumentException e) {
-                log.error("Error removing flag: {}", e.getMessage());
-            }
+            log.error("Error removing flag: {}", e.getMessage());
+            event.respondWith(e.getMessage());
         }
     }
 
@@ -266,6 +256,7 @@ public class UserCommand implements BotCommand {
         } catch (BotUserException e) {
             handleBotUserException(e, "removeHostmaskCommand", args);
         } catch (IllegalArgumentException e) {
+            log.error("Error removing hostmask: {}", e.getMessage());
             event.respondWith(e.getMessage());
         }
     }
@@ -289,7 +280,8 @@ public class UserCommand implements BotCommand {
         } catch (BotUserException e) {
             handleBotUserException(e, "addCommand", args);
         } catch (IllegalArgumentException e) {
-            log.error("Error showing usre: {}", e.getMessage());
+            log.error("Error showing user: {}", e.getMessage());
+            event.respondWith(e.getMessage());
         }
     }
 
@@ -314,7 +306,7 @@ public class UserCommand implements BotCommand {
                 e.printStackTrace();
                 return;
         }
-        log.debug("{}: {}, args: {}", method, errMsg, args);
+        log.error("{}: {}, args: {}", method, errMsg, args);
         event.respondWith(errMsg);
     }
 

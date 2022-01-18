@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LinkListener extends ListenerAdapter {
@@ -57,15 +58,15 @@ public class LinkListener extends ListenerAdapter {
      * @param event the event being handled
      */
     private void handleMessage(final GenericMessageEvent event) throws InterruptedException {
-        var maxLinks = MortyBot.getIntProperty("LinkListener.maxLinks", MAX_LINKS_DEFAULT);
-        var minLenToShorten = MortyBot.getIntProperty("LinkListener.minLengthToShorten", MIN_LENGTH_TO_SHORTEN_DEFAULT);
-        var maxTitleLength = MortyBot.getIntProperty("LinkListener.maxTitleLength", MAX_TITLE_LENGTH_DEFAULT);
+        int maxLinks = MortyBot.getIntProperty("LinkListener.maxLinks", MAX_LINKS_DEFAULT);
+        int minLenToShorten = MortyBot.getIntProperty("LinkListener.minLengthToShorten", MIN_LENGTH_TO_SHORTEN_DEFAULT);
+        int maxTitleLength = MortyBot.getIntProperty("LinkListener.maxTitleLength", MAX_TITLE_LENGTH_DEFAULT);
         boolean shortenLinks = MortyBot.getBooleanProperty("LinkListener.shortenLinks", false);
         boolean showTitles = MortyBot.getBooleanProperty("LinkListener.showTitles", true);
 
         List<String> links = parseMessage(event.getMessage());
 
-        for (var i = 0; i < links.size() && i < maxLinks; i++) {
+        for (int i = 0; i < links.size() && i < maxLinks; i++) {
             String link = links.get(i);
             Optional<String> shortLink = Optional.empty();
             Optional<String> title = Optional.empty();
@@ -105,7 +106,7 @@ public class LinkListener extends ListenerAdapter {
      */
     private List<String> parseMessage(final String s) {
         log.debug("Parsing message for links: {}", s);
-        var m = URL_PATTERN.matcher(s);
+        Matcher m = URL_PATTERN.matcher(s);
         List<String> links = new ArrayList<>();
         while (m.find()) {
             links.add(m.group(0));

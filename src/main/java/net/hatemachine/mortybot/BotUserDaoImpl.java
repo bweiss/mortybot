@@ -2,6 +2,7 @@ package net.hatemachine.mortybot;
 
 import net.hatemachine.mortybot.exception.BotUserException;
 import net.hatemachine.mortybot.util.FileSaver;
+import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +27,6 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 import static net.hatemachine.mortybot.exception.BotUserException.Reason.UNKNOWN_USER;
 import static net.hatemachine.mortybot.exception.BotUserException.Reason.USER_EXISTS;
-import static net.hatemachine.mortybot.util.IrcUtils.validateHostmask;
-import static net.hatemachine.mortybot.util.StringUtils.validateBotUsername;
 
 public class BotUserDaoImpl implements BotUserDao {
     
@@ -257,12 +256,12 @@ public class BotUserDaoImpl implements BotUserDao {
                 flags = parseFlags(tokens.get(2));
             }
 
-            BotUser user = new BotUser(validateBotUsername(name), validateHostmask(hostmasks[0]), flags);
+            BotUser user = new BotUser(Validate.botUserName(name), Validate.hostmask(hostmasks[0]), flags);
 
             // check for additional hostmasks and add them to the user
             if (hostmasks.length > 1) {
                 for (int i = 1; i < hostmasks.length; i++) {
-                    user.addHostmask(validateHostmask(hostmasks[i]));
+                    user.addHostmask(Validate.hostmask(hostmasks[i]));
                 }
             }
 

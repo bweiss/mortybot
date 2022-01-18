@@ -11,6 +11,7 @@ import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.MortyBot;
+import net.hatemachine.mortybot.util.Validate;
 import net.hatemachine.mortybot.util.WebClient;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
@@ -26,8 +27,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static net.hatemachine.mortybot.util.StringUtils.validateString;
 
 public class StockCommand implements BotCommand {
 
@@ -87,7 +86,7 @@ public class StockCommand implements BotCommand {
     }
 
     private static Optional<String> fetchQuote(String symbol) {
-        validateString(symbol);
+        Validate.notNullOrEmpty(symbol);
         log.info("Fetching stock quote for {}", symbol);
 
         String url = ENDPOINT_URL + symbol;
@@ -117,7 +116,7 @@ public class StockCommand implements BotCommand {
     }
 
     private static String parseQuote(String json) {
-        validateString(json);
+        Validate.notNullOrEmpty(json);
         var conf = Configuration.defaultConfiguration();
         JsonNode metaNode = JsonPath.using(conf)
                 .parse(json)
