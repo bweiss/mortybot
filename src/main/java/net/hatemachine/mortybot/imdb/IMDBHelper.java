@@ -4,6 +4,7 @@ import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
+import net.hatemachine.mortybot.util.Validate;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 public class IMDBHelper {
@@ -38,21 +40,19 @@ public class IMDBHelper {
      * @return list of the results
      */
     public static List<SearchResult> search(String query) {
-        if (query == null || query.trim().isEmpty()) {
-            throw new IllegalArgumentException("null or empty argument: query");
-        }
-
-        log.info("Searching IMDB for \"{}\"", query);
-
+        Validate.notNullOrEmpty(query);
         String searchUrl = SEARCH_URL + URLEncoder.encode(query, StandardCharsets.UTF_8);
         List<SearchResult> results = new ArrayList<>();
         Document searchResultPage = null;
+
+        log.info("Searching IMDB for \"{}\"", query);
 
         // attempt to connect to imdb.com and fetch the search results page
         try {
             searchResultPage = Jsoup.connect(searchUrl).get();
         } catch (IOException e) {
-            log.error(e.getMessage());
+            log.error("Failed to fetch results page: {}", e.getMessage());
+            e.printStackTrace();
         }
 
         if (searchResultPage != null) {
@@ -61,9 +61,13 @@ public class IMDBHelper {
             for (Element div : findSectionDivs) {
                 // find the section type
                 Element aTag = div.select("h3.findSectionHeader > a").first();
-                String sectionType = null;
+                SearchResult.Type sectionType = null;
                 if (aTag != null) {
-                    sectionType = aTag.attr("name");
+                    try {
+                        sectionType = Enum.valueOf(SearchResult.Type.class, aTag.attr("name").toUpperCase(Locale.ROOT));
+                    } catch (IllegalArgumentException e) {
+                        log.debug("Invalid section: {}", e.getMessage());
+                    }
                 }
 
                 // get the results for this section and add them to our list
@@ -85,17 +89,13 @@ public class IMDBHelper {
                         }
 
                         String url = BASE_URL + href.substring(0, lastSlash + 1);
-
-                        try {
-                            results.add(new SearchResult(name, url, sectionType));
-                        } catch (IllegalArgumentException e) {
-                            log.error(e.getMessage());
-                        }
+                        results.add(new SearchResult(name, url, sectionType));
                     }
                 }
             }
         }
 
+        log.info("Found {} results", results.size());
         return results;
     }
 
@@ -106,19 +106,17 @@ public class IMDBHelper {
      * @return optional person object
      */
     public static Optional<Person> fetchPerson(String url) {
-        if (url == null || url.trim().isEmpty()) {
-            throw new IllegalArgumentException("null or empty argument: url");
-        }
-
-        log.info("Fetching person details for {}", url);
-
+        Validate.notNullOrEmpty(url);
         Optional<Person> person = Optional.empty();
         Document personDetailsPage = null;
+
+        log.info("Fetching person details for {}", url);
 
         try {
             personDetailsPage = Jsoup.connect(url).get();
         } catch (IOException e) {
-            log.error("failed to fetch person details page: {}", e.getMessage());
+            log.error("Failed to fetch person details page: {}", e.getMessage());
+            e.printStackTrace();
         }
 
         if (personDetailsPage != null) {
@@ -155,19 +153,17 @@ public class IMDBHelper {
      * @return optional title object
      */
     public static Optional<Title> fetchTitle(String url) {
-        if (url == null || url.trim().isEmpty()) {
-            throw new IllegalArgumentException("null or empty argument: url");
-        }
-
-        log.info("Fetching title details for {}", url);
-
+        Validate.notNullOrEmpty(url);
         Optional<Title> title = Optional.empty();
         Document titleDetailsPage = null;
+
+        log.info("Fetching title details for {}", url);
 
         try {
             titleDetailsPage = Jsoup.connect(url).get();
         } catch (IOException e) {
             log.error("Failed to fetch title details page: {}", e.getMessage());
+            e.printStackTrace();
         }
 
         if (titleDetailsPage != null) {
@@ -175,33 +171,39 @@ public class IMDBHelper {
 
             if (scriptTag != null) {
                 String json = scriptTag.data();
-                Configuration conf = Configuration.defaultConfiguration();
-                DocumentContext parsedJson = JsonPath.using(conf).parse(json);
-                String name = parsedJson.read("$.name");
-                Title t = new Title(name, url);
-
-                try {
-                    t.setDescription(parsedJson.read("$.description"));
-                } catch (PathNotFoundException e) {
-                    log.warn("No description found");
-                }
-
-                try {
-                    t.setRating(parsedJson.read("$.aggregateRating.ratingValue"));
-                } catch (PathNotFoundException e) {
-                    log.warn("No rating found");
-                }
-
-                try {
-                    t.setPublishDate(LocalDate.parse(parsedJson.read("$.datePublished"), DateTimeFormatter.ISO_LOCAL_DATE));
-                } catch (PathNotFoundException e) {
-                    log.warn("No publish date found");
-                }
-
+                Title t = createTitleFromJson(url, json);
                 title = Optional.of(t);
             }
         }
 
         return title;
     }
+
+    private static Title createTitleFromJson(String url, String json) {
+        Configuration conf = Configuration.defaultConfiguration();
+        DocumentContext parsedJson = JsonPath.using(conf).parse(json);
+        String name = parsedJson.read("$.name");
+        Title title = new Title(name, url);
+
+        try {
+            title.setDescription(parsedJson.read("$.description"));
+        } catch (PathNotFoundException e) {
+            log.warn("No description found");
+        }
+
+        try {
+            title.setRating(parsedJson.read("$.aggregateRating.ratingValue"));
+        } catch (PathNotFoundException e) {
+            log.warn("No rating found");
+        }
+
+        try {
+            title.setPublishDate(LocalDate.parse(parsedJson.read("$.datePublished"), DateTimeFormatter.ISO_LOCAL_DATE));
+        } catch (PathNotFoundException e) {
+            log.warn("No publish date found");
+        }
+
+        return title;
+    }
+
 }

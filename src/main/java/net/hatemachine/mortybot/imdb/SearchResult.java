@@ -5,8 +5,8 @@ import java.util.Objects;
 public class SearchResult {
 
     public enum Type {
-        PERSON,
-        TITLE
+        NM,
+        TT
     }
 
     private final String name;
@@ -17,21 +17,6 @@ public class SearchResult {
         this.name = name;
         this.url = url;
         this.type = type;
-    }
-
-    public SearchResult(String name, String url, String sectionType) {
-        this.name = name;
-        this.url = url;
-        switch (sectionType.toUpperCase()) {
-            case "NM":
-                this.type = Type.PERSON;
-                break;
-            case "TT":
-                this.type = Type.TITLE;
-                break;
-            default:
-                throw new IllegalArgumentException("invalid type: " + sectionType);
-        }
     }
 
     public String getName() {

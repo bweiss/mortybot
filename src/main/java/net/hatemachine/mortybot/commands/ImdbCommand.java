@@ -51,19 +51,17 @@ public class ImdbCommand implements BotCommand {
         List<SearchResult> results = IMDBHelper.search(query);
 
         if (!results.isEmpty()) {
-            // -l flag present, list results
             if (listResults) {
+                // -l flag present, list results
                 for (int i = 0; i < results.size() && i < maxResults; i++) {
                     event.respondWith(RESPONSE_PREFIX + results.get(i));
                 }
-            }
-
-            // display details for top result
-            else {
+            } else {
+                // display details for top result
                 SearchResult topResult = results.get(0);
 
                 // Person
-                if (topResult.getType() == SearchResult.Type.PERSON) {
+                if (topResult.getType() == SearchResult.Type.NM) {
                     var person = IMDBHelper.fetchPerson(topResult.getUrl());
                     if (person.isPresent()) {
                         var p = person.get();
@@ -75,7 +73,7 @@ public class ImdbCommand implements BotCommand {
                 }
 
                 // Title
-                else if (topResult.getType() == SearchResult.Type.TITLE) {
+                else if (topResult.getType() == SearchResult.Type.TT) {
                     var title = IMDBHelper.fetchTitle(topResult.getUrl());
                     if (title.isPresent()) {
                         var t = title.get();
