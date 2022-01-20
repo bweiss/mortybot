@@ -5,24 +5,26 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.listeners.CommandListener;
-import net.hatemachine.mortybot.MortyBot;
-import net.hatemachine.mortybot.util.Validate;
-import net.hatemachine.mortybot.util.WebClient;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URI;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.List;
-import java.util.Optional;
-import java.util.regex.Pattern;
 
 public class WeatherCommand implements BotCommand {
 
-    private static final Logger log = LoggerFactory.getLogger(WeatherCommand.class);
+    private static final String BASE_URL = "https://wttr.in/";
+    private static final String PARAMETERS = "?format=j1";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(WeatherCommand.class);
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;
@@ -36,13 +38,43 @@ public class WeatherCommand implements BotCommand {
 
     @Override
     public void execute() {
-        if (args.isEmpty())
-            throw new IllegalArgumentException("too few arguments");
+        if (args.isEmpty()) {
+            LOGGER.error("Not enough arguments");
+            return;
+        }
 
-        String zipCode = args.get(0);
-        Optional<String> json = fetchWeatherByZip(zipCode);
+        try {
+            URL url = new URL(BASE_URL + String.join("+", args) + PARAMETERS);
 
-        json.ifPresent(s -> event.respondWith(formatWeather(s)));
+            HttpClient client = HttpClient.newBuilder()
+                    .followRedirects(HttpClient.Redirect.NORMAL)
+                    .version(HttpClient.Version.HTTP_1_1)
+                    .connectTimeout(Duration.ofSeconds(10))
+                    .build();
+
+            HttpRequest request = HttpRequest.newBuilder(url.toURI())
+                    .header("User-Agent", "Java HttpClient Bot")
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = null;
+
+            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response != null && response.statusCode() == 200) {
+                event.respondWith(parseWeatherJson(response.body()));
+            }
+
+        } catch (MalformedURLException e) {
+            LOGGER.error("Invalid URL", e);
+        } catch (URISyntaxException e) {
+            LOGGER.error("Invalid URI", e);
+        } catch (IOException e) {
+            LOGGER.error("Error fetching body", e);
+        } catch (InterruptedException e) {
+            LOGGER.warn("Thread interrupted", e);
+            Thread.currentThread().interrupt();
+        }
     }
 
     @Override
@@ -60,58 +92,17 @@ public class WeatherCommand implements BotCommand {
         return args;
     }
 
-    private Optional<String> fetchWeatherByZip(String zipCode) {
-        Validate.zipCode(zipCode);
-        Optional<String> json = Optional.empty();
-        URI uri = null;
-        var client = new WebClient();
-        HttpResponse<String> response = null;
-        String apiKey = MortyBot.getStringProperty("weather.api.key", System.getenv("WEATHER_API_KEY"));
-
-        try {
-            uri = new URI("https",
-                    null,
-                    "//api.openweathermap.org/data/2.5/weather",
-                    "zip=" + zipCode + "&units=imperial" + "&appid=" + apiKey,
-                    null);
-        } catch (URISyntaxException e) {
-            log.error(e.getMessage());
-        }
-
-        if (uri != null) {
-            try {
-                response = client.get(uri.toASCIIString());
-            } catch (IOException e) {
-                log.error("Failed to fetch weather for {}: {}", zipCode, e.getMessage());
-            } catch (InterruptedException e) {
-                log.error("Interrupted while attempting to fetch weather {}", e.getMessage());
-                Thread.currentThread().interrupt();
-            }
-        }
-
-        if (response != null) {
-            int status = response.statusCode();
-            if (status >= 200 && status <= 299) {
-                json = Optional.of(response.body());
-            } else {
-                log.warn("Failed to fetch weather (HTTP response status: {})", status);
-            }
-        }
-
-        return json;
-    }
-
-    private String formatWeather(String json) {
-        Validate.notNullOrEmpty(json);
+    private String parseWeatherJson(String json) {
         Configuration conf = Configuration.defaultConfiguration();
         DocumentContext parsedJson = JsonPath.using(conf).parse(json);
-        String description = parsedJson.read("$.weather[0].description");
-        Double temp = Double.parseDouble(parsedJson.read("$.main.temp").toString());
-        Integer humidity = Integer.parseInt(parsedJson.read("$.main.humidity").toString());
-        Double windSpeed = Double.parseDouble(parsedJson.read("$.wind.speed").toString());
-        String country = parsedJson.read("$.sys.country");
-        String city = parsedJson.read("$.name");
+        Integer humidity = Integer.parseInt(parsedJson.read("$.current_condition[0].humidity"));
+        Integer tempF = Integer.parseInt(parsedJson.read("$.current_condition[0].temp_F"));
+        String weatherDesc = parsedJson.read("$.current_condition[0].weatherDesc[0].value");
+        String areaName = parsedJson.read("$.nearest_area[0].areaName[0].value");
+        String region = parsedJson.read("$.nearest_area[0].region[0].value");
+        String windDir16Point = parsedJson.read("$.current_condition[0].winddir16Point");
+        Integer windspeedMiles = Integer.parseInt(parsedJson.read("$.current_condition[0].windspeedMiles"));
 
-        return String.format("%s, %s (%.1f°/%s) H:%d%% W:%.1f%n", city, country, temp, description, humidity, windSpeed);
+        return String.format("[wtr] %s, %s (%d°F/%s) [H:%d W:%dmph/%s]", areaName, region, tempF, weatherDesc, humidity, windspeedMiles, windDir16Point);
     }
 }

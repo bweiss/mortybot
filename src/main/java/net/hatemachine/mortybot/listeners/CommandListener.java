@@ -47,7 +47,7 @@ public class CommandListener extends ListenerAdapter {
         STOCK,
         TEST,
         USER,
-        WZ;
+        WTR;
     }
 
     public enum CommandSource {
@@ -147,7 +147,7 @@ public class CommandListener extends ListenerAdapter {
                 execBotCommand(new UserCommand(event, source, args));
                 break;
 
-            case WZ:
+            case WTR:
                 execBotCommand(new WeatherCommand(event, source, args));
                 break;
         }
