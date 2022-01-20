@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,11 +33,11 @@ public class LinkListener extends ListenerAdapter {
     // the regex pattern used to match URLs
     private static final Pattern URL_PATTERN = Pattern.compile("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&\\/\\/=]*)");
 
-    private static final Logger log = LoggerFactory.getLogger(LinkListener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(LinkListener.class);
 
     @Override
     public void onMessage(final MessageEvent event) throws InterruptedException {
-        log.debug("onMessage event: {}", event);
+        LOGGER.debug("onMessage event: {}", event);
         boolean watchChannels = MortyBot.getBooleanProperty("LinkListener.watchChannels", false);
         if (watchChannels) {
             handleMessage(event);
@@ -45,7 +46,7 @@ public class LinkListener extends ListenerAdapter {
 
     @Override
     public void onPrivateMessage(final PrivateMessageEvent event) throws InterruptedException {
-        log.debug("onPrivateMessage event: {}", event);
+        LOGGER.debug("onPrivateMessage event: {}", event);
         boolean watchPrivateMessages = MortyBot.getBooleanProperty("LinkListener.watchPrivateMessages", false);
         if (watchPrivateMessages) {
             handleMessage(event);
@@ -61,8 +62,8 @@ public class LinkListener extends ListenerAdapter {
         int maxLinks = MortyBot.getIntProperty("LinkListener.maxLinks", MAX_LINKS_DEFAULT);
         int minLenToShorten = MortyBot.getIntProperty("LinkListener.minLengthToShorten", MIN_LENGTH_TO_SHORTEN_DEFAULT);
         int maxTitleLength = MortyBot.getIntProperty("LinkListener.maxTitleLength", MAX_TITLE_LENGTH_DEFAULT);
-        boolean shortenLinks = MortyBot.getBooleanProperty("LinkListener.shortenLinks", false);
-        boolean showTitles = MortyBot.getBooleanProperty("LinkListener.showTitles", true);
+        boolean shortenLinksFlag = MortyBot.getBooleanProperty("LinkListener.shortenLinks", false);
+        boolean showTitlesFlag = MortyBot.getBooleanProperty("LinkListener.showTitles", true);
 
         List<String> links = parseMessage(event.getMessage());
 
@@ -71,27 +72,30 @@ public class LinkListener extends ListenerAdapter {
             Optional<String> shortLink = Optional.empty();
             Optional<String> title = Optional.empty();
 
-            if (shortenLinks) {
+            if (shortenLinksFlag) {
                 if (link.length() < minLenToShorten) {
                     shortLink = Optional.of(link);
                 } else {
                     try {
                         shortLink = Bitly.shorten(link);
                     } catch (IOException e) {
-                        log.error("Error while attempting to shorten link: {}", e.getMessage());
+                        LOGGER.error("Error while attempting to shorten link: {}", e.getMessage());
                     }
                 }
             }
 
-            if (showTitles) {
+            if (showTitlesFlag) {
                 title = fetchTitle(link);
             }
 
-            if (shortLink.isPresent() && title.isEmpty()) {
+            if (shortLink.isPresent() && title.isEmpty() && !Objects.equals(link, shortLink.get())) {
+                // shortened link only
                 event.respondWith(shortLink.get());
             } else if (title.isPresent() && shortLink.isEmpty()) {
+                // title only
                 event.respondWith(trimTitle(title.get(), maxTitleLength, "..."));
-            } else if (shortLink.isPresent()) {
+            } else if (shortLink.isPresent() && title.isPresent()) {
+                // short link and title
                 event.respondWith(String.format("%s :: %s", shortLink.get(), trimTitle(title.get(), maxTitleLength, "...")));
             }
         }
@@ -105,13 +109,13 @@ public class LinkListener extends ListenerAdapter {
      * @return a list of link strings
      */
     private List<String> parseMessage(final String s) {
-        log.debug("Parsing message for links: {}", s);
+        LOGGER.debug("Parsing message for links: {}", s);
         Matcher m = URL_PATTERN.matcher(s);
         List<String> links = new ArrayList<>();
         while (m.find()) {
             links.add(m.group(0));
         }
-        log.debug("Found {} links: {}", links.size(), links);
+        LOGGER.debug("Found {} links: {}", links.size(), links);
         return links;
     }
 
@@ -122,16 +126,16 @@ public class LinkListener extends ListenerAdapter {
      * @return an optional containing the link's title
      */
     private Optional<String> fetchTitle(final String link) {
-        log.debug("Fetching title for link: {}", link);
+        LOGGER.debug("Fetching title for link: {}", link);
         Document doc = null;
         try {
             doc = Jsoup.connect(link).get();
         } catch (IOException e) {
-            log.error("Failed to fetch link: {}", e.getMessage());
+            LOGGER.error("Failed to fetch link: {}", e.getMessage());
         }
         if (doc != null) {
             String title = doc.title();
-            log.debug("Title: {}", title);
+            LOGGER.debug("Title: {}", title);
             return Optional.of(title);
         } else {
             return Optional.empty();
