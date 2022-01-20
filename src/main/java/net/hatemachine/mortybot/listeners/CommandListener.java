@@ -2,6 +2,8 @@ package net.hatemachine.mortybot.listeners;
 
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.BotCommandProxy;
+import net.hatemachine.mortybot.Command;
+import net.hatemachine.mortybot.commands.HelpCommand;
 import net.hatemachine.mortybot.commands.ImdbCommand;
 import net.hatemachine.mortybot.commands.IpLookupCommand;
 import net.hatemachine.mortybot.commands.JoinCommand;
@@ -34,21 +36,6 @@ public class CommandListener extends ListenerAdapter {
     private static final Logger log = LoggerFactory.getLogger(CommandListener.class);
 
     private final String commandPrefix;
-
-    public enum Command {
-        IMDB,
-        IPLOOKUP,
-        JOIN,
-        MSG,
-        OP,
-        PART,
-        QUIT,
-        RT,
-        STOCK,
-        TEST,
-        USER,
-        WTR;
-    }
 
     public enum CommandSource {
         PRIVATE,
@@ -103,6 +90,10 @@ public class CommandListener extends ListenerAdapter {
         log.info("{} command triggered by {}, args: {}", commandStr, user.getNick(), args);
 
         switch (command) {
+            case HELP:
+                execBotCommand(new HelpCommand(event, source, args));
+                break;
+
             case IMDB:
                 execBotCommand(new ImdbCommand(event, source, args));
                 break;
