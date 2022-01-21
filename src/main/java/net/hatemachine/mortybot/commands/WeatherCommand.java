@@ -96,6 +96,7 @@ public class WeatherCommand implements BotCommand {
         Configuration conf = Configuration.defaultConfiguration();
         DocumentContext parsedJson = JsonPath.using(conf).parse(json);
         Integer humidity = Integer.parseInt(parsedJson.read("$.current_condition[0].humidity"));
+        Integer tempC = Integer.parseInt(parsedJson.read("$.current_condition[0].temp_C"));
         Integer tempF = Integer.parseInt(parsedJson.read("$.current_condition[0].temp_F"));
         String weatherDesc = parsedJson.read("$.current_condition[0].weatherDesc[0].value");
         String areaName = parsedJson.read("$.nearest_area[0].areaName[0].value");
@@ -103,6 +104,6 @@ public class WeatherCommand implements BotCommand {
         String windDir16Point = parsedJson.read("$.current_condition[0].winddir16Point");
         Integer windspeedMiles = Integer.parseInt(parsedJson.read("$.current_condition[0].windspeedMiles"));
 
-        return String.format("[wtr] %s, %s (%d°F/%s) [H:%d W:%dmph/%s]", areaName, region, tempF, weatherDesc, humidity, windspeedMiles, windDir16Point);
+        return String.format("[wtr] %s, %s (%d°C/%d°F/%s) [H:%d W:%dmph/%s]", areaName, region, tempC, tempF, weatherDesc, humidity, windspeedMiles, windDir16Point);
     }
 }
