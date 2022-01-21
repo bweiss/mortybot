@@ -9,16 +9,21 @@ import com.jayway.jsonpath.spi.json.JsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.MortyBot;
+import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.util.Validate;
-import net.hatemachine.mortybot.util.WebClient;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -30,14 +35,11 @@ import java.util.Set;
 
 public class StockCommand implements BotCommand {
 
-    // default maximum number of symbols a user can request in a single command
-    // the value for StockCommand.maxSymbolsPerCommand in bot.properties will override this if present
     private static final int MAX_SYMBOLS_PER_COMMAND_DEFAULT = 4;
 
-    // the api endpoint to use - changing this will probably break things
-    private static final String ENDPOINT_URL = "https://query1.finance.yahoo.com/v7/finance/chart/";
+    private static final String BASE_URL = "https://query1.finance.yahoo.com/v7/finance/chart/";
 
-    private static final Logger log = LoggerFactory.getLogger(StockCommand.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(StockCommand.class);
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;
@@ -85,53 +87,6 @@ public class StockCommand implements BotCommand {
         }
     }
 
-    private static Optional<String> fetchQuote(String symbol) {
-        Validate.notNullOrEmpty(symbol);
-        log.info("Fetching stock quote for {}", symbol);
-
-        String url = ENDPOINT_URL + symbol;
-        var client = new WebClient();
-        HttpResponse<String> response = null;
-
-        try {
-            response = client.get(url);
-        } catch (IOException e) {
-            log.error("Could not fetch quote {}", e.getMessage());
-        } catch (InterruptedException e) {
-            log.error("Interrupted while attempting to fetch quote {}", e.getMessage());
-            Thread.currentThread().interrupt();
-        }
-
-        if (response != null) {
-            int status = response.statusCode();
-            if (status >= 200 && status <= 299) {
-                String json = response.body();
-                return Optional.of(json);
-            } else {
-                log.warn("Failed to fetch quote (HTTP response status: {})", status);
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    private static String parseQuote(String json) {
-        Validate.notNullOrEmpty(json);
-        var conf = Configuration.defaultConfiguration();
-        JsonNode metaNode = JsonPath.using(conf)
-                .parse(json)
-                .read("$.chart.result[0].meta", JsonNode.class);
-        String symbol = metaNode.get("symbol").asText();
-        var marketTime = metaNode.get("regularMarketTime").asInt();
-        var zId = ZoneId.systemDefault();
-        var dt = ZonedDateTime.ofInstant(Instant.ofEpochSecond(marketTime), zId);
-        var df = DateTimeFormatter.ofPattern("h:mma");
-        String timezone = metaNode.get("timezone").asText();
-        Double marketPrice = metaNode.get("regularMarketPrice").asDouble();
-
-        return String.format("[Q] %s %.2f [%s %s]%n", symbol, marketPrice, dt.format(df), timezone);
-    }
-
     @Override
     public GenericMessageEvent getEvent() {
         return event;
@@ -145,5 +100,62 @@ public class StockCommand implements BotCommand {
     @Override
     public List<String> getArgs() {
         return args;
+    }
+
+    private static Optional<String> fetchQuote(String symbol) {
+        Validate.notNullOrEmpty(symbol);
+        Optional<String> quote = Optional.empty();
+
+        LOGGER.info("Fetching stock quote for {}", symbol);
+
+        try {
+            URL url = new URL(BASE_URL + symbol);
+
+            HttpClient client = HttpClient.newBuilder()
+                    .followRedirects(HttpClient.Redirect.NORMAL)
+                    .version(HttpClient.Version.HTTP_1_1)
+                    .connectTimeout(Duration.ofSeconds(10))
+                    .build();
+
+            HttpRequest request = HttpRequest.newBuilder(url.toURI())
+                    .header("User-Agent", "Java HttpClient Bot")
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response != null && response.statusCode() == 200) {
+                quote = Optional.of(response.body());
+            }
+
+        } catch (MalformedURLException e) {
+            LOGGER.error("Invalid URL", e);
+        } catch (URISyntaxException e) {
+            LOGGER.error("Invalid URI", e);
+        } catch (IOException e) {
+            LOGGER.error("Error fetching body", e);
+        } catch (InterruptedException e) {
+            LOGGER.warn("Thread interrupted", e);
+            Thread.currentThread().interrupt();
+        }
+
+        return quote;
+    }
+
+    private static String parseQuote(String json) {
+        Validate.notNullOrEmpty(json);
+        Configuration conf = Configuration.defaultConfiguration();
+        JsonNode metaNode = JsonPath.using(conf)
+                .parse(json)
+                .read("$.chart.result[0].meta", JsonNode.class);
+        String symbol = metaNode.get("symbol").asText();
+        int marketTime = metaNode.get("regularMarketTime").asInt();
+        ZoneId zId = ZoneId.systemDefault();
+        ZonedDateTime dt = ZonedDateTime.ofInstant(Instant.ofEpochSecond(marketTime), zId);
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("h:mma");
+        String timezone = metaNode.get("timezone").asText();
+        Double marketPrice = metaNode.get("regularMarketPrice").asDouble();
+
+        return String.format("%s %.2f [%s %s]", symbol, marketPrice, dt.format(df), timezone);
     }
 }
