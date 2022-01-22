@@ -8,6 +8,7 @@ import net.hatemachine.mortybot.listeners.ServerSupportListener;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.UtilSSLSocketFactory;
+import org.pircbotx.delay.StaticDelay;
 import org.pircbotx.exception.IrcException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +84,7 @@ public class MortyBot extends PircBotX {
                         getIntProperty("ircPort", IRC_PORT_DEFAULT))
                 .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
                 .setAutoReconnect(getBooleanProperty("autoReconnect", AUTO_RECONNECT_DEFAULT))
-                .setAutoReconnectDelay(getIntProperty("autoReconnectDelay", AUTO_RECONNECT_DELAY_DEFAULT))
+                .setAutoReconnectDelay(new StaticDelay(getIntProperty("autoReconnectDelay", AUTO_RECONNECT_DELAY_DEFAULT)))
                 .setAutoReconnectAttempts(getIntProperty("autoReconnectAttempts", AUTO_RECONNECT_ATTEMPTS_DEFAULT))
                 .setAutoNickChange(getBooleanProperty("autoNickChange", AUTO_NICK_CHANGE_DEFAULT))
                 .addAutoJoinChannels(Arrays.asList(getStringProperty("autoJoinChannels", AUTO_JOIN_CHANNELS_DEFAULT).split(" ")))
