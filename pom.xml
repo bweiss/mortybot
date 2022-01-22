@@ -224,7 +224,7 @@
                         <configuration>
                             <target>
                                 <property name="archive.finalName" value="${project.build.directory}/${project.build.finalName}"/>
-                                <property name="archive.includes" value="${project.build.finalName}/${project.build.finalName}.${project.packaging} ${project.build.finalName}/lib/* ${project.build.finalName}/conf/* ${project.build.finalName}/run.sh"/>
+                                <property name="archive.includes" value="${project.build.finalName}/${project.build.finalName}.${project.packaging} ${project.build.finalName}/lib/* ${project.build.finalName}/conf/* ${project.build.finalName}/run.sh ${project.build.finalName}/run.bat"/>
                                 <!--suppress UnresolvedMavenProperty -->
                                 <property name="tar.destfile" value="${archive.finalName}.tar"/>
                                 <!--suppress UnresolvedMavenProperty -->
