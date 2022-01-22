@@ -6,6 +6,7 @@ import org.pircbotx.Channel;
 import org.pircbotx.UserHostmask;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.JoinEvent;
+import org.pircbotx.hooks.events.NickChangeEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +22,7 @@ public class AutoOpListener extends ListenerAdapter {
     private static final int MODES_PER_COMMAND_DEFAULT = 4;
     private static final int DELAY_IN_SECONDS_DEFAULT = 10;
 
-    private static final Logger log = LoggerFactory.getLogger(AutoOpListener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AutoOpListener.class);
 
     private final Map<String, Queue<String>> pending;
 
@@ -31,11 +32,17 @@ public class AutoOpListener extends ListenerAdapter {
 
     @Override
     public void onJoin(final JoinEvent event) {
-        log.debug("onJoin event: {}", event);
+        LOGGER.debug("onJoin event: {}", event);
         boolean enabled = MortyBot.getBooleanProperty("AutoOpListener.enabled", false);
         if (enabled) {
             handleJoin(event);
         }
+    }
+
+    @Override
+    public void onNickChange(final NickChangeEvent event) {
+        LOGGER.debug("NickChangeEvent: {} -> {}", event.getOldNick(), event.getNewNick());
+        handleNickChange(event);
     }
 
     /**
@@ -53,7 +60,7 @@ public class AutoOpListener extends ListenerAdapter {
         final List<BotUser> matchedUsers = bot.getBotUserDao().getAll(hostmask.getHostmask(), BotUser.Flag.AOP);
 
         if (!matchedUsers.isEmpty()) {
-            log.debug("Adding {} to auto-op queue for {}", nick, channel.getName());
+            LOGGER.debug("Adding {} to auto-op queue for {}", nick, channel.getName());
 
             if (pending.containsKey(channel.getName())) {
                 Queue<String> queue = pending.get(channel.getName());
@@ -71,12 +78,26 @@ public class AutoOpListener extends ListenerAdapter {
                         Thread.sleep(delay * 1000);
                         processQueue(event, channel);
                     } catch (InterruptedException e) {
-                        log.warn("thread interrupted!");
+                        LOGGER.warn("thread interrupted!");
                         Thread.currentThread().interrupt();
                     }
                 }).start();
             }
         }
+    }
+
+    /**
+     * Handle a nick change event and update any queues containing that user's nick.
+     *
+     * @param event the nick change event
+     */
+    private synchronized void handleNickChange(final NickChangeEvent event) {
+        pending.forEach((chan, queue) -> {
+            if (queue.contains(event.getOldNick())) {
+                queue.remove(event.getOldNick());
+                queue.add(event.getNewNick());
+            }
+        });
     }
 
     /**
@@ -93,32 +114,32 @@ public class AutoOpListener extends ListenerAdapter {
         try {
             modesPerCommand = Integer.parseInt(serverSupport.get("MODES"));
         } catch (NumberFormatException e) {
-            log.warn("Invalid value for server support parameter MODES. Falling back to default...");
+            LOGGER.warn("Invalid value for server support parameter MODES. Falling back to default...");
         }
 
         if (pending.containsKey(channel.getName())) {
             Queue<String> queue = pending.get(channel.getName());
 
-            log.info("Attempting to op {} users on {}", queue.size(), channel.getName());
+            LOGGER.info("Attempting to op {} users on {}", queue.size(), channel.getName());
 
             while (!queue.isEmpty()) {
                 StringBuilder modes = new StringBuilder();
                 List<String> targets = new ArrayList<>();
 
                 while (targets.size() < modesPerCommand && !queue.isEmpty()) {
-                    String userNick = queue.remove();
-                    if (channel.isOp(bot.getUserChannelDao().getUser(userNick))) {
-                        log.debug("{} already has operator status on {}", userNick, channel.getName());
+                    String nick = queue.remove();
+                    if (channel.isOp(bot.getUserChannelDao().getUser(nick))) {
+                        LOGGER.debug("{} already has operator status on {}", nick, channel.getName());
                     } else {
                         modes.append("o");
-                        targets.add(userNick);
+                        targets.add(nick);
                     }
                 }
 
                 if (!channel.isOp(bot.getUserBot())) {
-                    log.debug("Bot is not an operator on {}", channel.getName());
+                    LOGGER.debug("Bot is not an operator on {}", channel.getName());
                 } else if (targets.isEmpty()) {
-                    log.debug("No targets to op!");
+                    LOGGER.debug("No targets to op!");
                 } else {
                     bot.sendIRC().mode(channel.getName(), "+" + modes + " " + String.join(" ", targets));
                 }
