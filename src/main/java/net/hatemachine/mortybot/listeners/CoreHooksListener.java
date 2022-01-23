@@ -1,14 +1,18 @@
 package net.hatemachine.mortybot.listeners;
 
 import net.hatemachine.mortybot.MortyBot;
-import org.pircbotx.hooks.ListenerAdapter;
+import org.pircbotx.hooks.CoreHooks;
 import org.pircbotx.hooks.events.VersionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class VersionListener extends ListenerAdapter {
+/**
+ * Replacement class for PircBotX's CoreHooks listener.
+ * This allows us to override the default PircBotX behavior for certain events (e.g. CTCP VERSION).
+ */
+public class CoreHooksListener extends CoreHooks {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(VersionListener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CoreHooksListener.class);
 
     @Override
     public void onVersion(final VersionEvent event) {

@@ -1,16 +1,20 @@
 package net.hatemachine.mortybot;
 
+import com.google.common.collect.UnmodifiableIterator;
 import net.hatemachine.mortybot.listeners.AutoOpListener;
-import net.hatemachine.mortybot.listeners.VersionListener;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.listeners.LinkListener;
 import net.hatemachine.mortybot.listeners.RejoinListener;
 import net.hatemachine.mortybot.listeners.ServerSupportListener;
+import net.hatemachine.mortybot.listeners.CoreHooksListener;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.delay.StaticDelay;
 import org.pircbotx.exception.IrcException;
+import org.pircbotx.hooks.CoreHooks;
+import org.pircbotx.hooks.Listener;
+import org.pircbotx.hooks.managers.ListenerManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,16 +24,13 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 
 public class MortyBot extends PircBotX {
 
-    public static final String   VERSION = "0.1.0";
+    public static final String VERSION = "0.1.0";
 
-    // our main properties file
-    private static final String  PROPERTIES_FILE = "bot.properties";
-
-    // setup some defaults
     private static final String  BOT_NAME_DEFAULT = "morty";
     private static final String  BOT_LOGIN_DEFAULT = "morty";
     private static final String  BOT_REAL_NAME_DEFAULT = "Aww jeez, Rick!";
@@ -42,9 +43,10 @@ public class MortyBot extends PircBotX {
     private static final String  AUTO_JOIN_CHANNELS_DEFAULT = "#drunkards";
     private static final String  COMMAND_PREFIX_DEFAULT = ".";
 
-    private static final Logger log = LoggerFactory.getLogger(MortyBot.class);
+    private static final Properties PROPERTIES = new Properties();
+    private static final String PROPERTIES_FILE = "bot.properties";
 
-    private static final Properties properties = new Properties();
+    private static final Logger LOGGER = LoggerFactory.getLogger(MortyBot.class);
 
     private final String botHome;
     private final BotUserDao botUserDao;
@@ -64,17 +66,17 @@ public class MortyBot extends PircBotX {
      */
     public static void main(String[] args) {
         if (System.getenv("MORTYBOT_HOME") == null) {
-            log.error("MORTYBOT_HOME not set, exiting...");
+            LOGGER.error("MORTYBOT_HOME not set, exiting...");
             return;
         }
 
         String propertiesFile = System.getenv("MORTYBOT_HOME") + "/conf/" + PROPERTIES_FILE;
         try (var reader = new FileReader(propertiesFile)) {
-            properties.load(reader);
+            PROPERTIES.load(reader);
         } catch (FileNotFoundException e) {
-            log.error("Properties file not found");
+            LOGGER.warn("Properties file not found");
         } catch (IOException e) {
-            log.error("Unable to read properties file");
+            LOGGER.warn("Unable to read properties file");
         }
 
         Configuration config = new Configuration.Builder()
@@ -94,19 +96,14 @@ public class MortyBot extends PircBotX {
                 .addListener(new LinkListener())
                 .addListener(new RejoinListener())
                 .addListener(new ServerSupportListener())
-                .addListener(new VersionListener())
                 .buildConfiguration();
 
-        // Start the bot and connect to a server
         try (MortyBot bot = new MortyBot(config)) {
-            log.info("Starting bot with nick: {}", bot.getNick());
+            LOGGER.info("Starting bot with nick: {}", bot.getNick());
+            bot.replaceCoreHooksListener(new CoreHooksListener());
             bot.startBot();
-        } catch (IrcException e) {
-            log.error("IrcException: ", e);
-        } catch (IOException e ) {
-            log.error("IOException: ", e);
-        } catch (Exception e) {
-            log.error("Unhandled Exception: ", e);
+        } catch (IrcException | IOException e) {
+            LOGGER.error("Exception encountered during startup: ", e);
         }
     }
 
@@ -161,6 +158,47 @@ public class MortyBot extends PircBotX {
 
     public static String getStringProperty(String name) {
         var prop = System.getProperty(name);
-        return prop == null ? properties.getProperty(name) : prop;
+        return prop == null ? PROPERTIES.getProperty(name) : prop;
+    }
+
+    /**
+     * Replace the CoreHooks listener class.
+     *
+     * This is basically the same as the method of the same name in the PircBotX Configuration class
+     * and is here because I can't seem to figure out how to use the original correctly. ;P
+     *
+     * @param listener the listener to replace with
+     */
+    public void replaceCoreHooksListener(CoreHooks listener) {
+        ListenerManager listenerManager = this.getConfiguration().getListenerManager();
+        UnmodifiableIterator<Listener> i = listenerManager.getListeners().iterator();
+        CoreHooks orig = null;
+
+        while (i.hasNext()) {
+            Listener cur = i.next();
+            if (cur instanceof CoreHooks) {
+                orig = (CoreHooks) cur;
+            }
+        }
+
+        if (orig != null) {
+            listenerManager.removeListener(orig);
+        }
+
+        listenerManager.addListener(listener);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        MortyBot mortyBot = (MortyBot) o;
+        return botHome.equals(mortyBot.botHome) && botUserDao.equals(mortyBot.botUserDao) && serverSupportMap.equals(mortyBot.serverSupportMap);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), botHome, botUserDao, serverSupportMap);
     }
 }

@@ -127,8 +127,8 @@
                     <file>src/main/java/net/hatemachine/mortybot/MortyBot.java</file>
                     <replacements>
                         <replacement>
-                            <token>public static final String   VERSION .+</token>
-                            <value>public static final String   VERSION = "${project.version}";</value>
+                            <token>public static final String VERSION .+</token>
+                            <value>public static final String VERSION = "${project.version}";</value>
                         </replacement>
                     </replacements>
                 </configuration>
