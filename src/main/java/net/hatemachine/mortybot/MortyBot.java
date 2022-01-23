@@ -1,6 +1,7 @@
 package net.hatemachine.mortybot;
 
 import net.hatemachine.mortybot.listeners.AutoOpListener;
+import net.hatemachine.mortybot.listeners.VersionListener;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.listeners.LinkListener;
 import net.hatemachine.mortybot.listeners.RejoinListener;
@@ -23,7 +24,7 @@ import java.util.Properties;
 
 public class MortyBot extends PircBotX {
 
-    public static final String   VERSION = "1.0-SNAPSHOT";
+    public static final String   VERSION = "0.1.0";
 
     // our main properties file
     private static final String  PROPERTIES_FILE = "bot.properties";
@@ -88,11 +89,12 @@ public class MortyBot extends PircBotX {
                 .setAutoReconnectAttempts(getIntProperty("autoReconnectAttempts", AUTO_RECONNECT_ATTEMPTS_DEFAULT))
                 .setAutoNickChange(getBooleanProperty("autoNickChange", AUTO_NICK_CHANGE_DEFAULT))
                 .addAutoJoinChannels(Arrays.asList(getStringProperty("autoJoinChannels", AUTO_JOIN_CHANNELS_DEFAULT).split(" ")))
-                .addListener(new ServerSupportListener())
                 .addListener(new AutoOpListener())
                 .addListener(new CommandListener(getStringProperty("commandPrefix", COMMAND_PREFIX_DEFAULT)))
                 .addListener(new LinkListener())
                 .addListener(new RejoinListener())
+                .addListener(new ServerSupportListener())
+                .addListener(new VersionListener())
                 .buildConfiguration();
 
         // Start the bot and connect to a server
