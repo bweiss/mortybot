@@ -80,24 +80,13 @@ public class CommandListener extends ListenerAdapter {
             BotCommand botCommand = (BotCommand) command.getBotCommandClass()
                     .getDeclaredConstructor(GenericMessageEvent.class, CommandListener.CommandSource.class, List.class)
                     .newInstance(event, source, args);
-            execBotCommand(botCommand);
+
+            BotCommandProxy.newInstance(botCommand).execute();
 
         } catch (IllegalArgumentException e) {
             LOGGER.warn("Invalid command {} from {}", commandStr, user.getNick());
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             LOGGER.error("Exception encountered during command invocation", e);
-        }
-    }
-
-    /**
-     * Execute a bot command implemented with the BotCommand interface.
-     * This will pass through a BotCommandProxy instance to validate and authorize.
-     *
-     * @param botCommand instance of the command you want to run
-     */
-    private void execBotCommand(final BotCommand botCommand) {
-        try {
-            BotCommandProxy.newInstance(botCommand).execute();
         } catch (BotCommandException e) {
             LOGGER.error("Exception encountered during command execution", e);
         }
