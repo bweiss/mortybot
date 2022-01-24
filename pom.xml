@@ -1,4 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    MortyBot - An IRC bot built on the PircBotX framework.
+    Copyright © 2022 Brian Weiss (brianmweiss@gmail.com)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -7,8 +26,36 @@
     <groupId>net.hatemachine</groupId>
     <artifactId>mortybot</artifactId>
     <version>0.1.0</version>
-    <name>MortyBot</name>
     <packaging>jar</packaging>
+
+    <name>MortyBot</name>
+    <description>An IRC bot built on the PircBotX framework.</description>
+    <url>https://github.com/bweiss/mortybot</url>
+    <inceptionYear>2022</inceptionYear>
+
+    <licenses>
+        <license>
+            <name>GPL v3</name>
+            <url>www.gnu.org/licenses/</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <organization>
+        <name>Brian Weiss</name>
+    </organization>
+
+    <developers>
+        <developer>
+            <id>bweiss</id>
+            <name>Brian Weiss</name>
+            <email>brianmweiss@gmail.com</email>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>-5</timezone>
+        </developer>
+    </developers>
 
     <properties>
         <encoding>UTF-8</encoding>
@@ -93,11 +140,55 @@
             <artifactId>json-path</artifactId>
             <version>2.6.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.mycila</groupId>
+            <artifactId>license-maven-plugin</artifactId>
+            <version>4.1</version>
+        </dependency>
     </dependencies>
 
     <build>
         <finalName>mortybot</finalName>
+
         <plugins>
+
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>4.1</version>
+                <configuration>
+                    <properties>
+                        <owner>Brian Weiss</owner>
+                        <email>brianmweiss@gmail.com</email>
+                    </properties>
+                    <licenseSets>
+                        <licenseSet>
+                            <header>com/mycila/maven/plugin/license/templates/GPL-3.txt</header>
+                            <excludes>
+                                <exclude>**/*.txt</exclude>
+                                <exclude>**/*.log</exclude>
+                                <exclude>.git*</exclude>
+                                <exclude>README.md</exclude>
+                                <exclude>.idea/**</exclude>
+                                <exclude>conf/**</exclude>
+                                <exclude>src/test/resources/**</exclude>
+                                <exclude>src/main/resources/**</exclude>
+                                <exclude>src/main/non-packaged-resources/**</exclude>
+                            </excludes>
+                        </licenseSet>
+                    </licenseSets>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -110,7 +201,6 @@
                 </configuration>
             </plugin>
 
-            <!-- Update version in MortyBot.java -->
             <plugin>
                 <groupId>com.google.code.maven-replacer-plugin</groupId>
                 <artifactId>maven-replacer-plugin</artifactId>
