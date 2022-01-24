@@ -17,8 +17,8 @@
  */
 package net.hatemachine.mortybot;
 
+import com.darwinsys.io.FileSaver;
 import net.hatemachine.mortybot.exception.BotUserException;
-import net.hatemachine.mortybot.util.FileSaver;
 import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.User;
 import org.slf4j.Logger;

@@ -146,6 +146,12 @@
             <artifactId>license-maven-plugin</artifactId>
             <version>4.1</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.darwinsys</groupId>
+            <artifactId>darwinsys-api</artifactId>
+            <version>1.5.15</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -216,6 +216,6 @@ public class MortyBot extends PircBotX {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), botHome, botUserDao, serverSupportMap);
+        return Objects.hash(super.hashCode(), botHome, botUserDao);
     }
 }
