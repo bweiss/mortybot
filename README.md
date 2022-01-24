@@ -19,7 +19,7 @@ This is a simple IRC bot I wrote for fun and to learn Java. It is designed for [
 
 Requirements:
 
-* JDK 11 or higher
+* JDK 17+
 * Maven (for building and packaging)
 
 To build and package the bot, use maven:

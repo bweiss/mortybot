@@ -59,7 +59,7 @@
 
     <properties>
         <encoding>UTF-8</encoding>
-        <java.version>11</java.version>
+        <java.version>17</java.version>
         <fully.qualified.main.class>net.hatemachine.mortybot.MortyBot</fully.qualified.main.class>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
