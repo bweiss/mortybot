@@ -179,8 +179,7 @@ public class IMDBHelper {
         try {
             titleDetailsPage = Jsoup.connect(url).get();
         } catch (IOException e) {
-            log.error("Failed to fetch title details page: {}", e.getMessage());
-            e.printStackTrace();
+            log.error("Exception encountered fetching title details", e);
         }
 
         if (titleDetailsPage != null) {
@@ -209,7 +208,7 @@ public class IMDBHelper {
         }
 
         try {
-            title.setRating(parsedJson.read("$.aggregateRating.ratingValue"));
+            title.setRating(Double.parseDouble(parsedJson.read("$.aggregateRating.ratingValue").toString()));
         } catch (PathNotFoundException e) {
             log.warn("No rating found");
         }
