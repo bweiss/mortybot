@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 
 public class HelpCommand implements BotCommand {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(HelpCommand.class);
+    private static final Logger log = LoggerFactory.getLogger(HelpCommand.class);
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;
@@ -77,7 +77,7 @@ public class HelpCommand implements BotCommand {
                                 .newInstance(event, source, args);
                         return (cmdInstance.isEnabled());
                     } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                        LOGGER.error("Exception encountered showing all commands", e);
+                        log.error("Exception encountered showing all commands", e);
                     }
                     return false;
                 })
@@ -97,12 +97,12 @@ public class HelpCommand implements BotCommand {
                     event.respondWith(line);
                 }
             } else {
-                LOGGER.warn("Command not enabled: {}", commandStr);
+                log.warn("Command not enabled: {}", commandStr);
             }
         } catch (IllegalArgumentException e) {
-            LOGGER.warn("Invalid command {}", commandStr);
+            log.warn("Invalid command {}", commandStr);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            LOGGER.error("Exception encountered showing help for command", e);
+            log.error("Exception encountered showing help for command", e);
         }
     }
 }

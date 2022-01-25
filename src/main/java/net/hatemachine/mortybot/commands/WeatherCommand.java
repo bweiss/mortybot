@@ -41,7 +41,7 @@ public class WeatherCommand implements BotCommand {
     private static final String BASE_URL = "https://wttr.in/";
     private static final String PARAMETERS = "?format=j1";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(WeatherCommand.class);
+    private static final Logger log = LoggerFactory.getLogger(WeatherCommand.class);
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;
@@ -56,7 +56,7 @@ public class WeatherCommand implements BotCommand {
     @Override
     public void execute() {
         if (args.isEmpty()) {
-            LOGGER.error("Not enough arguments");
+            log.error("Not enough arguments");
             return;
         }
 
@@ -83,13 +83,13 @@ public class WeatherCommand implements BotCommand {
             }
 
         } catch (MalformedURLException e) {
-            LOGGER.error("Invalid URL", e);
+            log.error("Invalid URL", e);
         } catch (URISyntaxException e) {
-            LOGGER.error("Invalid URI", e);
+            log.error("Invalid URI", e);
         } catch (IOException e) {
-            LOGGER.error("Error fetching body", e);
+            log.error("Error fetching body", e);
         } catch (InterruptedException e) {
-            LOGGER.warn("Thread interrupted", e);
+            log.warn("Thread interrupted", e);
             Thread.currentThread().interrupt();
         }
     }

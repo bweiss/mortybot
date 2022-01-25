@@ -56,7 +56,7 @@ public class StockCommand implements BotCommand {
 
     private static final String BASE_URL = "https://query1.finance.yahoo.com/v7/finance/chart/";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(StockCommand.class);
+    private static final Logger log = LoggerFactory.getLogger(StockCommand.class);
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;
@@ -123,7 +123,7 @@ public class StockCommand implements BotCommand {
         Validate.notNullOrEmpty(symbol);
         Optional<String> quote = Optional.empty();
 
-        LOGGER.info("Fetching stock quote for {}", symbol);
+        log.info("Fetching stock quote for {}", symbol);
 
         try {
             URL url = new URL(BASE_URL + symbol);
@@ -146,13 +146,13 @@ public class StockCommand implements BotCommand {
             }
 
         } catch (MalformedURLException e) {
-            LOGGER.error("Invalid URL", e);
+            log.error("Invalid URL", e);
         } catch (URISyntaxException e) {
-            LOGGER.error("Invalid URI", e);
+            log.error("Invalid URI", e);
         } catch (IOException e) {
-            LOGGER.error("Error fetching body", e);
+            log.error("Error fetching body", e);
         } catch (InterruptedException e) {
-            LOGGER.warn("Thread interrupted", e);
+            log.warn("Thread interrupted", e);
             Thread.currentThread().interrupt();
         }
 

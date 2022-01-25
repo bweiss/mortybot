@@ -50,11 +50,11 @@ public class LinkListener extends ListenerAdapter {
     // the regex pattern used to match URLs
     private static final Pattern URL_PATTERN = Pattern.compile("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&\\/\\/=]*)");
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(LinkListener.class);
+    private static final Logger log = LoggerFactory.getLogger(LinkListener.class);
 
     @Override
     public void onMessage(final MessageEvent event) throws InterruptedException {
-        LOGGER.debug("onMessage event: {}", event);
+        log.debug("onMessage event: {}", event);
         boolean watchChannels = MortyBot.getBooleanProperty("LinkListener.watchChannels", false);
         if (watchChannels) {
             handleMessage(event);
@@ -63,7 +63,7 @@ public class LinkListener extends ListenerAdapter {
 
     @Override
     public void onPrivateMessage(final PrivateMessageEvent event) throws InterruptedException {
-        LOGGER.debug("onPrivateMessage event: {}", event);
+        log.debug("onPrivateMessage event: {}", event);
         boolean watchPrivateMessages = MortyBot.getBooleanProperty("LinkListener.watchPrivateMessages", false);
         if (watchPrivateMessages) {
             handleMessage(event);
@@ -96,7 +96,7 @@ public class LinkListener extends ListenerAdapter {
                     try {
                         shortLink = Bitly.shorten(link);
                     } catch (IOException e) {
-                        LOGGER.error("Error while attempting to shorten link: {}", e.getMessage());
+                        log.error("Error while attempting to shorten link: {}", e.getMessage());
                     }
                 }
             }
@@ -126,13 +126,13 @@ public class LinkListener extends ListenerAdapter {
      * @return a list of link strings
      */
     private List<String> parseMessage(final String s) {
-        LOGGER.debug("Parsing message for links: {}", s);
+        log.debug("Parsing message for links: {}", s);
         Matcher m = URL_PATTERN.matcher(s);
         List<String> links = new ArrayList<>();
         while (m.find()) {
             links.add(m.group(0));
         }
-        LOGGER.debug("Found {} links: {}", links.size(), links);
+        log.debug("Found {} links: {}", links.size(), links);
         return links;
     }
 
@@ -143,16 +143,16 @@ public class LinkListener extends ListenerAdapter {
      * @return an optional containing the link's title
      */
     private Optional<String> fetchTitle(final String link) {
-        LOGGER.debug("Fetching title for link: {}", link);
+        log.debug("Fetching title for link: {}", link);
         Document doc = null;
         try {
             doc = Jsoup.connect(link).get();
         } catch (IOException e) {
-            LOGGER.error("Failed to fetch link: {}", e.getMessage());
+            log.error("Failed to fetch link: {}", e.getMessage());
         }
         if (doc != null) {
             String title = doc.title();
-            LOGGER.debug("Title: {}", title);
+            log.debug("Title: {}", title);
             return Optional.of(title);
         } else {
             return Optional.empty();

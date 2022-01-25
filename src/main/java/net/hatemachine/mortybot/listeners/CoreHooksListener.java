@@ -29,11 +29,11 @@ import org.slf4j.LoggerFactory;
  */
 public class CoreHooksListener extends CoreHooks {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CoreHooksListener.class);
+    private static final Logger log = LoggerFactory.getLogger(CoreHooksListener.class);
 
     @Override
     public void onVersion(final VersionEvent event) {
-        LOGGER.debug("VersionEvent: {}", event);
+        log.debug("VersionEvent: {}", event);
         event.respond("VERSION MortyBot " + MortyBot.VERSION);
     }
 }

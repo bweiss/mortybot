@@ -44,7 +44,7 @@ import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.P
  */
 public class CommandListener extends ListenerAdapter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CommandListener.class);
+    private static final Logger log = LoggerFactory.getLogger(CommandListener.class);
 
     private final String commandPrefix;
 
@@ -63,7 +63,7 @@ public class CommandListener extends ListenerAdapter {
 
     @Override
     public void onMessage(final MessageEvent event) {
-        LOGGER.debug("onMessage event: {}", event);
+        log.debug("onMessage event: {}", event);
         if (event.getMessage().startsWith(getCommandPrefix())) {
             handleCommand(event, PUBLIC);
         }
@@ -71,7 +71,7 @@ public class CommandListener extends ListenerAdapter {
 
     @Override
     public void onPrivateMessage(final PrivateMessageEvent event) {
-        LOGGER.debug("onPrivateMessage event: {}", event);
+        log.debug("onPrivateMessage event: {}", event);
         if (event.getMessage().startsWith(getCommandPrefix())) {
             handleCommand(event, PRIVATE);
         }
@@ -90,7 +90,7 @@ public class CommandListener extends ListenerAdapter {
         List<String> args = tokens.subList(1, tokens.size());
         User user = event.getUser();
 
-        LOGGER.info("{} command triggered by {}, args: {}", commandStr, user.getNick(), args);
+        log.info("{} command triggered by {}, args: {}", commandStr, user.getNick(), args);
 
         try {
             Command command = Enum.valueOf(Command.class, commandStr);
@@ -101,11 +101,11 @@ public class CommandListener extends ListenerAdapter {
             BotCommandProxy.newInstance(botCommand).execute();
 
         } catch (IllegalArgumentException e) {
-            LOGGER.warn("Invalid command {} from {}", commandStr, user.getNick());
+            log.warn("Invalid command {} from {}", commandStr, user.getNick());
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            LOGGER.error("Exception encountered during command invocation", e);
+            log.error("Exception encountered during command invocation", e);
         } catch (BotCommandException e) {
-            LOGGER.error("Exception encountered during command execution", e);
+            log.error("Exception encountered during command execution", e);
         }
     }
 

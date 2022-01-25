@@ -63,7 +63,7 @@ public class MortyBot extends PircBotX {
     private static final Properties PROPERTIES = new Properties();
     private static final String PROPERTIES_FILE = "bot.properties";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MortyBot.class);
+    private static final Logger log = LoggerFactory.getLogger(MortyBot.class);
 
     private final String botHome;
     private final BotUserDao botUserDao;
@@ -83,7 +83,7 @@ public class MortyBot extends PircBotX {
      */
     public static void main(String[] args) {
         if (System.getenv("MORTYBOT_HOME") == null) {
-            LOGGER.error("MORTYBOT_HOME not set, exiting...");
+            log.error("MORTYBOT_HOME not set, exiting...");
             return;
         }
 
@@ -91,9 +91,9 @@ public class MortyBot extends PircBotX {
         try (var reader = new FileReader(propertiesFile)) {
             PROPERTIES.load(reader);
         } catch (FileNotFoundException e) {
-            LOGGER.warn("Properties file not found");
+            log.warn("Properties file not found");
         } catch (IOException e) {
-            LOGGER.warn("Unable to read properties file");
+            log.warn("Unable to read properties file");
         }
 
         Configuration config = new Configuration.Builder()
@@ -116,11 +116,11 @@ public class MortyBot extends PircBotX {
                 .buildConfiguration();
 
         try (MortyBot bot = new MortyBot(config)) {
-            LOGGER.info("Starting bot with nick: {}", bot.getNick());
+            log.info("Starting bot with nick: {}", bot.getNick());
             bot.replaceCoreHooksListener(new CoreHooksListener());
             bot.startBot();
         } catch (IrcException | IOException e) {
-            LOGGER.error("Exception encountered during startup: ", e);
+            log.error("Exception encountered during startup: ", e);
         }
     }
 

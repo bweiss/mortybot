@@ -39,7 +39,7 @@ public class AutoOpListener extends ListenerAdapter {
     private static final int MODES_PER_COMMAND_DEFAULT = 4;
     private static final int DELAY_IN_SECONDS_DEFAULT = 10;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AutoOpListener.class);
+    private static final Logger log = LoggerFactory.getLogger(AutoOpListener.class);
 
     private final Map<String, Queue<String>> pending;
 
@@ -49,7 +49,7 @@ public class AutoOpListener extends ListenerAdapter {
 
     @Override
     public void onJoin(final JoinEvent event) {
-        LOGGER.debug("onJoin event: {}", event);
+        log.debug("onJoin event: {}", event);
         boolean enabled = MortyBot.getBooleanProperty("AutoOpListener.enabled", false);
         if (enabled) {
             handleJoin(event);
@@ -58,7 +58,7 @@ public class AutoOpListener extends ListenerAdapter {
 
     @Override
     public void onNickChange(final NickChangeEvent event) {
-        LOGGER.debug("NickChangeEvent: {} -> {}", event.getOldNick(), event.getNewNick());
+        log.debug("NickChangeEvent: {} -> {}", event.getOldNick(), event.getNewNick());
         handleNickChange(event);
     }
 
@@ -77,7 +77,7 @@ public class AutoOpListener extends ListenerAdapter {
         final List<BotUser> matchedUsers = bot.getBotUserDao().getAll(hostmask.getHostmask(), BotUser.Flag.AOP);
 
         if (!matchedUsers.isEmpty()) {
-            LOGGER.debug("Adding {} to auto-op queue for {}", nick, channel.getName());
+            log.debug("Adding {} to auto-op queue for {}", nick, channel.getName());
 
             if (pending.containsKey(channel.getName())) {
                 Queue<String> queue = pending.get(channel.getName());
@@ -95,7 +95,7 @@ public class AutoOpListener extends ListenerAdapter {
                         Thread.sleep(delay * 1000);
                         processQueue(event, channel);
                     } catch (InterruptedException e) {
-                        LOGGER.warn("thread interrupted!");
+                        log.warn("thread interrupted!");
                         Thread.currentThread().interrupt();
                     }
                 }).start();
@@ -131,13 +131,13 @@ public class AutoOpListener extends ListenerAdapter {
         try {
             modesPerCommand = Integer.parseInt(serverSupport.get("MODES"));
         } catch (NumberFormatException e) {
-            LOGGER.warn("Invalid value for server support parameter MODES. Falling back to default...");
+            log.warn("Invalid value for server support parameter MODES. Falling back to default...");
         }
 
         if (pending.containsKey(channel.getName())) {
             Queue<String> queue = pending.get(channel.getName());
 
-            LOGGER.info("Attempting to op {} users on {}", queue.size(), channel.getName());
+            log.info("Attempting to op {} users on {}", queue.size(), channel.getName());
 
             while (!queue.isEmpty()) {
                 StringBuilder modes = new StringBuilder();
@@ -146,7 +146,7 @@ public class AutoOpListener extends ListenerAdapter {
                 while (targets.size() < modesPerCommand && !queue.isEmpty()) {
                     String nick = queue.remove();
                     if (channel.isOp(bot.getUserChannelDao().getUser(nick))) {
-                        LOGGER.debug("{} already has operator status on {}", nick, channel.getName());
+                        log.debug("{} already has operator status on {}", nick, channel.getName());
                     } else {
                         modes.append("o");
                         targets.add(nick);
@@ -154,9 +154,9 @@ public class AutoOpListener extends ListenerAdapter {
                 }
 
                 if (!channel.isOp(bot.getUserBot())) {
-                    LOGGER.debug("Bot is not an operator on {}", channel.getName());
+                    log.debug("Bot is not an operator on {}", channel.getName());
                 } else if (targets.isEmpty()) {
-                    LOGGER.debug("No targets to op!");
+                    log.debug("No targets to op!");
                 } else {
                     bot.sendIRC().mode(channel.getName(), "+" + modes + " " + String.join(" ", targets));
                 }
