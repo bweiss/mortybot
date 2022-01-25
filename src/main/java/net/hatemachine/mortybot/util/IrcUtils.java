@@ -58,48 +58,21 @@ public class IrcUtils {
         String nickname = address.substring(0, firstExclamation);
         String username = address.substring(firstExclamation + 1, firstAt);
         String hostname = address.substring(firstAt + 1);
-        String returnBuffer;
 
-        switch (method) {
-            case 0:
-                returnBuffer = String.format("*!%s@%s", username, hostname);
-                break;
-            case 1:
-                returnBuffer = String.format("*!*%s@%s", username, hostname);
-                break;
-            case 2:
-                returnBuffer = String.format("*!*@%s", hostname);
-                break;
-            case 3:
-                returnBuffer = String.format("*!*%s@%s", trimUsername(username), maskHostname(hostname));
-                break;
-            case 4:
-                returnBuffer = String.format("*!*@%s", maskHostname(hostname));
-                break;
-            case 5:
-                returnBuffer = String.format("%s!%s@%s", nickname, username, hostname);
-                break;
-            case 6:
-                returnBuffer = String.format("%s!*%s@%s", nickname, trimUsername(username), hostname);
-                break;
-            case 7:
-                returnBuffer = String.format("%s!*@%s", nickname, hostname);
-                break;
-            case 8:
-                returnBuffer = String.format("%s!*%s@%s", nickname, trimUsername(username), maskHostname(hostname));
-                break;
-            case 9:
-                returnBuffer = String.format("%s!*@%s", nickname, maskHostname(hostname));
-                break;
-            case 10:
-                returnBuffer = String.format("*!*%s@*", username);
-                break;
-            default:
-                returnBuffer = "";
-                break;
-        }
-
-        return returnBuffer;
+        return switch (method) {
+            case 0 -> String.format("*!%s@%s", username, hostname);
+            case 1 -> String.format("*!*%s@%s", username, hostname);
+            case 2 -> String.format("*!*@%s", hostname);
+            case 3 -> String.format("*!*%s@%s", trimUsername(username), maskHostname(hostname));
+            case 4 -> String.format("*!*@%s", maskHostname(hostname));
+            case 5 -> String.format("%s!%s@%s", nickname, username, hostname);
+            case 6 -> String.format("%s!*%s@%s", nickname, trimUsername(username), hostname);
+            case 7 -> String.format("%s!*@%s", nickname, hostname);
+            case 8 -> String.format("%s!*%s@%s", nickname, trimUsername(username), maskHostname(hostname));
+            case 9 -> String.format("%s!*@%s", nickname, maskHostname(hostname));
+            case 10 -> String.format("*!*%s@*", username);
+            default -> "";
+        };
     }
 
     /**

@@ -74,7 +74,7 @@ public class WeatherCommand implements BotCommand {
                     .GET()
                     .build();
 
-            HttpResponse<String> response = null;
+            HttpResponse<String> response;
 
             response = client.send(request, HttpResponse.BodyHandlers.ofString());
 

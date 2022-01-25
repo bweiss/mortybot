@@ -62,7 +62,7 @@ public class Movie {
     }
 
     public void setUrl(String url) {
-        this.url = year;
+        this.url = url;
     }
 
     public String getScore() {

@@ -59,32 +59,15 @@ public class UserCommand implements BotCommand {
 
         try {
             switch (command) {
-                case "ADD":
-                    addCommand(newArgs);
-                    break;
-                case "ADDFLAG":
-                    addFlagCommand(newArgs);
-                    break;
-                case "ADDHOSTMASK":
-                    addHostmaskCommand(newArgs);
-                    break;
-                case "LIST":
-                    listCommand();
-                    break;
-                case "REMOVE":
-                    removeCommand(newArgs);
-                    break;
-                case "REMOVEFLAG":
-                    removeFlagCommand(newArgs);
-                    break;
-                case "REMOVEHOSTMASK":
-                    removeHostmaskCommand(newArgs);
-                    break;
-                case "SHOW":
-                    showCommand(newArgs);
-                    break;
-                default:
-                    log.info("Unknown USER command {} from {}", command, event.getUser().getNick());
+                case "ADD" -> addCommand(newArgs);
+                case "ADDFLAG" -> addFlagCommand(newArgs);
+                case "ADDHOSTMASK" -> addHostmaskCommand(newArgs);
+                case "LIST" -> listCommand();
+                case "REMOVE" -> removeCommand(newArgs);
+                case "REMOVEFLAG" -> removeFlagCommand(newArgs);
+                case "REMOVEHOSTMASK" -> removeHostmaskCommand(newArgs);
+                case "SHOW" -> showCommand(newArgs);
+                default -> log.info("Unknown USER command {} from {}", command, event.getUser().getNick());
             }
         } catch (IllegalArgumentException e) {
             log.error("{}: {}, args: {}", command, e.getMessage(), newArgs);
@@ -134,7 +117,7 @@ public class UserCommand implements BotCommand {
         MortyBot bot = event.getBot();
         String name = args.get(0);
         String flagStr = args.get(1).toUpperCase(Locale.ROOT);
-        BotUser.Flag flag = null;
+        BotUser.Flag flag;
 
         try {
             flag = Enum.valueOf(BotUser.Flag.class, flagStr);
@@ -233,7 +216,7 @@ public class UserCommand implements BotCommand {
         MortyBot bot = event.getBot();
         String name = args.get(0);
         String flagStr = args.get(1).toUpperCase(Locale.ROOT);
-        BotUser.Flag flag = null;
+        BotUser.Flag flag;
 
         try {
             flag = Enum.valueOf(BotUser.Flag.class, flagStr);
@@ -311,18 +294,10 @@ public class UserCommand implements BotCommand {
      */
     private void handleBotUserException(BotUserException e, String method, List<String> args) {
         String errMsg;
-        switch (e.getReason()) {
-            case UNKNOWN_USER:
-                errMsg = "User not found";
-                break;
-            case USER_EXISTS:
-                errMsg = "User already exists";
-                break;
-            default:
-                log.error("{} caused unhandled BotUserException {} {}", method, e.getReason(), e.getMessage());
-                e.printStackTrace();
-                return;
-        }
+        errMsg = switch (e.getReason()) {
+            case UNKNOWN_USER -> "User not found";
+            case USER_EXISTS -> "User already exists";
+        };
         log.error("{}: {}, args: {}", method, errMsg, args);
         event.respondWith(errMsg);
     }

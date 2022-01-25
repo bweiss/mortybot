@@ -41,7 +41,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
 import static net.hatemachine.mortybot.exception.BotUserException.Reason.UNKNOWN_USER;
 import static net.hatemachine.mortybot.exception.BotUserException.Reason.USER_EXISTS;
 
@@ -151,7 +150,7 @@ public class BotUserDaoImpl implements BotUserDao {
         synchronized (this.accessLock) {
             return getAll().stream()
                     .filter(u -> u.hasMatchingHostmask(hostmask))
-                    .collect(toList());
+                    .toList();
         }
     }
 
@@ -165,7 +164,7 @@ public class BotUserDaoImpl implements BotUserDao {
         synchronized (this.accessLock) {
             return getAll().stream()
                     .filter(u -> u.getFlags().contains(flag))
-                    .collect(toList());
+                    .toList();
         }
     }
 
@@ -181,7 +180,7 @@ public class BotUserDaoImpl implements BotUserDao {
             return getAll().stream()
                     .filter(u -> u.getFlags().contains(flag))
                     .filter(u -> u.hasMatchingHostmask(hostmask))
-                    .collect(toList());
+                    .toList();
         }
     }
 
