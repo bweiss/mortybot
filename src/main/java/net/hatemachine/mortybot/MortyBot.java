@@ -46,7 +46,7 @@ import java.util.Properties;
 
 public class MortyBot extends PircBotX {
 
-    public static final String VERSION = "0.1.1";
+    public static final String VERSION = "0.2.0";
 
     private static final String PROPERTIES_FILE = "bot.properties";
     private static final String BOT_NAME_DEFAULT = "morty";
