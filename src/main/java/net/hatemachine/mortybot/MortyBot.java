@@ -46,24 +46,23 @@ import java.util.Properties;
 
 public class MortyBot extends PircBotX {
 
-    public static final String VERSION = "0.1.0";
+    public static final String VERSION = "0.1.1";
 
-    private static final String  BOT_NAME_DEFAULT = "morty";
-    private static final String  BOT_LOGIN_DEFAULT = "morty";
-    private static final String  BOT_REAL_NAME_DEFAULT = "Aww jeez, Rick!";
-    private static final String  IRC_SERVER_DEFAULT = "irc.hatemachine.net";
-    private static final int     IRC_PORT_DEFAULT = 6697;
-    private static final boolean AUTO_RECONNECT_DEFAULT = false;
-    private static final int     AUTO_RECONNECT_DELAY_DEFAULT = 30000;
-    private static final int     AUTO_RECONNECT_ATTEMPTS_DEFAULT = 3;
-    private static final boolean AUTO_NICK_CHANGE_DEFAULT = true;
-    private static final String  AUTO_JOIN_CHANNELS_DEFAULT = "#drunkards";
-    private static final String  COMMAND_PREFIX_DEFAULT = ".";
-
-    private static final Properties PROPERTIES = new Properties();
     private static final String PROPERTIES_FILE = "bot.properties";
+    private static final String BOT_NAME_DEFAULT = "morty";
+    private static final String BOT_LOGIN_DEFAULT = "morty";
+    private static final String BOT_REAL_NAME_DEFAULT = "Aww jeez, Rick!";
+    private static final String IRC_SERVER_DEFAULT = "irc.hatemachine.net";
+    private static final int IRC_PORT_DEFAULT = 6697;
+    private static final boolean AUTO_RECONNECT_DEFAULT = false;
+    private static final int AUTO_RECONNECT_DELAY_DEFAULT = 30000;
+    private static final int AUTO_RECONNECT_ATTEMPTS_DEFAULT = 3;
+    private static final boolean AUTO_NICK_CHANGE_DEFAULT = true;
+    private static final String AUTO_JOIN_CHANNELS_DEFAULT = "#drunkards";
+    private static final String COMMAND_PREFIX_DEFAULT = ".";
 
     private static final Logger log = LoggerFactory.getLogger(MortyBot.class);
+    private static final Properties properties = new Properties();
 
     private final String botHome;
     private final BotUserDao botUserDao;
@@ -77,7 +76,7 @@ public class MortyBot extends PircBotX {
     }
 
     /**
-     * Main entry point for the bot. Responsible for initial configuration and setting up the bot users.
+     * Main entry point for the bot. Responsible for initial configuration and starting the bot.
      *
      * @param args command line arguments for the bot
      */
@@ -89,7 +88,7 @@ public class MortyBot extends PircBotX {
 
         String propertiesFile = System.getenv("MORTYBOT_HOME") + "/conf/" + PROPERTIES_FILE;
         try (var reader = new FileReader(propertiesFile)) {
-            PROPERTIES.load(reader);
+            properties.load(reader);
         } catch (FileNotFoundException e) {
             log.warn("Properties file not found");
         } catch (IOException e) {
@@ -142,7 +141,7 @@ public class MortyBot extends PircBotX {
     }
 
     /**
-     * Set the value for a server support (005 numeric) parameter.
+     * Set the value for a server support parameter (005 numeric).
      *
      * @param key the key you want to set
      * @param value the value to assign to that key
@@ -175,7 +174,7 @@ public class MortyBot extends PircBotX {
 
     public static String getStringProperty(String name) {
         var prop = System.getProperty(name);
-        return prop == null ? PROPERTIES.getProperty(name) : prop;
+        return prop == null ? properties.getProperty(name) : prop;
     }
 
     /**
