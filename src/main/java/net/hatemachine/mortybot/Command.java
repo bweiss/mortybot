@@ -31,6 +31,7 @@ import net.hatemachine.mortybot.commands.StockCommand;
 import net.hatemachine.mortybot.commands.TestCommand;
 import net.hatemachine.mortybot.commands.UserCommand;
 import net.hatemachine.mortybot.commands.WeatherCommand;
+import net.hatemachine.mortybot.commands.YearCommand;
 
 public enum Command {
 
@@ -90,6 +91,11 @@ public enum Command {
 
     WTR(WeatherCommand.class, new String[] {
             "Usage: WTR <query>"
+    }),
+
+    YEAR(YearCommand.class, new String[] {
+            "Shows progress through the current year",
+            "Usage: YEAR"
     });
 
     private final Class<?> botCommandClass;
