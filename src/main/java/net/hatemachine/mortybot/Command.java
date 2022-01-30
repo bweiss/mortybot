@@ -41,55 +41,69 @@ public enum Command {
     }),
 
     HELP(HelpCommand.class, new String[] {
+            "Shows help and usage information for bot commands",
             "Usage: HELP [topic]"
     }),
 
     IMDB(ImdbCommand.class, new String[] {
+            "Searches IMDB for movie titles or persons",
             "Usage: IMDB [-l] <query>"
     }),
 
     IPLOOKUP(IpLookupCommand.class, new String[] {
+            "Shows the location of an IP address or hostname",
             "Usage: IPLOOKUP <IP>"
     }),
 
     JOIN(JoinCommand.class, new String[] {
+            "Makes the bot join a channel",
             "Usage: JOIN <channel> [key]"
     }),
 
     MSG(MessageCommand.class, new String[] {
+            "Makes the bot send a private message to a channel or user",
             "Usage: MSG <user> <text>"
     }),
 
     OP(OpCommand.class, new String[] {
+            "Makes the bot op a user",
             "Usage: OP [user]"
     }),
 
     PART(PartCommand.class, new String[] {
+            "Makes the bot part a channel",
             "Usage: PART [channel]"
     }),
 
     QUIT(QuitCommand.class, new String[] {
+            "Makes the bot quit and shutdown",
             "Usage: QUIT"
     }),
 
     RT(RtCommand.class, new String[] {
+            "Searches Rotten Tomatoes for movie titles",
             "Usage: RT [-l] <query>"
     }),
 
     STOCK(StockCommand.class, new String[] {
-            "Usage: STOCK <symbol>"
+            "Looks up the current price of stock symbols",
+            "Usage: STOCK <symbol1> [symbol2] ..."
     }),
 
     TEST(TestCommand.class, new String[] {
+            "Used for testing",
             "Usage: TEST <args>"
     }),
 
     USER(UserCommand.class, new String[] {
+            "Manages bot users",
             "Usage: USER <subcommand> [target] [args]",
-            "Subcommands: LIST, SHOW ADD, REMOVE, ADDHOSTMASK, REMOVEHOSTMASK, ADDFLAG, REMOVEFLAG"
+            "Subcommands: LIST, SHOW ADD, REMOVE, ADDHOSTMASK, REMOVEHOSTMASK, ADDFLAG, REMOVEFLAG",
+            "Available user flags: ADMIN, AOP"
     }),
 
     WTR(WeatherCommand.class, new String[] {
+            "Shows the weather for an area",
             "Usage: WTR <query>"
     }),
 
