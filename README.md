@@ -13,6 +13,8 @@ This is a simple IRC bot I wrote for fun and to learn Java. It is designed for [
 * Weather lookups
 * Stock symbol lookups
 * IMDB and rotten tomatoes search
+* IP address location lookups
+* BottleBlueBook search
 * Support for 005 numeric
 
 ## Building and Installing
