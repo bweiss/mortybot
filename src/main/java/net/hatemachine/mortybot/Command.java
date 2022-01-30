@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot;
 
+import net.hatemachine.mortybot.commands.BottleCommand;
 import net.hatemachine.mortybot.commands.HelpCommand;
 import net.hatemachine.mortybot.commands.ImdbCommand;
 import net.hatemachine.mortybot.commands.IpLookupCommand;
@@ -32,6 +33,11 @@ import net.hatemachine.mortybot.commands.UserCommand;
 import net.hatemachine.mortybot.commands.WeatherCommand;
 
 public enum Command {
+
+    BOTTLE(BottleCommand.class, new String[] {
+            "Searches Bottle Blue Book for bottles",
+            "Usage: BOTTLE <query>"
+    }),
 
     HELP(HelpCommand.class, new String[] {
             "Usage: HELP [topic]"
