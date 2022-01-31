@@ -18,6 +18,7 @@
 package net.hatemachine.mortybot;
 
 import net.hatemachine.mortybot.commands.BottleCommand;
+import net.hatemachine.mortybot.commands.DictionaryCommand;
 import net.hatemachine.mortybot.commands.HelpCommand;
 import net.hatemachine.mortybot.commands.ImdbCommand;
 import net.hatemachine.mortybot.commands.IpLookupCommand;
@@ -31,13 +32,21 @@ import net.hatemachine.mortybot.commands.StockCommand;
 import net.hatemachine.mortybot.commands.TestCommand;
 import net.hatemachine.mortybot.commands.UserCommand;
 import net.hatemachine.mortybot.commands.WeatherCommand;
+import net.hatemachine.mortybot.commands.WotdCommand;
 import net.hatemachine.mortybot.commands.YearCommand;
+
+import java.util.Arrays;
 
 public enum Command {
 
     BOTTLE(BottleCommand.class, new String[] {
             "Searches Bottle Blue Book for bottles",
             "Usage: BOTTLE <query>"
+    }),
+
+    DICT(DictionaryCommand.class, new String[] {
+            "Gets the dictionary definition for a word",
+            "Usage: DICT <word>"
     }),
 
     HELP(HelpCommand.class, new String[] {
@@ -99,7 +108,12 @@ public enum Command {
             "Manages bot users",
             "Usage: USER <subcommand> [target] [args]",
             "Subcommands: LIST, SHOW ADD, REMOVE, ADDHOSTMASK, REMOVEHOSTMASK, ADDFLAG, REMOVEFLAG",
-            "Available user flags: ADMIN, AOP"
+            "Available user flags: " + Arrays.toString(BotUser.Flag.values())
+    }),
+
+    WOTD(WotdCommand.class, new String[] {
+            "Fetch the word of the day from Merriam-Webster",
+            "Usage: WOTD"
     }),
 
     WTR(WeatherCommand.class, new String[] {
