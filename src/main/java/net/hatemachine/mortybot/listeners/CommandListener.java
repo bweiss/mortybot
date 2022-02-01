@@ -29,7 +29,6 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -102,10 +101,10 @@ public class CommandListener extends ListenerAdapter {
 
         } catch (IllegalArgumentException e) {
             log.warn("Invalid command {} from {}", commandStr, user.getNick());
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            log.error("Exception encountered during command invocation", e);
         } catch (BotCommandException e) {
-            log.error("Exception encountered during command execution", e);
+            log.warn(e.getMessage());
+        } catch (Exception e) {
+            log.error("Exception encountered during command invocation", e);
         }
     }
 
