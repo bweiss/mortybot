@@ -18,12 +18,14 @@
 package net.hatemachine.mortybot;
 
 import com.google.common.collect.UnmodifiableIterator;
+import net.hatemachine.mortybot.config.BotDefaults;
+import net.hatemachine.mortybot.config.BotState;
 import net.hatemachine.mortybot.listeners.AutoOpListener;
 import net.hatemachine.mortybot.listeners.CommandListener;
+import net.hatemachine.mortybot.listeners.CoreHooksListener;
 import net.hatemachine.mortybot.listeners.LinkListener;
 import net.hatemachine.mortybot.listeners.RejoinListener;
 import net.hatemachine.mortybot.listeners.ServerSupportListener;
-import net.hatemachine.mortybot.listeners.CoreHooksListener;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.UtilSSLSocketFactory;
@@ -35,43 +37,24 @@ import org.pircbotx.hooks.managers.ListenerManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Properties;
 
 public class MortyBot extends PircBotX {
 
     public static final String VERSION = "0.2.0";
 
-    private static final String PROPERTIES_FILE = "bot.properties";
-    private static final String BOT_NAME_DEFAULT = "morty";
-    private static final String BOT_LOGIN_DEFAULT = "morty";
-    private static final String BOT_REAL_NAME_DEFAULT = "Aww jeez, Rick!";
-    private static final String IRC_SERVER_DEFAULT = "irc.hatemachine.net";
-    private static final int IRC_PORT_DEFAULT = 6697;
-    private static final boolean AUTO_RECONNECT_DEFAULT = false;
-    private static final int AUTO_RECONNECT_DELAY_DEFAULT = 30000;
-    private static final int AUTO_RECONNECT_ATTEMPTS_DEFAULT = 3;
-    private static final boolean AUTO_NICK_CHANGE_DEFAULT = true;
-    private static final String AUTO_JOIN_CHANNELS_DEFAULT = "#drunkards";
-    private static final String COMMAND_PREFIX_DEFAULT = ".";
-
     private static final Logger log = LoggerFactory.getLogger(MortyBot.class);
-    private static final Properties properties = new Properties();
 
-    private final String botHome;
     private final BotUserDao botUserDao;
     private final Map<String, String> serverSupportMap;
 
     MortyBot(Configuration config) {
         super(config);
-        this.botHome = System.getenv("MORTYBOT_HOME");
-        this.botUserDao = new BotUserDaoImpl(this);
+        this.botUserDao = new BotUserDaoImpl();
         this.serverSupportMap = new HashMap<>();
     }
 
@@ -81,34 +64,22 @@ public class MortyBot extends PircBotX {
      * @param args command line arguments for the bot
      */
     public static void main(String[] args) {
-        if (System.getenv("MORTYBOT_HOME") == null) {
-            log.error("MORTYBOT_HOME not set, exiting...");
-            return;
-        }
-
-        String propertiesFile = System.getenv("MORTYBOT_HOME") + "/conf/" + PROPERTIES_FILE;
-        try (var reader = new FileReader(propertiesFile)) {
-            properties.load(reader);
-        } catch (FileNotFoundException e) {
-            log.warn("Properties file not found");
-        } catch (IOException e) {
-            log.warn("Unable to read properties file");
-        }
+        BotState bs = BotState.getBotState();
 
         Configuration config = new Configuration.Builder()
-                .setName(getStringProperty("botName", BOT_NAME_DEFAULT))
-                .setLogin(getStringProperty("botLogin", BOT_LOGIN_DEFAULT))
-                .setRealName(getStringProperty("botRealName", BOT_REAL_NAME_DEFAULT))
-                .addServer(getStringProperty("ircServer", IRC_SERVER_DEFAULT),
-                        getIntProperty("ircPort", IRC_PORT_DEFAULT))
+                .setName(bs.getStringProperty("botName", BotDefaults.BOT_NAME))
+                .setLogin(bs.getStringProperty("botLogin", BotDefaults.BOT_LOGIN))
+                .setRealName(bs.getStringProperty("botRealName", BotDefaults.BOT_REAL_NAME))
+                .addServer(bs.getStringProperty("ircServer", BotDefaults.IRC_SERVER),
+                        bs.getIntProperty("ircPort", BotDefaults.IRC_PORT))
                 .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
-                .setAutoReconnect(getBooleanProperty("autoReconnect", AUTO_RECONNECT_DEFAULT))
-                .setAutoReconnectDelay(new StaticDelay(getIntProperty("autoReconnectDelay", AUTO_RECONNECT_DELAY_DEFAULT)))
-                .setAutoReconnectAttempts(getIntProperty("autoReconnectAttempts", AUTO_RECONNECT_ATTEMPTS_DEFAULT))
-                .setAutoNickChange(getBooleanProperty("autoNickChange", AUTO_NICK_CHANGE_DEFAULT))
-                .addAutoJoinChannels(Arrays.asList(getStringProperty("autoJoinChannels", AUTO_JOIN_CHANNELS_DEFAULT).split(" ")))
+                .setAutoReconnect(bs.getBooleanProperty("autoReconnect", BotDefaults.AUTO_RECONNECT))
+                .setAutoReconnectDelay(new StaticDelay(bs.getIntProperty("autoReconnectDelay", BotDefaults.AUTO_RECONNECT_DELAY)))
+                .setAutoReconnectAttempts(bs.getIntProperty("autoReconnectAttempts", BotDefaults.AUTO_RECONNECT_ATTEMPTS))
+                .setAutoNickChange(bs.getBooleanProperty("autoNickChange", BotDefaults.AUTO_NICK_CHANGE))
+                .addAutoJoinChannels(Arrays.asList(bs.getStringProperty("autoJoinChannels", BotDefaults.AUTO_JOIN_CHANNELS).split(" ")))
                 .addListener(new AutoOpListener())
-                .addListener(new CommandListener(getStringProperty("commandPrefix", COMMAND_PREFIX_DEFAULT)))
+                .addListener(new CommandListener(bs.getStringProperty("commandPrefix", BotDefaults.COMMAND_PREFIX)))
                 .addListener(new LinkListener())
                 .addListener(new RejoinListener())
                 .addListener(new ServerSupportListener())
@@ -121,10 +92,6 @@ public class MortyBot extends PircBotX {
         } catch (IrcException | IOException e) {
             log.error("Exception encountered during startup: ", e);
         }
-    }
-
-    public String getBotHome() {
-        return botHome;
     }
 
     public BotUserDao getBotUserDao() {
@@ -157,26 +124,6 @@ public class MortyBot extends PircBotX {
         serverSupportMap.clear();
     }
 
-    public static String getStringProperty(String name, String defaultValue) {
-        var prop = getStringProperty(name);
-        return prop == null ? defaultValue : prop;
-    }
-
-    public static boolean getBooleanProperty(String name, boolean defaultValue) {
-        var prop = getStringProperty(name);
-        return prop == null ? defaultValue : prop.equalsIgnoreCase("true");
-    }
-
-    public static int getIntProperty(String name, int defaultValue) {
-        var prop = getStringProperty(name);
-        return prop == null ? defaultValue : Integer.parseInt(prop);
-    }
-
-    public static String getStringProperty(String name) {
-        var prop = System.getProperty(name);
-        return prop == null ? properties.getProperty(name) : prop;
-    }
-
     /**
      * Replace the CoreHooks listener class.
      *
@@ -185,7 +132,7 @@ public class MortyBot extends PircBotX {
      *
      * @param listener the listener to replace with
      */
-    public void replaceCoreHooksListener(CoreHooks listener) {
+    private void replaceCoreHooksListener(CoreHooks listener) {
         ListenerManager listenerManager = this.getConfiguration().getListenerManager();
         UnmodifiableIterator<Listener> i = listenerManager.getListeners().iterator();
         CoreHooks orig = null;
@@ -210,11 +157,11 @@ public class MortyBot extends PircBotX {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         MortyBot mortyBot = (MortyBot) o;
-        return botHome.equals(mortyBot.botHome) && botUserDao.equals(mortyBot.botUserDao) && serverSupportMap.equals(mortyBot.serverSupportMap);
+        return botUserDao.equals(mortyBot.botUserDao);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), botHome, botUserDao);
+        return Objects.hash(super.hashCode(), botUserDao);
     }
 }

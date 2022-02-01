@@ -18,7 +18,7 @@
 package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.MortyBot;
+import net.hatemachine.mortybot.config.BotState;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.rt.Movie;
 import net.hatemachine.mortybot.rt.RTHelper;
@@ -55,7 +55,7 @@ public class RtCommand implements BotCommand {
             throw new IllegalArgumentException("too few arguments");
 
         boolean listResults = false;
-        int maxResults = MortyBot.getIntProperty("RtCommand.maxResults", MAX_RESULTS_DEFAULT);
+        int maxResults = BotState.getBotState().getIntProperty("RtCommand.maxResults", MAX_RESULTS_DEFAULT);
         String query;
 
         if (args.get(0).equals("-l")) {

@@ -19,6 +19,7 @@ package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.MortyBot;
+import net.hatemachine.mortybot.config.BotState;
 import net.hatemachine.mortybot.imdb.IMDBHelper;
 import net.hatemachine.mortybot.imdb.SearchResult;
 import net.hatemachine.mortybot.listeners.CommandListener;
@@ -55,7 +56,7 @@ public class ImdbCommand implements BotCommand {
             throw new IllegalArgumentException("too few arguments");
 
         boolean listResults = false;
-        int maxResults = MortyBot.getIntProperty("ImdbCommand.maxResults", MAX_RESULTS_DEFAULT);
+        int maxResults = BotState.getBotState().getIntProperty("ImdbCommand.maxResults", MAX_RESULTS_DEFAULT);
         String query;
 
         if (args.get(0).equals("-l")) {

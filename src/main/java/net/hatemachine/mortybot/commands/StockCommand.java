@@ -26,7 +26,7 @@ import com.jayway.jsonpath.spi.json.JsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.MortyBot;
+import net.hatemachine.mortybot.config.BotState;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.hooks.types.GenericMessageEvent;
@@ -93,8 +93,9 @@ public class StockCommand implements BotCommand {
 
     @Override
     public void execute() {
-        var maxSymbols = MortyBot.getIntProperty("StockCommand.maxSymbolsPerCommand", MAX_SYMBOLS_PER_COMMAND_DEFAULT);
-        for (var cnt = 0; cnt < maxSymbols; cnt++) {
+        int maxSymbols = BotState.getBotState().getIntProperty("StockCommand.maxSymbolsPerCommand",
+                MAX_SYMBOLS_PER_COMMAND_DEFAULT);
+        for (int cnt = 0; cnt < maxSymbols; cnt++) {
             String symbol = args.get(cnt);
             Optional<String> json = fetchQuote(symbol);
             if (json.isPresent()) {

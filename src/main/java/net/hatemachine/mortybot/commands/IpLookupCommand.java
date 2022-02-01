@@ -24,7 +24,7 @@ import com.maxmind.geoip2.record.City;
 import com.maxmind.geoip2.record.Country;
 import com.maxmind.geoip2.record.Subdivision;
 import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.MortyBot;
+import net.hatemachine.mortybot.config.BotState;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
@@ -55,10 +55,9 @@ public class IpLookupCommand implements BotCommand {
         if (args.isEmpty())
             throw new IllegalArgumentException("Not enough arguments");
 
-        int accountId = MortyBot.getIntProperty("IpLookupCommand.accountId",
-                Integer.parseInt(System.getenv("MAXMIND_ACCOUNT_ID")));
-        String licenseKey = MortyBot.getStringProperty("IpLookupCommand.licenseKey",
-                System.getenv("MAXMIND_LICENSE_KEY"));
+        var bs = BotState.getBotState();
+        var accountId = bs.getIntProperty("IpLookupCommand.accountId", Integer.parseInt(System.getenv("MAXMIND_ACCOUNT_ID")));
+        var licenseKey = bs.getStringProperty("IpLookupCommand.licenseKey", System.getenv("MAXMIND_LICENSE_KEY"));
 
         WebServiceClient client = new WebServiceClient.Builder(accountId, licenseKey)
                 .host(WEB_SERVICE_HOST)
@@ -75,7 +74,8 @@ public class IpLookupCommand implements BotCommand {
                     args.get(0), city.getName(), subdivision.getIsoCode(), country.getName()));
 
         } catch (IOException | GeoIp2Exception e) {
-            log.error("Exception encountered while looking up host: {}", args.get(0), e);
+            log.error("Exception encountered while looking up host", e);
+            event.respondWith(e.getMessage());
         }
     }
 

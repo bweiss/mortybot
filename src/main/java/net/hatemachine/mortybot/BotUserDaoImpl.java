@@ -18,6 +18,7 @@
 package net.hatemachine.mortybot;
 
 import com.darwinsys.io.FileSaver;
+import net.hatemachine.mortybot.config.BotState;
 import net.hatemachine.mortybot.exception.BotUserException;
 import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.User;
@@ -29,7 +30,6 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -46,16 +46,14 @@ import static net.hatemachine.mortybot.exception.BotUserException.Reason.USER_EX
 
 public class BotUserDaoImpl implements BotUserDao {
     
-    private static final String USER_FILE = "/conf/users.conf";
+    private static final String USER_FILE = "users.conf";
 
     private static final Logger log = LoggerFactory.getLogger(BotUserDaoImpl.class);
 
-    private final MortyBot bot;
     private final Object accessLock = new Object();
     private final Map<String, BotUser> botUserMap = new HashMap<>();
 
-    public BotUserDaoImpl(MortyBot bot) {
-        this.bot = bot;
+    public BotUserDaoImpl() {
         init();
     }
 
@@ -200,11 +198,10 @@ public class BotUserDaoImpl implements BotUserDao {
      */
     private void init() {
         synchronized (this.accessLock) {
-            String file = bot.getBotHome() + USER_FILE;
-            List<String> lines;
+            var path = Path.of(BotState.getBotState().getBotHome() + "/conf/" + USER_FILE);
 
             try {
-                lines = Files.readAllLines(Path.of(file));
+                List<String> lines = Files.readAllLines(path);
                 for (String line : lines) {
                     if (line != null && !line.trim().isEmpty() && !line.startsWith("#")) {
                         Optional<BotUser> user = parseLine(line);
@@ -222,10 +219,10 @@ public class BotUserDaoImpl implements BotUserDao {
      */
     private void save() {
         synchronized (this.accessLock) {
-            Path file = Paths.get(bot.getBotHome() + USER_FILE);
+            var path = Path.of(BotState.getBotState().getBotHome() + "/conf/" + USER_FILE);
 
             try {
-                FileSaver saver = new FileSaver(file);
+                FileSaver saver = new FileSaver(path);
                 Writer writer = saver.getWriter();
                 PrintWriter out = new PrintWriter(writer);
 
@@ -242,7 +239,7 @@ public class BotUserDaoImpl implements BotUserDao {
                 saver.finish();
 
             } catch (IOException e) {
-                log.error("Failed to write user file: {}", e.getMessage());
+                log.error("Exception encountered writing user file", e);
             }
         }
     }

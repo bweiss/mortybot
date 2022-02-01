@@ -22,6 +22,7 @@ import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.bbb.Bottle;
 import net.hatemachine.mortybot.bbb.BottleBlueBook;
 import net.hatemachine.mortybot.bbb.SearchResult;
+import net.hatemachine.mortybot.config.BotState;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
@@ -47,7 +48,7 @@ public class BottleCommand implements BotCommand {
         if (args.isEmpty())
             throw new IllegalArgumentException("Not enough arguments");
 
-        int maxResults = MortyBot.getIntProperty("BottleCommand.maxResults", MAX_RESULTS_DEFAULT);
+        int maxResults = BotState.getBotState().getIntProperty("BottleCommand.maxResults", MAX_RESULTS_DEFAULT);
         boolean listResults = false;
         String query;
 

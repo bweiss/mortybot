@@ -17,8 +17,8 @@
  */
 package net.hatemachine.mortybot.listeners;
 
-import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.bitly.Bitly;
+import net.hatemachine.mortybot.config.BotState;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.pircbotx.hooks.ListenerAdapter;
@@ -55,7 +55,7 @@ public class LinkListener extends ListenerAdapter {
     @Override
     public void onMessage(final MessageEvent event) throws InterruptedException {
         log.debug("onMessage event: {}", event);
-        boolean watchChannels = MortyBot.getBooleanProperty("LinkListener.watchChannels", false);
+        boolean watchChannels = BotState.getBotState().getBooleanProperty("LinkListener.watchChannels", false);
         if (watchChannels) {
             handleMessage(event);
         }
@@ -64,7 +64,7 @@ public class LinkListener extends ListenerAdapter {
     @Override
     public void onPrivateMessage(final PrivateMessageEvent event) throws InterruptedException {
         log.debug("onPrivateMessage event: {}", event);
-        boolean watchPrivateMessages = MortyBot.getBooleanProperty("LinkListener.watchPrivateMessages", false);
+        boolean watchPrivateMessages = BotState.getBotState().getBooleanProperty("LinkListener.watchPrivateMessages", false);
         if (watchPrivateMessages) {
             handleMessage(event);
         }
@@ -76,11 +76,12 @@ public class LinkListener extends ListenerAdapter {
      * @param event the event being handled
      */
     private void handleMessage(final GenericMessageEvent event) throws InterruptedException {
-        int maxLinks = MortyBot.getIntProperty("LinkListener.maxLinks", MAX_LINKS_DEFAULT);
-        int minLenToShorten = MortyBot.getIntProperty("LinkListener.minLengthToShorten", MIN_LENGTH_TO_SHORTEN_DEFAULT);
-        int maxTitleLength = MortyBot.getIntProperty("LinkListener.maxTitleLength", MAX_TITLE_LENGTH_DEFAULT);
-        boolean shortenLinksFlag = MortyBot.getBooleanProperty("LinkListener.shortenLinks", false);
-        boolean showTitlesFlag = MortyBot.getBooleanProperty("LinkListener.showTitles", true);
+        var bs = BotState.getBotState();
+        int maxLinks = bs.getIntProperty("LinkListener.maxLinks", MAX_LINKS_DEFAULT);
+        int minLenToShorten = bs.getIntProperty("LinkListener.minLengthToShorten", MIN_LENGTH_TO_SHORTEN_DEFAULT);
+        int maxTitleLength = bs.getIntProperty("LinkListener.maxTitleLength", MAX_TITLE_LENGTH_DEFAULT);
+        boolean shortenLinksFlag = bs.getBooleanProperty("LinkListener.shortenLinks", false);
+        boolean showTitlesFlag = bs.getBooleanProperty("LinkListener.showTitles", true);
 
         List<String> links = parseMessage(event.getMessage());
 

@@ -19,6 +19,7 @@ package net.hatemachine.mortybot.listeners;
 
 import net.hatemachine.mortybot.BotUser;
 import net.hatemachine.mortybot.MortyBot;
+import net.hatemachine.mortybot.config.BotState;
 import org.pircbotx.Channel;
 import org.pircbotx.UserHostmask;
 import org.pircbotx.hooks.ListenerAdapter;
@@ -50,7 +51,7 @@ public class AutoOpListener extends ListenerAdapter {
     @Override
     public void onJoin(final JoinEvent event) {
         log.debug("onJoin event: {}", event);
-        boolean enabled = MortyBot.getBooleanProperty("AutoOpListener.enabled", false);
+        boolean enabled = BotState.getBotState().getBooleanProperty("AutoOpListener.enabled", false);
         if (enabled) {
             handleJoin(event);
         }
@@ -91,7 +92,8 @@ public class AutoOpListener extends ListenerAdapter {
 
                 new Thread(() -> {
                     try {
-                        long delay = MortyBot.getIntProperty("AutoOpListener.delay_in_seconds", DELAY_IN_SECONDS_DEFAULT);
+                        long delay = BotState.getBotState().getIntProperty("AutoOpListener.delay_in_seconds",
+                                DELAY_IN_SECONDS_DEFAULT);
                         Thread.sleep(delay * 1000);
                         processQueue(event, channel);
                     } catch (InterruptedException e) {

@@ -17,13 +17,14 @@
  */
 package net.hatemachine.mortybot;
 
+import net.hatemachine.mortybot.config.BotState;
 import net.hatemachine.mortybot.exception.BotCommandException;
+import org.pircbotx.User;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -46,11 +47,12 @@ public class BotCommandProxy implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method m, Object[] args) throws IllegalAccessException, InvocationTargetException {
         Object result;
-        List<String> enabled = new ArrayList<>(Arrays.asList(MortyBot.getStringProperty("CommandListener.enabled.commands").split(",")));
-        List<String> adminOnly = new ArrayList<>(Arrays.asList(MortyBot.getStringProperty("CommandListener.admin.commands").split(",")));
+        BotState bs = BotState.getBotState();
+        List<String> enabled = Arrays.asList(bs.getStringProperty("CommandListener.enabledCommands").split(","));
+        List<String> adminOnly = Arrays.asList(bs.getStringProperty("CommandListener.adminOnlyCommands").split(","));
         GenericMessageEvent event = command.getEvent();
         MortyBot bot = event.getBot();
-        var user = event.getUser();
+        User user = event.getUser();
 
         if (!enabled.contains(command.getName())) {
             throw new BotCommandException(COMMAND_NOT_ENABLED, command.getName());

@@ -17,10 +17,10 @@
  */
 package net.hatemachine.mortybot;
 
+import net.hatemachine.mortybot.config.BotState;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -35,7 +35,8 @@ public interface BotCommand {
     }
 
     default boolean isEnabled() {
-        List<String> enabled = new ArrayList<>(Arrays.asList(MortyBot.getStringProperty("CommandListener.enabled.commands").split(",")));
+        String prop = BotState.getBotState().getStringProperty("CommandListener.enabledCommands");
+        List<String> enabled = Arrays.asList(prop.split(","));
         return (enabled.contains(this.getClass().getSimpleName()));
     }
 }
