@@ -110,7 +110,7 @@ public class MerriamWebster {
             Element syllableAttrSpan = doc.select("div.word-attributes span.word-syllables").first();
             Element defContainerDiv = doc.select("div.wod-definition-container p").first();
 
-            if (wordH1 != null && typeAttrSpan != null & syllableAttrSpan != null && defContainerDiv != null) {
+            if (wordH1 != null && typeAttrSpan != null && syllableAttrSpan != null && defContainerDiv != null) {
                 optEntry = Optional.of(new DictionaryEntry(wordH1.text(), typeAttrSpan.text(), syllableAttrSpan.text(), "--", List.of(defContainerDiv.text())));
             }
         }
