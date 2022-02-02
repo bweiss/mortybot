@@ -55,6 +55,8 @@ public class DictionaryCommand implements BotCommand {
                 String def = defs.get(i);
                 event.respondWith((i + 1) + def);
             }
+        } else {
+            event.respondWith("Entry not found");
         }
     }
 
