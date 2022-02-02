@@ -58,7 +58,7 @@ public class MerriamWebster {
 
         try {
             doc = Jsoup.connect(url).get();
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Exception encountered fetching page", e);
         }
 
@@ -100,7 +100,7 @@ public class MerriamWebster {
 
         try {
             doc = Jsoup.connect(WOTD_URL).get();
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Exception encountered fetching page", e);
         }
 
