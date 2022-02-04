@@ -35,7 +35,7 @@ public interface BotCommand {
     }
 
     default boolean isEnabled() {
-        String prop = BotState.getBotState().getStringProperty("CommandListener.enabledCommands");
+        String prop = BotState.getBotState().getStringProperty("commands.enabled");
         List<String> enabled = Arrays.asList(prop.split(","));
         return (enabled.contains(this.getClass().getSimpleName()));
     }

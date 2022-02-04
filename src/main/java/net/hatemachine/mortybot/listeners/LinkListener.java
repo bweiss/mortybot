@@ -55,19 +55,13 @@ public class LinkListener extends ListenerAdapter {
     @Override
     public void onMessage(final MessageEvent event) throws InterruptedException {
         log.debug("onMessage event: {}", event);
-        boolean watchChannels = BotState.getBotState().getBooleanProperty("LinkListener.watchChannels", false);
-        if (watchChannels) {
-            handleMessage(event);
-        }
+        handleMessage(event);
     }
 
     @Override
     public void onPrivateMessage(final PrivateMessageEvent event) throws InterruptedException {
         log.debug("onPrivateMessage event: {}", event);
-        boolean watchPrivateMessages = BotState.getBotState().getBooleanProperty("LinkListener.watchPrivateMessages", false);
-        if (watchPrivateMessages) {
-            handleMessage(event);
-        }
+        handleMessage(event);
     }
 
     /**
@@ -75,13 +69,13 @@ public class LinkListener extends ListenerAdapter {
      *
      * @param event the event being handled
      */
-    private void handleMessage(final GenericMessageEvent event) throws InterruptedException {
+    private void handleMessage(final GenericMessageEvent event) {
         var bs = BotState.getBotState();
-        int maxLinks = bs.getIntProperty("LinkListener.maxLinks", MAX_LINKS_DEFAULT);
-        int minLenToShorten = bs.getIntProperty("LinkListener.minLengthToShorten", MIN_LENGTH_TO_SHORTEN_DEFAULT);
-        int maxTitleLength = bs.getIntProperty("LinkListener.maxTitleLength", MAX_TITLE_LENGTH_DEFAULT);
-        boolean shortenLinksFlag = bs.getBooleanProperty("LinkListener.shortenLinks", false);
-        boolean showTitlesFlag = bs.getBooleanProperty("LinkListener.showTitles", true);
+        int maxLinks = bs.getIntProperty("links.max.per.msg", MAX_LINKS_DEFAULT);
+        int minLenToShorten = bs.getIntProperty("links.min.length.to.shorten", MIN_LENGTH_TO_SHORTEN_DEFAULT);
+        int maxTitleLength = bs.getIntProperty("links.max.title.length", MAX_TITLE_LENGTH_DEFAULT);
+        boolean shortenLinksFlag = bs.getBooleanProperty("links.shorten", false);
+        boolean showTitlesFlag = bs.getBooleanProperty("links.show.titles", true);
 
         List<String> links = parseMessage(event.getMessage());
 
@@ -96,8 +90,11 @@ public class LinkListener extends ListenerAdapter {
                 } else {
                     try {
                         shortLink = Bitly.shorten(link);
+                    } catch (InterruptedException e) {
+                        log.warn("Thread interrupted", e);
+                        Thread.currentThread().interrupt();
                     } catch (IOException e) {
-                        log.error("Error while attempting to shorten link: {}", e.getMessage());
+                        log.error("Exception encountered shortening link", e);
                     }
                 }
             }
@@ -106,14 +103,16 @@ public class LinkListener extends ListenerAdapter {
                 title = fetchTitle(link);
             }
 
+            // shortened link only
             if (shortLink.isPresent() && title.isEmpty() && !Objects.equals(link, shortLink.get())) {
-                // shortened link only
                 event.respondWith(shortLink.get());
+
+            // title only
             } else if (title.isPresent() && shortLink.isEmpty()) {
-                // title only
                 event.respondWith(trimTitle(title.get(), maxTitleLength, "..."));
+
+            // short link and title
             } else if (shortLink.isPresent() && title.isPresent()) {
-                // short link and title
                 event.respondWith(String.format("%s :: %s", shortLink.get(), trimTitle(title.get(), maxTitleLength, "...")));
             }
         }
@@ -130,9 +129,11 @@ public class LinkListener extends ListenerAdapter {
         log.debug("Parsing message for links: {}", s);
         Matcher m = URL_PATTERN.matcher(s);
         List<String> links = new ArrayList<>();
+
         while (m.find()) {
             links.add(m.group(0));
         }
+
         log.debug("Found {} links: {}", links.size(), links);
         return links;
     }
@@ -146,11 +147,13 @@ public class LinkListener extends ListenerAdapter {
     private Optional<String> fetchTitle(final String link) {
         log.debug("Fetching title for link: {}", link);
         Document doc = null;
+
         try {
             doc = Jsoup.connect(link).get();
         } catch (IOException e) {
-            log.error("Failed to fetch link: {}", e.getMessage());
+            log.error("Failed to fetch page [URL: {}]", link, e);
         }
+
         if (doc != null) {
             String title = doc.title();
             log.debug("Title: {}", title);

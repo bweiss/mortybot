@@ -52,10 +52,10 @@ public class RtCommand implements BotCommand {
     @Override
     public void execute() {
         if (args.isEmpty())
-            throw new IllegalArgumentException("too few arguments");
+            throw new IllegalArgumentException("Not enough arguments");
 
         boolean listResults = false;
-        int maxResults = BotState.getBotState().getIntProperty("RtCommand.maxResults", MAX_RESULTS_DEFAULT);
+        int maxResults = BotState.getBotState().getIntProperty("command.rt.max.results", MAX_RESULTS_DEFAULT);
         String query;
 
         if (args.get(0).equals("-l")) {
@@ -68,14 +68,16 @@ public class RtCommand implements BotCommand {
         List<Movie> results = RTHelper.search(query);
 
         if (!results.isEmpty()) {
+
+            // -l flag present, list results
             if (listResults) {
-                // -l flag present, list results
                 event.respondWith(String.format(RESPONSE_PREFIX + "Showing top %d results:", Math.min(results.size(), maxResults)));
                 for (int i = 0; i < results.size() && i < maxResults; i++) {
                     event.respondWith(RESPONSE_PREFIX + results.get(i));
                 }
+
+            // display details for top result
             } else {
-                // display details for top result
                 Movie topResult = results.get(0);
                 event.respondWith(String.format("%s :: %s", RESPONSE_PREFIX + topResult, topResult.getUrl()));
             }

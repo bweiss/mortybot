@@ -18,7 +18,11 @@
 package net.hatemachine.mortybot.commands;
 
 import com.maxmind.geoip2.WebServiceClient;
+import com.maxmind.geoip2.exception.AddressNotFoundException;
+import com.maxmind.geoip2.exception.AuthenticationException;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
+import com.maxmind.geoip2.exception.InvalidRequestException;
+import com.maxmind.geoip2.exception.OutOfQueriesException;
 import com.maxmind.geoip2.model.CityResponse;
 import com.maxmind.geoip2.record.City;
 import com.maxmind.geoip2.record.Country;
@@ -56,15 +60,16 @@ public class IpLookupCommand implements BotCommand {
             throw new IllegalArgumentException("Not enough arguments");
 
         var bs = BotState.getBotState();
-        var accountId = bs.getIntProperty("IpLookupCommand.accountId", Integer.parseInt(System.getenv("MAXMIND_ACCOUNT_ID")));
-        var licenseKey = bs.getStringProperty("IpLookupCommand.licenseKey", System.getenv("MAXMIND_LICENSE_KEY"));
+        var accountId = bs.getIntProperty("command.iplookup.account.id", Integer.parseInt(System.getenv("MAXMIND_ACCOUNT_ID")));
+        var licenseKey = bs.getStringProperty("command.iplookup.license.key", System.getenv("MAXMIND_LICENSE_KEY"));
+        var address = args.get(0);
 
         WebServiceClient client = new WebServiceClient.Builder(accountId, licenseKey)
                 .host(WEB_SERVICE_HOST)
                 .build();
 
         try {
-            InetAddress ipAddress = InetAddress.getByName(args.get(0));
+            InetAddress ipAddress = InetAddress.getByName(address);
             CityResponse response = client.city(ipAddress);
             Country country = response.getCountry();
             Subdivision subdivision = response.getMostSpecificSubdivision();
@@ -73,9 +78,16 @@ public class IpLookupCommand implements BotCommand {
             event.respondWith(String.format("[%s] %s, %s (%s)",
                     args.get(0), city.getName(), subdivision.getIsoCode(), country.getName()));
 
-        } catch (IOException | GeoIp2Exception e) {
+        } catch (AddressNotFoundException e) {
+            log.error("Address not found: {}", address);
+        } catch (AuthenticationException e) {
+            log.error("Authentication failed ({})", WEB_SERVICE_HOST, e);
+        } catch (InvalidRequestException e) {
+            log.error("Invalid request", e);
+        } catch (OutOfQueriesException e) {
+            log.error("Query limit reached");
+        } catch (GeoIp2Exception | IOException e) {
             log.error("Exception encountered while looking up host", e);
-            event.respondWith(e.getMessage());
         }
     }
 

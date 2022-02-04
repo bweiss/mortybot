@@ -46,8 +46,7 @@ public class RejoinListener extends ListenerAdapter {
                     Thread.sleep(1000);
                     bot.sendIRC().joinChannel(event.getChannel().getName());
                 } catch (InterruptedException e) {
-                    log.warn("Thread interrupted!");
-                    e.printStackTrace();
+                    log.warn("Thread interrupted", e);
                     Thread.currentThread().interrupt();
                 }
             }).start();
@@ -62,7 +61,7 @@ public class RejoinListener extends ListenerAdapter {
     @Override
     public void onServerPing(final ServerPingEvent event) {
         MortyBot bot = event.getBot();
-        String[] channels = BotState.getBotState().getStringProperty("autoJoinChannels").split(" ");
+        String[] channels = BotState.getBotState().getStringProperty("auto.join.channels").split(" ");
         for (String chan : channels) {
             if (!bot.getUserChannelDao().containsChannel(chan)) {
                 log.info("Auto-joining channel {}", chan);

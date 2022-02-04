@@ -27,7 +27,8 @@ public class BotDefaults {
 
     public static final String  BOT_NAME = "morty";
     public static final String  BOT_LOGIN = "morty";
-    public static final String  BOT_REAL_NAME = "Aww jeez, Rick!";
+    public static final String  BOT_REALNAME = "Aww jeez, Rick!";
+    public static final String  BOT_COMMAND_PREFIX = ".";
 
     public static final String  IRC_SERVER = "irc.hatemachine.net";
     public static final int     IRC_PORT = 6697;
@@ -37,5 +38,6 @@ public class BotDefaults {
     public static final int     AUTO_RECONNECT_ATTEMPTS = 3;
     public static final boolean AUTO_NICK_CHANGE = true;
     public static final String  AUTO_JOIN_CHANNELS = "";
-    public static final String  COMMAND_PREFIX = ".";
+
+    // TODO: add defaults for bot commands
 }

@@ -18,7 +18,6 @@
 package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotState;
 import net.hatemachine.mortybot.imdb.IMDBHelper;
 import net.hatemachine.mortybot.imdb.SearchResult;
@@ -53,10 +52,10 @@ public class ImdbCommand implements BotCommand {
     @Override
     public void execute() {
         if (args.isEmpty())
-            throw new IllegalArgumentException("too few arguments");
+            throw new IllegalArgumentException("Not enough arguments");
 
         boolean listResults = false;
-        int maxResults = BotState.getBotState().getIntProperty("ImdbCommand.maxResults", MAX_RESULTS_DEFAULT);
+        int maxResults = BotState.getBotState().getIntProperty("command.imdb.max.results", MAX_RESULTS_DEFAULT);
         String query;
 
         if (args.get(0).equals("-l")) {
@@ -69,13 +68,15 @@ public class ImdbCommand implements BotCommand {
         List<SearchResult> results = IMDBHelper.search(query);
 
         if (!results.isEmpty()) {
+
+            // -l flag present, list results
             if (listResults) {
-                // -l flag present, list results
                 for (int i = 0; i < results.size() && i < maxResults; i++) {
                     event.respondWith(RESPONSE_PREFIX + results.get(i));
                 }
+
+            // display details for top result
             } else {
-                // display details for top result
                 SearchResult topResult = results.get(0);
 
                 // Person

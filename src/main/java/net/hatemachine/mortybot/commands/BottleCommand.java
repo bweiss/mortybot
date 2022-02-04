@@ -18,7 +18,6 @@
 package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.bbb.Bottle;
 import net.hatemachine.mortybot.bbb.BottleBlueBook;
 import net.hatemachine.mortybot.bbb.SearchResult;
@@ -48,7 +47,7 @@ public class BottleCommand implements BotCommand {
         if (args.isEmpty())
             throw new IllegalArgumentException("Not enough arguments");
 
-        int maxResults = BotState.getBotState().getIntProperty("BottleCommand.maxResults", MAX_RESULTS_DEFAULT);
+        int maxResults = BotState.getBotState().getIntProperty("command.bottle.max.results", MAX_RESULTS_DEFAULT);
         boolean listResults = false;
         String query;
 

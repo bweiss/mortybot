@@ -51,7 +51,7 @@ public class AutoOpListener extends ListenerAdapter {
     @Override
     public void onJoin(final JoinEvent event) {
         log.debug("onJoin event: {}", event);
-        boolean enabled = BotState.getBotState().getBooleanProperty("AutoOpListener.enabled", false);
+        boolean enabled = BotState.getBotState().getBooleanProperty("auto.op", false);
         if (enabled) {
             handleJoin(event);
         }
@@ -92,12 +92,12 @@ public class AutoOpListener extends ListenerAdapter {
 
                 new Thread(() -> {
                     try {
-                        long delay = BotState.getBotState().getIntProperty("AutoOpListener.delay_in_seconds",
+                        long delay = BotState.getBotState().getIntProperty("auto.op.delay",
                                 DELAY_IN_SECONDS_DEFAULT);
                         Thread.sleep(delay * 1000);
                         processQueue(event, channel);
                     } catch (InterruptedException e) {
-                        log.warn("thread interrupted!");
+                        log.warn("Thread interrupted", e);
                         Thread.currentThread().interrupt();
                     }
                 }).start();

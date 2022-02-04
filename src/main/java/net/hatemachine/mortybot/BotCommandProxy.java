@@ -48,8 +48,8 @@ public class BotCommandProxy implements InvocationHandler {
     public Object invoke(Object proxy, Method m, Object[] args) throws IllegalAccessException, InvocationTargetException {
         Object result;
         BotState bs = BotState.getBotState();
-        List<String> enabled = Arrays.asList(bs.getStringProperty("CommandListener.enabledCommands").split(","));
-        List<String> adminOnly = Arrays.asList(bs.getStringProperty("CommandListener.adminOnlyCommands").split(","));
+        List<String> enabled = Arrays.asList(bs.getStringProperty("commands.enabled").split(","));
+        List<String> adminOnly = Arrays.asList(bs.getStringProperty("commands.restricted").split(","));
         GenericMessageEvent event = command.getEvent();
         MortyBot bot = event.getBot();
         User user = event.getUser();

@@ -17,16 +17,20 @@
  */
 package net.hatemachine.mortybot.config;
 
-import org.apache.commons.lang3.NotImplementedException;
+import com.darwinsys.io.FileSaver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 
 public class BotState {
 
@@ -37,15 +41,15 @@ public class BotState {
     private final Properties state;
 
     public BotState() {
-        var path = Path.of(this.getBotHome() + "/conf/" + BotDefaults.PROPERTIES_FILE);
+        Path path = Path.of(this.getBotHome() + "/conf/" + BotDefaults.PROPERTIES_FILE);
         state = new Properties();
 
         try (BufferedReader reader = Files.newBufferedReader(path)) {
             state.load(reader);
         } catch (FileNotFoundException e) {
-           log.warn("Bot properties file not found, falling back to defaults");
+            log.warn("File not found: {}", path);
         } catch (IOException e) {
-            log.error("Exception encountered reading bot properties", e);
+            log.error("Unable to read bot properties file: {}", path, e);
         }
     }
 
@@ -67,69 +71,75 @@ public class BotState {
         return state;
     }
 
-    public String getStringProperty(String name) {
+    public synchronized String getStringProperty(String name) {
         return state.getProperty(name);
     }
 
-    public String getStringProperty(String name, String defaultValue) {
+    public synchronized String getStringProperty(String name, String defaultValue) {
         String prop = getStringProperty(name);
         return prop == null ? defaultValue : prop;
     }
 
-    public void setStringProperty(String name, String newValue) {
+    public synchronized void setStringProperty(String name, String newValue) {
         state.setProperty(name, newValue);
     }
 
-    public boolean getBooleanProperty(String name, boolean defaultValue) {
+    public synchronized boolean getBooleanProperty(String name, boolean defaultValue) {
         String prop = getStringProperty(name);
         return prop == null ? defaultValue : prop.equalsIgnoreCase("true");
     }
 
-    public void setBooleanProperty(String name, boolean newValue) {
+    public synchronized void setBooleanProperty(String name, boolean newValue) {
         setStringProperty(name, newValue ? "true" : "false");
     }
 
-    public int getIntProperty(String name, int defaultValue) {
+    public synchronized int getIntProperty(String name, int defaultValue) {
         String prop = getStringProperty(name);
         return prop == null ? defaultValue : Integer.parseInt(prop);
     }
 
-    public void setIntProperty(String name, int newValue) {
+    public synchronized void setIntProperty(String name, int newValue) {
         setStringProperty(name, Integer.toString(newValue));
     }
 
-    public float getFloatProperty(String name, float defaultValue) {
+    public synchronized float getFloatProperty(String name, float defaultValue) {
         String prop = getStringProperty(name);
         return prop == null ? defaultValue : Float.parseFloat(prop);
     }
 
-    public void setFloatProperty(String name, float newValue) {
+    public synchronized void setFloatProperty(String name, float newValue) {
         setStringProperty(name, Float.toString(newValue));
     }
 
-    public void save() {
-        // TODO: would like to implement a way to save state but have to think about this more first
-        throw new NotImplementedException("method not implemented yet");
+    public synchronized void save() {
+        Path path = Path.of(getBotHome() + "/conf/" + BotDefaults.PROPERTIES_FILE);
 
-        // implementation 1
-//        var path = Path.of(getBotHome() + "/conf/" + BotDefaults.PROPERTIES_FILE);
-//        try (BufferedWriter writer = Files.newBufferedWriter(path)) {
-//            state.store(writer, "Bot Configuration");
-//        } catch (IOException e) {
-//            log.error("Exception encountered saving state", e);
-//        }
+        try {
+            FileSaver saver = new FileSaver(path);
+            Writer writer = saver.getWriter();
+            PrintWriter out = new PrintWriter(writer);
 
-        // implementation 2 using FileSaver
-//        try {
-//            var path = Path.of(getBotHome() + "/conf/" + BotDefaults.PROPERTIES_FILE);
-//            FileSaver saver = new FileSaver(path);
-//            Writer writer = saver.getWriter();
-//            PrintWriter out = new PrintWriter(writer);
-//            state.store(out, "Bot Properties");
-//            out.close();
-//            saver.finish();
-//        } catch (IOException e) {
-//            log.error("Exception encountered writing file", e);
-//        }
+            out.println("""
+                    #
+                    # Bot properties
+                    #
+                    # Note that this file will be overwritten by the bot during runtime if a property is changed.
+                    # It should not be edited directly while the bot is running.
+                    #
+                    """);
+
+            // transfer into a TreeMap for sorting purposes
+            Map<String, String> sortedMap = new TreeMap<>();
+            state.forEach((k, v) -> sortedMap.put(k.toString(), v.toString()));
+
+            // write all properties to our file
+            sortedMap.forEach((k, v) -> out.println(k + "=" + v));
+
+            out.close();
+            saver.finish();
+
+        } catch (IOException e) {
+            log.error("Unable to write bot properties file: {}", path, e);
+        }
     }
 }

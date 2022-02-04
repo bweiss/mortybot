@@ -67,19 +67,19 @@ public class MortyBot extends PircBotX {
         BotState bs = BotState.getBotState();
 
         Configuration config = new Configuration.Builder()
-                .setName(bs.getStringProperty("botName", BotDefaults.BOT_NAME))
-                .setLogin(bs.getStringProperty("botLogin", BotDefaults.BOT_LOGIN))
-                .setRealName(bs.getStringProperty("botRealName", BotDefaults.BOT_REAL_NAME))
-                .addServer(bs.getStringProperty("ircServer", BotDefaults.IRC_SERVER),
-                        bs.getIntProperty("ircPort", BotDefaults.IRC_PORT))
+                .setName(bs.getStringProperty("bot.name", BotDefaults.BOT_NAME))
+                .setLogin(bs.getStringProperty("bot.login", BotDefaults.BOT_LOGIN))
+                .setRealName(bs.getStringProperty("bot.realname", BotDefaults.BOT_REALNAME))
+                .addServer(bs.getStringProperty("irc.server", BotDefaults.IRC_SERVER),
+                        bs.getIntProperty("irc.port", BotDefaults.IRC_PORT))
                 .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
-                .setAutoReconnect(bs.getBooleanProperty("autoReconnect", BotDefaults.AUTO_RECONNECT))
-                .setAutoReconnectDelay(new StaticDelay(bs.getIntProperty("autoReconnectDelay", BotDefaults.AUTO_RECONNECT_DELAY)))
-                .setAutoReconnectAttempts(bs.getIntProperty("autoReconnectAttempts", BotDefaults.AUTO_RECONNECT_ATTEMPTS))
-                .setAutoNickChange(bs.getBooleanProperty("autoNickChange", BotDefaults.AUTO_NICK_CHANGE))
-                .addAutoJoinChannels(Arrays.asList(bs.getStringProperty("autoJoinChannels", BotDefaults.AUTO_JOIN_CHANNELS).split(" ")))
+                .setAutoReconnect(bs.getBooleanProperty("auto.reconnect", BotDefaults.AUTO_RECONNECT))
+                .setAutoReconnectDelay(new StaticDelay(bs.getIntProperty("auto.reconnect.delay", BotDefaults.AUTO_RECONNECT_DELAY)))
+                .setAutoReconnectAttempts(bs.getIntProperty("auto.reconnect.attempts", BotDefaults.AUTO_RECONNECT_ATTEMPTS))
+                .setAutoNickChange(bs.getBooleanProperty("auto.nick.change", BotDefaults.AUTO_NICK_CHANGE))
+                .addAutoJoinChannels(Arrays.asList(bs.getStringProperty("auto.join.channels", BotDefaults.AUTO_JOIN_CHANNELS).split(" ")))
                 .addListener(new AutoOpListener())
-                .addListener(new CommandListener(bs.getStringProperty("commandPrefix", BotDefaults.COMMAND_PREFIX)))
+                .addListener(new CommandListener(bs.getStringProperty("bot.command.prefix", BotDefaults.BOT_COMMAND_PREFIX)))
                 .addListener(new LinkListener())
                 .addListener(new RejoinListener())
                 .addListener(new ServerSupportListener())
@@ -89,8 +89,10 @@ public class MortyBot extends PircBotX {
             log.info("Starting bot with nick: {}", bot.getNick());
             bot.replaceCoreHooksListener(new CoreHooksListener());
             bot.startBot();
-        } catch (IrcException | IOException e) {
-            log.error("Exception encountered during startup: ", e);
+        } catch (IrcException e) {
+            log.error(e.getMessage());
+        } catch (IOException e) {
+            log.error("Exception encountered during startup", e);
         }
     }
 
