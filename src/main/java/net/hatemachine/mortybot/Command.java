@@ -18,6 +18,7 @@
 package net.hatemachine.mortybot;
 
 import net.hatemachine.mortybot.commands.BottleCommand;
+import net.hatemachine.mortybot.commands.ConfigCommand;
 import net.hatemachine.mortybot.commands.DictionaryCommand;
 import net.hatemachine.mortybot.commands.HelpCommand;
 import net.hatemachine.mortybot.commands.ImdbCommand;
@@ -42,6 +43,11 @@ public enum Command {
     BOTTLE(BottleCommand.class, new String[] {
             "Searches Bottle Blue Book for bottles",
             "Usage: BOTTLE <query>"
+    }),
+
+    CONFIG(ConfigCommand.class, new String[] {
+            "Allows you to view and change bot properties",
+            "Usage: CONFIG <property> [value]"
     }),
 
     DICT(DictionaryCommand.class, new String[] {
