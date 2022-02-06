@@ -18,12 +18,11 @@
 package net.hatemachine.mortybot.bitly;
 
 import com.google.gson.Gson;
+import net.hatemachine.mortybot.config.BotState;
 import net.hatemachine.mortybot.util.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -31,34 +30,17 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Optional;
-import java.util.Properties;
 
 public class Bitly {
 
-    private static final String PROPERTIES_FILE = "bitly.properties";
-
     private static final Logger log = LoggerFactory.getLogger(Bitly.class);
-    private static final Properties properties = new Properties();
-
-    static {
-        String propertiesFile = System.getenv("MORTYBOT_HOME") + "/conf/" + PROPERTIES_FILE;
-        log.info("Attempting to load properties from {}", propertiesFile);
-        try (FileReader reader = new FileReader(propertiesFile)) {
-            properties.load(reader);
-        } catch (FileNotFoundException e) {
-            String msg = "file not found: " + propertiesFile;
-            log.error(msg, e.getMessage());
-        } catch (IOException e) {
-            String msg = "unable to read file: " + propertiesFile;
-            log.error(msg, e.getMessage());
-        }
-    }
 
     private Bitly() {}
 
     public static Optional<String> shorten(String url) throws IOException, InterruptedException {
-        String apiEndpoint = properties.getProperty("bitly.api.endpoint", System.getenv("BITLY_API_ENDPOINT"));
-        String apiKey = properties.getProperty("bitly.api.key", System.getenv("BITLY_API_KEY"));
+        BotState state = BotState.getBotState();
+        String apiEndpoint = state.getStringProperty("bitly.api.endpoint", System.getenv("BITLY_API_ENDPOINT"));
+        String apiKey = state.getStringProperty("bitly.api.key", System.getenv("BITLY_API_KEY"));
         Validate.notNullOrEmpty(url);
         Validate.notNullOrEmpty(apiEndpoint);
         Validate.notNullOrEmpty(apiKey);
