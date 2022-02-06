@@ -38,7 +38,7 @@ import java.util.Queue;
 public class AutoOpListener extends ListenerAdapter {
 
     private static final int MODES_PER_COMMAND_DEFAULT = 4;
-    private static final int DELAY_IN_SECONDS_DEFAULT = 10;
+    private static final int DELAY_DEFAULT = 10000;
 
     private static final Logger log = LoggerFactory.getLogger(AutoOpListener.class);
 
@@ -92,9 +92,8 @@ public class AutoOpListener extends ListenerAdapter {
 
                 new Thread(() -> {
                     try {
-                        long delay = BotState.getBotState().getIntProperty("auto.op.delay",
-                                DELAY_IN_SECONDS_DEFAULT);
-                        Thread.sleep(delay * 1000);
+                        int delay = BotState.getBotState().getIntProperty("auto.op.delay", DELAY_DEFAULT);
+                        Thread.sleep(delay);
                         processQueue(event, channel);
                     } catch (InterruptedException e) {
                         log.warn("Thread interrupted", e);
