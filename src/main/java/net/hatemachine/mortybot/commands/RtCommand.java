@@ -18,6 +18,7 @@
 package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
+import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotState;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.rt.Movie;
@@ -27,7 +28,7 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import java.util.List;
 
 /**
- * Implements the RT bot command. This searches for movie titles on rottentomatoes.com.
+ * Implements the RT bot command. This searches for a movie title on rottentomatoes.com.
  *
  * Usage: RT [-l] query_str
  *
@@ -36,7 +37,6 @@ import java.util.List;
  */
 public class RtCommand implements BotCommand {
 
-    private static final int    MAX_RESULTS_DEFAULT = 4;
     private static final String RESPONSE_PREFIX = "[rt] ";
 
     private final GenericMessageEvent event;
@@ -55,7 +55,7 @@ public class RtCommand implements BotCommand {
             throw new IllegalArgumentException("Not enough arguments");
 
         boolean listResults = false;
-        int maxResults = BotState.getBotState().getIntProperty("command.rt.max.results", MAX_RESULTS_DEFAULT);
+        int maxResults = BotState.getBotState().getIntProperty("command.rt.max.results", BotDefaults.COMMAND_RT_MAX_RESULTS);
         String query;
 
         if (args.get(0).equals("-l")) {

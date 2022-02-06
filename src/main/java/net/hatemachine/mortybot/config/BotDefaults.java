@@ -23,21 +23,41 @@ public class BotDefaults {
         throw new IllegalStateException("Utility class");
     }
 
+    // MortyBot
     public static final String  PROPERTIES_FILE = "bot.properties";
-
     public static final String  BOT_NAME = "morty";
     public static final String  BOT_LOGIN = "morty";
     public static final String  BOT_REALNAME = "Aww jeez, Rick!";
     public static final String  BOT_COMMAND_PREFIX = ".";
-
     public static final String  IRC_SERVER = "irc.hatemachine.net";
     public static final int     IRC_PORT = 6697;
-
-    public static final boolean AUTO_RECONNECT = false;
+    public static final boolean AUTO_RECONNECT = true;
     public static final int     AUTO_RECONNECT_DELAY = 30000;
     public static final int     AUTO_RECONNECT_ATTEMPTS = 3;
     public static final boolean AUTO_NICK_CHANGE = true;
     public static final String  AUTO_JOIN_CHANNELS = "";
 
-    // TODO: add defaults for bot commands
+    // AutoOpListener
+    public static final boolean AUTO_OP = true;
+    public static final int     AUTO_OP_DELAY = 10000;
+    public static final int     AUTO_OP_MAX_MODES = 3;
+
+    // LinkListener
+    public static final boolean LINKS_SHORTEN = true;
+    public static final boolean LINKS_SHOW_TITLES = true;
+    public static final int     LINKS_MAX = 2;
+    public static final int     LINKS_MIN_LENGTH = 36;
+    public static final int     LINKS_MAX_TITLE_LENGTH = 200;
+
+    // BottleCommand
+    public static final int     COMMAND_BOTTLE_MAX_RESULTS = 5;
+
+    // ImdbCommand
+    public static final int     COMMAND_IMDB_MAX_RESULTS = 4;
+
+    // RtCommand
+    public static final int     COMMAND_RT_MAX_RESULTS = 4;
+
+    // StockCommand
+    public static final int     COMMAND_STOCK_MAX_SYMBOLS = 4;
 }

@@ -26,6 +26,7 @@ import com.jayway.jsonpath.spi.json.JsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import net.hatemachine.mortybot.BotCommand;
+import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotState;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.util.Validate;
@@ -51,8 +52,6 @@ import java.util.Optional;
 import java.util.Set;
 
 public class StockCommand implements BotCommand {
-
-    private static final int MAX_SYMBOLS_PER_COMMAND_DEFAULT = 4;
 
     private static final String BASE_URL = "https://query1.finance.yahoo.com/v7/finance/chart/";
 
@@ -93,8 +92,8 @@ public class StockCommand implements BotCommand {
 
     @Override
     public void execute() {
-        int maxSymbols = BotState.getBotState().getIntProperty("command.stock.max.symbols",
-                MAX_SYMBOLS_PER_COMMAND_DEFAULT);
+        int maxSymbols = BotState.getBotState()
+                .getIntProperty("command.stock.max.symbols", BotDefaults.COMMAND_STOCK_MAX_SYMBOLS);
         for (int cnt = 0; cnt < maxSymbols; cnt++) {
             String symbol = args.get(cnt);
             Optional<String> json = fetchQuote(symbol);

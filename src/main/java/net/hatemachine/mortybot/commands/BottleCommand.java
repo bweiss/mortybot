@@ -21,6 +21,7 @@ import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.bbb.Bottle;
 import net.hatemachine.mortybot.bbb.BottleBlueBook;
 import net.hatemachine.mortybot.bbb.SearchResult;
+import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotState;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.hooks.types.GenericMessageEvent;
@@ -29,8 +30,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class BottleCommand implements BotCommand {
-
-    private static final int MAX_RESULTS_DEFAULT = 4;
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;
@@ -47,7 +46,8 @@ public class BottleCommand implements BotCommand {
         if (args.isEmpty())
             throw new IllegalArgumentException("Not enough arguments");
 
-        int maxResults = BotState.getBotState().getIntProperty("command.bottle.max.results", MAX_RESULTS_DEFAULT);
+        int maxResults = BotState.getBotState()
+                .getIntProperty("command.bottle.max.results", BotDefaults.COMMAND_BOTTLE_MAX_RESULTS);
         boolean listResults = false;
         String query;
 
@@ -66,11 +66,9 @@ public class BottleCommand implements BotCommand {
             for (int i = 0; i < max; i++) {
                 event.respondWith(results.get(i).toString());
             }
-
         } else if (!results.isEmpty()) {
             Optional<Bottle> bottle = BottleBlueBook.fetchBottle(results.get(0).url());
             event.respondWith(bottle.isPresent() ? bottle.get().toString() : results.get(0).toString());
-
         } else {
             event.respondWith("No results");
         }

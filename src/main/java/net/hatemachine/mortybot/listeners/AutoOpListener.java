@@ -19,6 +19,7 @@ package net.hatemachine.mortybot.listeners;
 
 import net.hatemachine.mortybot.BotUser;
 import net.hatemachine.mortybot.MortyBot;
+import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotState;
 import org.pircbotx.Channel;
 import org.pircbotx.UserHostmask;
@@ -37,8 +38,7 @@ import java.util.Queue;
 
 public class AutoOpListener extends ListenerAdapter {
 
-    private static final int MODES_PER_COMMAND_DEFAULT = 4;
-    private static final int DELAY_DEFAULT = 10000;
+    private static final int MAX_MODES_DEFAULT = 3;
 
     private static final Logger log = LoggerFactory.getLogger(AutoOpListener.class);
 
@@ -51,7 +51,7 @@ public class AutoOpListener extends ListenerAdapter {
     @Override
     public void onJoin(final JoinEvent event) {
         log.debug("onJoin event: {}", event);
-        boolean enabled = BotState.getBotState().getBooleanProperty("auto.op", false);
+        boolean enabled = BotState.getBotState().getBooleanProperty("auto.op", BotDefaults.AUTO_OP);
         if (enabled) {
             handleJoin(event);
         }
@@ -92,7 +92,8 @@ public class AutoOpListener extends ListenerAdapter {
 
                 new Thread(() -> {
                     try {
-                        int delay = BotState.getBotState().getIntProperty("auto.op.delay", DELAY_DEFAULT);
+                        int delay = BotState.getBotState()
+                                .getIntProperty("auto.op.delay", BotDefaults.AUTO_OP_DELAY);
                         Thread.sleep(delay);
                         processQueue(event, channel);
                     } catch (InterruptedException e) {
@@ -127,12 +128,13 @@ public class AutoOpListener extends ListenerAdapter {
     private synchronized void processQueue(final JoinEvent event, final Channel channel) {
         MortyBot bot = event.getBot();
         Map<String, String> serverSupport = bot.getServerSupportMap();
-        int modesPerCommand = MODES_PER_COMMAND_DEFAULT;
+        BotState state = BotState.getBotState();
+        int maxModes = state.getIntProperty("auto.op.max.modes", BotDefaults.AUTO_OP_MAX_MODES);
 
         try {
-            modesPerCommand = Integer.parseInt(serverSupport.get("MODES"));
+            maxModes = Integer.parseInt(serverSupport.get("MODES"));
         } catch (NumberFormatException e) {
-            log.warn("Invalid value for server support parameter MODES. Falling back to default...");
+            log.warn("Couldn't determine server's maximum modes per command. Falling back to default...");
         }
 
         if (pending.containsKey(channel.getName())) {
@@ -144,7 +146,7 @@ public class AutoOpListener extends ListenerAdapter {
                 StringBuilder modes = new StringBuilder();
                 List<String> targets = new ArrayList<>();
 
-                while (targets.size() < modesPerCommand && !queue.isEmpty()) {
+                while (targets.size() < maxModes && !queue.isEmpty()) {
                     String nick = queue.remove();
                     if (channel.isOp(bot.getUserChannelDao().getUser(nick))) {
                         log.debug("{} already has operator status on {}", nick, channel.getName());

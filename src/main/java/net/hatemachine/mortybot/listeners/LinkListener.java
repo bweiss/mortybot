@@ -18,6 +18,7 @@
 package net.hatemachine.mortybot.listeners;
 
 import net.hatemachine.mortybot.bitly.Bitly;
+import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotState;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -37,29 +38,19 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LinkListener extends ListenerAdapter {
-    // default maximum number of URLs to process in a single message from a user
-    // the value for LinkListener.maxLinks in bot.properties will override this if present
-    private static final int MAX_LINKS_DEFAULT = 2;
 
-    // default minimum length of a URL for it to be shortened
-    private static final int MIN_LENGTH_TO_SHORTEN_DEFAULT = 30;
-
-    // maximum number of characters to show for the title
-    private static final int MAX_TITLE_LENGTH_DEFAULT = 200;
-
-    // the regex pattern used to match URLs
     private static final Pattern URL_PATTERN = Pattern.compile("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&\\/\\/=]*)");
 
     private static final Logger log = LoggerFactory.getLogger(LinkListener.class);
 
     @Override
-    public void onMessage(final MessageEvent event) throws InterruptedException {
+    public void onMessage(final MessageEvent event) {
         log.debug("onMessage event: {}", event);
         handleMessage(event);
     }
 
     @Override
-    public void onPrivateMessage(final PrivateMessageEvent event) throws InterruptedException {
+    public void onPrivateMessage(final PrivateMessageEvent event) {
         log.debug("onPrivateMessage event: {}", event);
         handleMessage(event);
     }
@@ -71,11 +62,11 @@ public class LinkListener extends ListenerAdapter {
      */
     private void handleMessage(final GenericMessageEvent event) {
         var bs = BotState.getBotState();
-        int maxLinks = bs.getIntProperty("links.max.per.msg", MAX_LINKS_DEFAULT);
-        int minLenToShorten = bs.getIntProperty("links.min.length.to.shorten", MIN_LENGTH_TO_SHORTEN_DEFAULT);
-        int maxTitleLength = bs.getIntProperty("links.max.title.length", MAX_TITLE_LENGTH_DEFAULT);
-        boolean shortenLinksFlag = bs.getBooleanProperty("links.shorten", false);
-        boolean showTitlesFlag = bs.getBooleanProperty("links.show.titles", true);
+        int maxLinks = bs.getIntProperty("links.max", BotDefaults.LINKS_MAX);
+        int minLenToShorten = bs.getIntProperty("links.min.length", BotDefaults.LINKS_MIN_LENGTH);
+        int maxTitleLength = bs.getIntProperty("links.max.title.length", BotDefaults.LINKS_MAX_TITLE_LENGTH);
+        boolean shortenLinksFlag = bs.getBooleanProperty("links.shorten", BotDefaults.LINKS_SHORTEN);
+        boolean showTitlesFlag = bs.getBooleanProperty("links.show.titles", BotDefaults.LINKS_SHOW_TITLES);
 
         List<String> links = parseMessage(event.getMessage());
 
