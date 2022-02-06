@@ -35,7 +35,6 @@ public class BotDefaults {
     public static final int     AUTO_RECONNECT_DELAY = 30000;
     public static final int     AUTO_RECONNECT_ATTEMPTS = 3;
     public static final boolean AUTO_NICK_CHANGE = true;
-    public static final String  AUTO_JOIN_CHANNELS = "";
 
     // AutoOpListener
     public static final boolean AUTO_OP = true;

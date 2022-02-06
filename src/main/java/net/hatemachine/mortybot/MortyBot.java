@@ -17,7 +17,6 @@
  */
 package net.hatemachine.mortybot;
 
-import com.google.common.collect.UnmodifiableIterator;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotState;
 import net.hatemachine.mortybot.listeners.AutoOpListener;
@@ -31,9 +30,6 @@ import org.pircbotx.PircBotX;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.delay.StaticDelay;
 import org.pircbotx.exception.IrcException;
-import org.pircbotx.hooks.CoreHooks;
-import org.pircbotx.hooks.Listener;
-import org.pircbotx.hooks.managers.ListenerManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,30 +60,38 @@ public class MortyBot extends PircBotX {
      * @param args command line arguments for the bot
      */
     public static void main(String[] args) {
-        BotState bs = BotState.getBotState();
+        BotState state = BotState.getBotState();
 
-        Configuration config = new Configuration.Builder()
-                .setName(bs.getStringProperty("bot.name", BotDefaults.BOT_NAME))
-                .setLogin(bs.getStringProperty("bot.login", BotDefaults.BOT_LOGIN))
-                .setRealName(bs.getStringProperty("bot.realname", BotDefaults.BOT_REALNAME))
-                .addServer(bs.getStringProperty("irc.server", BotDefaults.IRC_SERVER),
-                        bs.getIntProperty("irc.port", BotDefaults.IRC_PORT))
+        // Build our configuration
+        Configuration.Builder config = new Configuration.Builder()
+                .setName(state.getStringProperty("bot.name", BotDefaults.BOT_NAME))
+                .setLogin(state.getStringProperty("bot.login", BotDefaults.BOT_LOGIN))
+                .setRealName(state.getStringProperty("bot.realname", BotDefaults.BOT_REALNAME))
+                .addServer(state.getStringProperty("irc.server", BotDefaults.IRC_SERVER),
+                        state.getIntProperty("irc.port", BotDefaults.IRC_PORT))
                 .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
-                .setAutoReconnect(bs.getBooleanProperty("auto.reconnect", BotDefaults.AUTO_RECONNECT))
-                .setAutoReconnectDelay(new StaticDelay(bs.getIntProperty("auto.reconnect.delay", BotDefaults.AUTO_RECONNECT_DELAY)))
-                .setAutoReconnectAttempts(bs.getIntProperty("auto.reconnect.attempts", BotDefaults.AUTO_RECONNECT_ATTEMPTS))
-                .setAutoNickChange(bs.getBooleanProperty("auto.nick.change", BotDefaults.AUTO_NICK_CHANGE))
-                .addAutoJoinChannels(Arrays.asList(bs.getStringProperty("auto.join.channels", BotDefaults.AUTO_JOIN_CHANNELS).split(" ")))
+                .setAutoReconnect(state.getBooleanProperty("auto.reconnect", BotDefaults.AUTO_RECONNECT))
+                .setAutoReconnectDelay(new StaticDelay(state.getIntProperty("auto.reconnect.delay", BotDefaults.AUTO_RECONNECT_DELAY)))
+                .setAutoReconnectAttempts(state.getIntProperty("auto.reconnect.attempts", BotDefaults.AUTO_RECONNECT_ATTEMPTS))
+                .setAutoNickChange(state.getBooleanProperty("auto.nick.change", BotDefaults.AUTO_NICK_CHANGE))
                 .addListener(new AutoOpListener())
-                .addListener(new CommandListener(bs.getStringProperty("bot.command.prefix", BotDefaults.BOT_COMMAND_PREFIX)))
+                .addListener(new CommandListener(state.getStringProperty("bot.command.prefix", BotDefaults.BOT_COMMAND_PREFIX)))
                 .addListener(new LinkListener())
                 .addListener(new RejoinListener())
-                .addListener(new ServerSupportListener())
-                .buildConfiguration();
+                .addListener(new ServerSupportListener());
 
-        try (MortyBot bot = new MortyBot(config)) {
+        // Add our auto join channels if specified in the properties
+        String channels = state.getStringProperty("auto.join.channels");
+        if (channels != null && !channels.trim().isEmpty()) {
+            config.addAutoJoinChannels(Arrays.asList(state.getStringProperty("auto.join.channels").split(" ")));
+        }
+
+        // Replace the CoreHooks listener with our own implementation
+        config.replaceCoreHooksListener(new CoreHooksListener());
+
+        // Start the bot
+        try (MortyBot bot = new MortyBot(config.buildConfiguration())) {
             log.info("Starting bot with nick: {}", bot.getNick());
-            bot.replaceCoreHooksListener(new CoreHooksListener());
             bot.startBot();
         } catch (IrcException e) {
             log.error(e.getMessage());
@@ -124,33 +128,6 @@ public class MortyBot extends PircBotX {
      */
     public void clearServerSupport() {
         serverSupportMap.clear();
-    }
-
-    /**
-     * Replace the CoreHooks listener class.
-     *
-     * This is basically the same as the method of the same name in the PircBotX Configuration class
-     * and is here because I can't seem to figure out how to use the original correctly. ;P
-     *
-     * @param listener the listener to replace with
-     */
-    private void replaceCoreHooksListener(CoreHooks listener) {
-        ListenerManager listenerManager = this.getConfiguration().getListenerManager();
-        UnmodifiableIterator<Listener> i = listenerManager.getListeners().iterator();
-        CoreHooks orig = null;
-
-        while (i.hasNext()) {
-            Listener cur = i.next();
-            if (cur instanceof CoreHooks) {
-                orig = (CoreHooks) cur;
-            }
-        }
-
-        if (orig != null) {
-            listenerManager.removeListener(orig);
-        }
-
-        listenerManager.addListener(listener);
     }
 
     @Override
