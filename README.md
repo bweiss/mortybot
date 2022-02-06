@@ -9,11 +9,12 @@ This is a simple IRC bot I wrote for fun and to learn Java. It is designed for [
 * Bot user management and persistence
 * Command handler
 * Auto-op
-* Link shortening
+* Link shortening/title display
 * Weather lookups
 * Stock symbol lookups
 * IMDB and rotten tomatoes search
 * IP address location lookups
+* Merriam-Webster dictionary and word-of-the-day lookups
 * BottleBlueBook search
 * Support for 005 numeric
 
