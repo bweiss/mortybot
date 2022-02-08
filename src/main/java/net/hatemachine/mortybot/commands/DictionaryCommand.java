@@ -24,7 +24,6 @@ import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;
-import java.util.Optional;
 
 public class DictionaryCommand implements BotCommand {
 
@@ -43,20 +42,17 @@ public class DictionaryCommand implements BotCommand {
         if (args.isEmpty())
             throw new IllegalArgumentException("Not enough arguments");
 
-        Optional<DictionaryEntry> optEntry = MerriamWebster.dictionary(String.join(" ", args));
+        List<DictionaryEntry> entries = MerriamWebster.dictionary(String.join(" ", args));
 
-        if (optEntry.isPresent()) {
-            DictionaryEntry entry = optEntry.get();
+        for (DictionaryEntry entry : entries) {
             List<String> defs = entry.definitions();
 
             event.respondWith(entry.toString());
 
             for (int i = 0; i < defs.size(); i++) {
                 String def = defs.get(i);
-                event.respondWith((i + 1) + def);
+                event.respondWith("#" + (i + 1) + def);
             }
-        } else {
-            event.respondWith("Entry not found");
         }
     }
 

@@ -21,9 +21,9 @@ import org.pircbotx.Colors;
 
 import java.util.List;
 
-public record DictionaryEntry(String word, String type, String syllables, String pronunciation, List<String> definitions) {
+public record DictionaryEntry(String word, String type, String attributes, List<String> definitions) {
     @Override
     public String toString() {
-        return String.format("[%s | %s | %s] (%s)", Colors.BOLD + word + Colors.BOLD, syllables, pronunciation, type);
+        return String.format("[%s | %s] (%s)", Colors.BOLD + word + Colors.BOLD, attributes, type);
     }
 }

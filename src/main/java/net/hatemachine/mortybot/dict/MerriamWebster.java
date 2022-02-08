@@ -43,76 +43,102 @@ public class MerriamWebster {
         throw new IllegalStateException("Utility class");
     }
 
-    public static Optional<DictionaryEntry> dictionary(String term) {
-        Validate.notNullOrEmpty(term);
-        String url = DICTIONARY_URL + URLEncoder.encode(term, StandardCharsets.UTF_8);
-        Document doc = null;
-        String word;
-        String type;
-        String syllables = "--";
-        String pronunciation = "--";
-        List<String> definitions = new ArrayList<>();
-        Optional<DictionaryEntry> optEntry = Optional.empty();
+    public static List<DictionaryEntry> dictionary(String term) {
+        String url = DICTIONARY_URL + URLEncoder.encode(Validate.notNullOrEmpty(term), StandardCharsets.UTF_8);
+        List<DictionaryEntry> entries = new ArrayList<>();
 
         log.info("Fetching definition for \"{}\"", term);
 
         try {
-            doc = Jsoup.connect(url).get();
-        } catch (Exception e) {
+            Document doc = Jsoup.connect(url).get();
+            Element content = doc.select("div#left-content").first();
+
+            if (content == null) {
+                log.error("Failed to find left-content div!");
+            } else {
+                Elements entryHeaderDivs = content.select("div.row.entry-header");
+                Elements entryAttrDivs = content.select("div.row.entry-attr");
+                Elements headwordDivs = content.select("div.row.headword-row");
+                List<Element> dictEntryDivs = new ArrayList<>();
+
+                // this seems to be the most reliable way to determine the number of definitions on the page
+                boolean end = false;
+                for (int i = 1; !end; i++) {
+                    Element div = content.select("div#dictionary-entry-" + i).first();
+                    if (div == null) {
+                        end = true;
+                    } else {
+                        dictEntryDivs.add(div);
+                    }
+                }
+
+                for (int i = 0; i < dictEntryDivs.size(); i++) {
+                    String word = "--";
+                    String type = "--";
+                    String attributes = "--";
+                    List<String> definitions = new ArrayList<>();
+                    Element headerDiv = entryHeaderDivs.get(i);
+
+                    // word and attributes
+                    // the top entry is different, so we have to do things like this
+                    if (i == 0) {
+                        Element h1 = headerDiv.select("h1").first();
+                        if (h1 != null) {
+                            word = h1.text();
+                        }
+                        if (entryAttrDivs.size() >= dictEntryDivs.size()) {
+                            attributes = entryAttrDivs.get(i).text();
+                        }
+                    } else {
+                        Element p = headerDiv.select("p").first();
+                        if (p != null) {
+                            word = p.text();
+                        }
+                        if (headwordDivs.size() >= dictEntryDivs.size()) {
+                            attributes = headwordDivs.get(i).text();
+                        }
+                    }
+
+                    // type
+                    Element flSpan = headerDiv.select("span.fl").first();
+                    if (flSpan != null) {
+                        type = flSpan.text();
+                    }
+
+                    // definitions
+                    Elements dtTextSpans = dictEntryDivs.get(i).select("span.dtText");
+                    for (Element dtSpan : dtTextSpans) {
+                        definitions.add(dtSpan.text());
+                    }
+
+                    entries.add(new DictionaryEntry(word, type, attributes, definitions));
+                }
+            }
+        } catch (IOException e) {
             log.error("Exception encountered fetching page", e);
         }
 
-        if (doc != null) {
-            Element entryHeaderH1 = doc.select("div.entry-header h1").first();
-            Element entryHeaderA = doc.select("div.entry-header a").first();
-            Element entryAttrSyllablesSpan = doc.select("div.entry-attr span.word-syllables").first();
-            Element entryAttrPronSpan = doc.select("div.entry-attr span.pr").first();
-            Elements dtTextSpans = doc.select("div#dictionary-entry-1 span.dtText");
-
-            if (entryHeaderH1 != null && entryHeaderA != null) {
-                word = entryHeaderH1.text();
-                type = entryHeaderA.text();
-
-                if (entryAttrSyllablesSpan != null) {
-                    syllables = entryAttrSyllablesSpan.text();
-                }
-
-                if (entryAttrPronSpan != null) {
-                    pronunciation = entryAttrPronSpan.text();
-                }
-
-                for (Element span : dtTextSpans) {
-                    definitions.add(span.text());
-                }
-
-                optEntry = Optional.of(new DictionaryEntry(word, type, syllables, pronunciation, definitions));
-            }
-        }
-
-        return optEntry;
+        log.info("Found {} dictionary entries for \"{}\"", entries.size(), term);
+        return entries;
     }
 
     public static Optional<DictionaryEntry> wotd() {
         Optional<DictionaryEntry> optEntry = Optional.empty();
-        Document doc = null;
 
         log.info("Fetching word of the day");
 
         try {
-            doc = Jsoup.connect(WOTD_URL).get();
-        } catch (Exception e) {
-            log.error("Exception encountered fetching page", e);
-        }
-
-        if (doc != null) {
+            Document doc = Jsoup.connect(WOTD_URL).get();
             Element wordH1 = doc.select("div.word-and-pronunciation h1").first();
             Element typeAttrSpan = doc.select("div.word-attributes span.main-attr").first();
             Element syllableAttrSpan = doc.select("div.word-attributes span.word-syllables").first();
             Element defContainerDiv = doc.select("div.wod-definition-container p").first();
 
             if (wordH1 != null && typeAttrSpan != null && syllableAttrSpan != null && defContainerDiv != null) {
-                optEntry = Optional.of(new DictionaryEntry(wordH1.text(), typeAttrSpan.text(), syllableAttrSpan.text(), "--", List.of(defContainerDiv.text())));
+                optEntry = Optional.of(new DictionaryEntry(wordH1.text(), typeAttrSpan.text(), syllableAttrSpan.text(), List.of(defContainerDiv.text())));
             }
+        } catch (IOException e) {
+            log.error("Exception encountered fetching page", e);
         }
 
         return optEntry;
