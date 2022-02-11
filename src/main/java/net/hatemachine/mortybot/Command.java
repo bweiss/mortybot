@@ -31,6 +31,7 @@ import net.hatemachine.mortybot.commands.QuitCommand;
 import net.hatemachine.mortybot.commands.RtCommand;
 import net.hatemachine.mortybot.commands.StockCommand;
 import net.hatemachine.mortybot.commands.TestCommand;
+import net.hatemachine.mortybot.commands.UrbCommand;
 import net.hatemachine.mortybot.commands.UserCommand;
 import net.hatemachine.mortybot.commands.WeatherCommand;
 import net.hatemachine.mortybot.commands.WotdCommand;
@@ -108,6 +109,11 @@ public enum Command {
     TEST(TestCommand.class, new String[] {
             "Used for testing",
             "Usage: TEST <args>"
+    }),
+
+    URB(UrbCommand.class, new String[] {
+            "Looks up definitions on urbandictionary.com",
+            "Usage: URB <term> [defnum]"
     }),
 
     USER(UserCommand.class, new String[] {

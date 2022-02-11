@@ -16,6 +16,7 @@ This is a simple IRC bot I wrote for fun and to learn Java. It is designed for [
 * IP address location lookups
 * Merriam-Webster dictionary and word-of-the-day lookups
 * BottleBlueBook search
+* Urban Dictionary term lookups
 * Support for 005 numeric
 
 ## Building and Installing
@@ -55,6 +56,10 @@ UNIX:
 Windows:
 
 > run.bat
+
+## Usage
+
+To get a list of commands and basic usage information, issue the HELP command in a channel or private message to the bot.
 
 ## License
 

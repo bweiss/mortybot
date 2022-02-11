@@ -41,7 +41,7 @@ import java.util.Objects;
 
 public class MortyBot extends PircBotX {
 
-    public static final String VERSION = "0.3.1";
+    public static final String VERSION = "0.4.0";
 
     private static final Logger log = LoggerFactory.getLogger(MortyBot.class);
 
