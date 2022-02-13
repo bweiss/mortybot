@@ -18,6 +18,8 @@
 package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
+import net.hatemachine.mortybot.config.BotDefaults;
+import net.hatemachine.mortybot.config.BotState;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.urban.Definition;
 import net.hatemachine.mortybot.urban.UrbanDictionary;
@@ -66,7 +68,17 @@ public class UrbCommand implements BotCommand {
 
         if (!results.isEmpty() && defNum <= results.size()) {
             Definition def = results.get(defNum - 1);
-            event.respondWith(RESPONSE_PREFIX + String.format("%s (%d): %s", def.term(), defNum, def.meaning()));
+            String response = RESPONSE_PREFIX + String.format("%s (%d): %s", def.term(), defNum, def.meaning());
+
+            // truncate our response if needed
+            int maxLen = BotState.getBotState()
+                    .getIntProperty("command.urb.max.response.length", BotDefaults.COMMAND_URB_MAX_RESPONSE_LENGTH);
+            if (response.length() > maxLen) {
+                response = response.substring(0, maxLen - 2) + "...";
+            }
+
+            event.respondWith(response);
+
         } else {
             event.respondWith("Definition not found");
         }

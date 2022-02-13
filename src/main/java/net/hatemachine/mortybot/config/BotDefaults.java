@@ -59,4 +59,7 @@ public class BotDefaults {
 
     // StockCommand
     public static final int     COMMAND_STOCK_MAX_SYMBOLS = 4;
+
+    // UrbCommand
+    public static final int     COMMAND_URB_MAX_RESPONSE_LENGTH = 430;
 }
