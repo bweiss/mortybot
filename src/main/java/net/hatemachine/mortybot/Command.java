@@ -113,7 +113,7 @@ public enum Command {
 
     URB(UrbCommand.class, new String[] {
             "Looks up definitions on urbandictionary.com",
-            "Usage: URB <term> [defnum]"
+            "Usage: URB [term] [defnum]"
     }),
 
     USER(UserCommand.class, new String[] {

@@ -42,22 +42,27 @@ public class UrbCommand implements BotCommand {
 
     @Override
     public void execute() {
-        if (args.isEmpty()) {
-            throw new IllegalArgumentException("Not enough arguments");
-        }
-
+        List<Definition> results;
+        String term = "";
         int defNum;
-        String term;
 
-        try {
-            defNum = Integer.parseInt(args.get(args.size() - 1));
-            term = String.join(" ", args.subList(0, args.size() - 1));
-        } catch (NumberFormatException e) {
+        if (args.isEmpty()) {
             defNum = 1;
-            term = String.join(" ", args);
+        } else {
+            try {
+                defNum = Integer.parseInt(args.get(args.size() - 1));
+                term = String.join(" ", args.subList(0, args.size() - 1));
+            } catch (NumberFormatException e) {
+                defNum = 1;
+                term = String.join(" ", args);
+            }
         }
 
-        List<Definition> results = UrbanDictionary.lookup(term);
+        if (term.isBlank()) {
+            results = UrbanDictionary.lookup();
+        } else {
+            results = UrbanDictionary.lookup(term);
+        }
 
         if (!results.isEmpty() && defNum <= results.size()) {
             Definition def = results.get(defNum - 1);

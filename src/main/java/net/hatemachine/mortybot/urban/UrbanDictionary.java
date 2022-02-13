@@ -17,40 +17,68 @@
  */
 package net.hatemachine.mortybot.urban;
 
+import net.hatemachine.mortybot.util.Validate;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class UrbanDictionary {
 
-    private static final String SEARCH_URL = "https://www.urbandictionary.com/define.php?term=";
+    private static final String BASE_URL = "https://www.urbandictionary.com";
+    private static final String SEARCH_URL = BASE_URL + "/define.php?term=";
+
+    private static final Logger log = LoggerFactory.getLogger(UrbanDictionary.class);
+
+    public static List<Definition> lookup() {
+        return doLookup(BASE_URL);
+    }
 
     public static List<Definition> lookup(String term) {
-        String searchUrl = SEARCH_URL + URLEncoder.encode(term, StandardCharsets.UTF_8);
+        return doLookup(SEARCH_URL + URLEncoder.encode(term, StandardCharsets.UTF_8));
+    }
+
+    private static List<Definition> doLookup(String url) {
+        Validate.notNullOrEmpty(url);
         List<Definition> results = new ArrayList<>();
-        Document page = null;
-
-        try {
-            page = Jsoup.connect(searchUrl).get();
-        } catch (IOException e) {
-            e.printStackTrace();
+        Optional<Document> page = fetchPage(url);
+        if (page.isPresent()) {
+            results = parseResults(page.get());
+        } else {
+            log.error("Failed to fetch page");
         }
+        return results;
+    }
 
-        if (page != null) {
-            Elements definitionDivs = page.select("div.definition");
-            for (Element div : definitionDivs) {
-                Element wordElement = div.select("a.word").first();
-                Element meaningDiv = div.select("div.meaning").first();
-                if (wordElement != null && meaningDiv != null) {
-                    results.add(new Definition(wordElement.text(), meaningDiv.text()));
-                }
+    private static Optional<Document> fetchPage(String url) {
+        Optional<Document> page = Optional.empty();
+        try {
+            page = Optional.of(Jsoup.connect(url).get());
+        } catch (IOException e) {
+            log.error("Exception encountered fetching page, url: {}", url, e);
+        }
+        return page;
+    }
+
+    private static List<Definition> parseResults(Document page) {
+        Validate.notNull(page);
+        List<Definition> results = new ArrayList<>();
+
+        Elements definitionDivs = page.select("div.definition");
+        for (Element div : definitionDivs) {
+            Element wordElement = div.select("a.word").first();
+            Element meaningDiv = div.select("div.meaning").first();
+            if (wordElement != null && meaningDiv != null) {
+                results.add(new Definition(wordElement.text(), meaningDiv.text()));
             }
         }
 
