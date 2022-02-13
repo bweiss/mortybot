@@ -79,15 +79,28 @@ public class IpLookupCommand implements BotCommand {
                     args.get(0), city.getName(), subdivision.getIsoCode(), country.getName()));
 
         } catch (AddressNotFoundException e) {
-            log.error("Address not found: {}", address);
+            String errMsg = "Address not found";
+            log.error("{}: {}", errMsg, address);
+            event.respondWith(errMsg);
+
         } catch (AuthenticationException e) {
-            log.error("Authentication failed ({})", WEB_SERVICE_HOST, e);
+            String errMsg = "Authentication failed";
+            log.error("{}: {}", errMsg, WEB_SERVICE_HOST, e);
+            event.respondWith(errMsg);
+
         } catch (InvalidRequestException e) {
-            log.error("Invalid request", e);
+            String errMsg = "Invalid request";
+            log.error(errMsg, e);
+            event.respondWith(errMsg);
+
         } catch (OutOfQueriesException e) {
-            log.error("Query limit reached");
+            String errMsg = "Query limit reached";
+            log.error(errMsg);
+            event.respondWith(errMsg);
+
         } catch (GeoIp2Exception | IOException e) {
             log.error("Exception encountered while looking up host", e);
+            event.respondWith("Error");
         }
     }
 
