@@ -19,8 +19,8 @@ package net.hatemachine.mortybot.util;
 
 public class ProgressBar {
 
-    private static final char FILLED_CHAR_DEFAULT = '▓';
-    private static final char UNFILLED_CHAR_DEFAULT = '░';
+    private static final char FILLED_CHAR_DEFAULT = '\u2593';
+    private static final char UNFILLED_CHAR_DEFAULT = '\u2591';
 
     private final int size;
     private final double unitVal;
