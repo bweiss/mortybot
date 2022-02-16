@@ -23,6 +23,8 @@ import net.hatemachine.mortybot.config.BotState;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.rt.Movie;
 import net.hatemachine.mortybot.rt.RTHelper;
+import net.hatemachine.mortybot.util.Validate;
+import org.pircbotx.Colors;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;
@@ -37,7 +39,12 @@ import java.util.List;
  */
 public class RtCommand implements BotCommand {
 
-    private static final String RESPONSE_PREFIX = "[rt] ";
+    private static final String RESPONSE_PREFIX = "[rt]";
+    private static final String TOMATO = Colors.RED + "\uD83C\uDF45" + Colors.NORMAL;
+    private static final String SPLAT = Colors.GREEN + "\u273B" + Colors.NORMAL;
+    private static final String CERTIFIED_FRESH = TOMATO + Colors.BOLD + "certified-fresh" + Colors.NORMAL + TOMATO;
+    private static final String FRESH = TOMATO + "fresh" + TOMATO;
+    private static final String ROTTEN = SPLAT + "rotten" + SPLAT;
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;
@@ -51,8 +58,9 @@ public class RtCommand implements BotCommand {
 
     @Override
     public void execute() {
-        if (args.isEmpty())
+        if (args.isEmpty()) {
             throw new IllegalArgumentException("Not enough arguments");
+        }
 
         boolean listResults = false;
         int maxResults = BotState.getBotState().getIntProperty("command.rt.max.results", BotDefaults.COMMAND_RT_MAX_RESULTS);
@@ -67,19 +75,18 @@ public class RtCommand implements BotCommand {
 
         List<Movie> results = RTHelper.search(query);
 
-        if (!results.isEmpty()) {
-
-            // -l flag present, list results
+        if (results.isEmpty()) {
+            event.respondWith("No results found");
+        } else {
             if (listResults) {
+                // -l flag present, list results
                 event.respondWith(String.format(RESPONSE_PREFIX + "Showing top %d results:", Math.min(results.size(), maxResults)));
                 for (int i = 0; i < results.size() && i < maxResults; i++) {
-                    event.respondWith(RESPONSE_PREFIX + results.get(i));
+                    event.respondWith(formatResponse(results.get(i)));
                 }
-
-            // display details for top result
             } else {
-                Movie topResult = results.get(0);
-                event.respondWith(String.format("%s :: %s", RESPONSE_PREFIX + topResult, topResult.getUrl()));
+                // display details for top result
+                event.respondWith(formatResponse(results.get(0)));
             }
         }
     }
@@ -97,5 +104,30 @@ public class RtCommand implements BotCommand {
     @Override
     public List<String> getArgs() {
         return args;
+    }
+
+    private String formatResponse(Movie movie) {
+        Validate.notNull(movie);
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(String.format("%s %s (%s)", RESPONSE_PREFIX, movie.getTitle(), movie.getYear()));
+
+        if (movie.hasScore()) {
+            sb.append(String.format(" - %s%%", movie.getScore()));
+        }
+
+        if (movie.hasState()) {
+            String state = movie.getState();
+            sb.append(" [");
+            switch (state) {
+                case "certified-fresh" -> sb.append(CERTIFIED_FRESH);
+                case "fresh" -> sb.append(FRESH);
+                case "rotten" -> sb.append(ROTTEN);
+                default -> sb.append("--");
+            }
+            sb.append("]");
+        }
+
+        return sb.toString();
     }
 }

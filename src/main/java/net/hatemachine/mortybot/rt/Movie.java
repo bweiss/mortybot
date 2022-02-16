@@ -105,8 +105,11 @@ public class Movie {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(String.format("%s (%s)", title, year));
-        if (this.hasState() && this.hasScore()) {
-            sb.append(String.format(" - %s%% [%s]", score, state));
+        if (this.hasScore()) {
+            sb.append(String.format(" - %s%%", score));
+        }
+        if (this.hasState()) {
+            sb.append(String.format(" [%s]", state));
         }
         return sb.toString();
     }
