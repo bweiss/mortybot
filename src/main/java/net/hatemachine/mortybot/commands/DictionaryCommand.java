@@ -39,19 +39,24 @@ public class DictionaryCommand implements BotCommand {
 
     @Override
     public void execute() {
-        if (args.isEmpty())
+        if (args.isEmpty()) {
             throw new IllegalArgumentException("Not enough arguments");
+        }
 
         List<DictionaryEntry> entries = MerriamWebster.dictionary(String.join(" ", args));
 
-        for (DictionaryEntry entry : entries) {
-            List<String> defs = entry.definitions();
+        if (entries.isEmpty()) {
+            event.respondWith("No results found");
+        } else {
+            for (DictionaryEntry entry : entries) {
+                List<String> defs = entry.definitions();
 
-            event.respondWith(entry.toString());
+                event.respondWith(entry.toString());
 
-            for (int i = 0; i < defs.size(); i++) {
-                String def = defs.get(i);
-                event.respondWith("#" + (i + 1) + def);
+                for (int i = 0; i < defs.size(); i++) {
+                    String def = defs.get(i);
+                    event.respondWith("#" + (i + 1) + def);
+                }
             }
         }
     }
