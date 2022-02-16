@@ -51,8 +51,9 @@ public class ImdbCommand implements BotCommand {
 
     @Override
     public void execute() {
-        if (args.isEmpty())
+        if (args.isEmpty()) {
             throw new IllegalArgumentException("Not enough arguments");
+        }
 
         boolean listResults = false;
         int maxResults = BotState.getBotState().getIntProperty("command.imdb.max.results", BotDefaults.COMMAND_IMDB_MAX_RESULTS);
@@ -67,8 +68,9 @@ public class ImdbCommand implements BotCommand {
 
         List<SearchResult> results = IMDBHelper.search(query);
 
-        if (!results.isEmpty()) {
-
+        if (results.isEmpty()) {
+            event.respondWith("No results found");
+        } else {
             // -l flag present, list results
             if (listResults) {
                 for (int i = 0; i < results.size() && i < maxResults; i++) {
