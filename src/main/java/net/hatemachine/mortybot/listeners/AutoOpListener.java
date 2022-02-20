@@ -38,8 +38,6 @@ import java.util.Queue;
 
 public class AutoOpListener extends ListenerAdapter {
 
-    private static final int MAX_MODES_DEFAULT = 3;
-
     private static final Logger log = LoggerFactory.getLogger(AutoOpListener.class);
 
     private final Map<String, Queue<String>> pending;
