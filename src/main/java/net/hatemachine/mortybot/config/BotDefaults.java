@@ -48,6 +48,13 @@ public class BotDefaults {
     public static final int     LINKS_MIN_LENGTH = 36;
     public static final int     LINKS_MAX_TITLE_LENGTH = 200;
 
+    // WordleGame
+    public static final int     WORDLE_MAX_ATTEMPTS = 6;
+    public static final int     WORDLE_WORD_LENGTH = 5;
+    public static final boolean WORDLE_SHOW_KEYBOARD = true;
+    public static final boolean WORDLE_COMPACT_KEYBOARD = false;
+    public static final int     WORDLE_MAX_DURATION_IN_MINUTES = 30;
+
     // BottleCommand
     public static final int     COMMAND_BOTTLE_MAX_RESULTS = 5;
 

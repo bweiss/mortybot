@@ -34,6 +34,7 @@ import net.hatemachine.mortybot.commands.TestCommand;
 import net.hatemachine.mortybot.commands.UrbCommand;
 import net.hatemachine.mortybot.commands.UserCommand;
 import net.hatemachine.mortybot.commands.WeatherCommand;
+import net.hatemachine.mortybot.commands.WordleCommand;
 import net.hatemachine.mortybot.commands.WotdCommand;
 import net.hatemachine.mortybot.commands.YearCommand;
 
@@ -121,6 +122,12 @@ public enum Command {
             "Usage: USER <subcommand> [target] [args]",
             "Subcommands: LIST, SHOW ADD, REMOVE, ADDHOSTMASK, REMOVEHOSTMASK, ADDFLAG, REMOVEFLAG",
             "Available user flags: " + Arrays.toString(BotUser.Flag.values())
+    }),
+
+    WORDLE(WordleCommand.class, new String[] {
+            "Play a game of Wordle!",
+            "Usage: WORDLE",
+            "After starting the game, simply type your 5-letter word guesses into the channel where you began the game"
     }),
 
     WOTD(WotdCommand.class, new String[] {
