@@ -17,11 +17,6 @@
  */
 package net.hatemachine.mortybot.wordle;
 
-import net.hatemachine.mortybot.MortyBot;
-import net.hatemachine.mortybot.config.BotDefaults;
-import net.hatemachine.mortybot.config.BotState;
-import net.hatemachine.mortybot.listeners.WordleGameListener;
-import org.pircbotx.hooks.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,27 +24,27 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class WordleHelper {
+
+    protected static final char[] ALPHABET = {
+            'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+            'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
+    };
 
     private static final String WORD_FILE = "wordle-wordlist.txt";
 
     private static final Logger log = LoggerFactory.getLogger(WordleHelper.class);
+    private static final Random random = new Random();
+    private static final List<String> wordList;
 
-    private final MortyBot bot;
+    static {
+        wordList = new ArrayList<>();
 
-    public WordleHelper(MortyBot bot) {
-        this.bot = bot;
-    }
-
-    public List<String> getWordList() {
-        List<String> wordList = new ArrayList<>();
-
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream(WORD_FILE);
+        try (InputStream is = WordleHelper.class.getClassLoader().getResourceAsStream(WORD_FILE);
              InputStreamReader streamReader = new InputStreamReader(is);
              BufferedReader reader = new BufferedReader(streamReader)) {
 
@@ -61,43 +56,13 @@ public class WordleHelper {
         } catch (IOException e) {
             log.error("Exception encountered reading word file", e);
         }
-
-        return wordList;
     }
 
-    public synchronized List<WordleGameListener> getListeners() {
-        List<WordleGameListener> listeners = new ArrayList<>();
-        for (Listener listener : bot.getConfiguration().getListenerManager().getListeners()) {
-            if (listener instanceof WordleGameListener wl) {
-                listeners.add(wl);
-            }
-        }
-        return listeners;
+    public static String getRandomWord() {
+        return wordList.get(random.nextInt(wordList.size()));
     }
 
-    public synchronized void expireGames() {
-        for (WordleGameListener listener : getListeners()) {
-            WordleGame game = listener.getGame();
-            if (game.isActive()) {
-                long maxGameMins = BotState.getBotState()
-                        .getIntProperty("wordle.max.duration.in.minutes", BotDefaults.WORDLE_MAX_DURATION_IN_MINUTES);
-                Duration duration = Duration.between(game.getStartTime(), LocalDateTime.now());
-                Duration maxDuration = Duration.ofMinutes(maxGameMins);
-
-                if (duration.compareTo(maxDuration) > 0) {
-                    game.printScoreBoard();
-                    game.end("Time limit exceeded. Game over.");
-                }
-            }
-        }
-    }
-
-    public synchronized void removeInactiveListeners() {
-        for (WordleGameListener listener : getListeners()) {
-            WordleGame game = listener.getGame();
-            if (!game.isActive()) {
-                bot.getConfiguration().getListenerManager().removeListener(listener);
-            }
-        }
+    public static boolean inWordList(String word) {
+        return wordList.contains(word);
     }
 }

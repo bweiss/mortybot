@@ -19,16 +19,12 @@ package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.listeners.CommandListener;
-import net.hatemachine.mortybot.listeners.WordleGameListener;
-import net.hatemachine.mortybot.wordle.WordleGame;
-import net.hatemachine.mortybot.wordle.WordleHelper;
-import org.pircbotx.hooks.events.MessageEvent;
+import net.hatemachine.mortybot.wordle.Game;
+import net.hatemachine.mortybot.wordle.GameManager;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;
-
-import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.PRIVATE;
-import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.PUBLIC;
+import java.util.Optional;
 
 public class WordleCommand implements BotCommand {
 
@@ -44,38 +40,27 @@ public class WordleCommand implements BotCommand {
 
     @Override
     public void execute() {
-        if (source == PRIVATE) {
-            event.respondWith("Sorry, not supported over private message yet");
-        } else if (source == PUBLIC) {
-            MessageEvent myEvent = (MessageEvent)event;
-            WordleHelper helper = new WordleHelper(event.getBot());
-            WordleGameListener matchingListener = null;
-
-            // see if we have any listeners for this user and channel
-            for (WordleGameListener listener : helper.getListeners()) {
-                WordleGame game = listener.getGame();
-                if (event.getUser() == game.getPlayer() && myEvent.getChannel() == game.getChannel()) {
-                    matchingListener = listener;
-                }
+        GameManager gm = GameManager.getGameManager();
+        Optional<Game> optGame = gm.getGame(event.getUser());
+        if (optGame.isPresent()) {
+            Game game = optGame.get();
+            if (game.isActive()) {
+                game.showAllTried(event);
+                game.showLetters(event);
+            } else {
+                gm.removeGame(game);
+                startGame();
             }
-
-            if (matchingListener != null) {
-                WordleGame game = matchingListener.getGame();
-                if (game.isActive()) {
-                    myEvent.respondWith("You already have an active game. Say a word in the channel to make a guess.");
-                    game.printScoreBoard();
-                    game.printKeyboard();
-                    return;
-                } else {
-                    // remove old listener
-                    myEvent.getBot().getConfiguration().getListenerManager().removeListener(matchingListener);
-                }
-            }
-
-            // start a new game
-            WordleGameListener listener = new WordleGameListener(myEvent.getBot(), myEvent.getUser(), myEvent.getChannel());
-            myEvent.getBot().getConfiguration().getListenerManager().addListener(listener);
+        } else {
+            startGame();
         }
+    }
+
+    private void startGame() {
+        var gm = GameManager.getGameManager();
+        var game = new Game(event.getUser());
+        gm.addGame(game);
+        event.respond(String.format("Starting a game of Wordle. You have %d attempts.", game.getMaxAttempts()));
     }
 
     @Override

@@ -25,7 +25,7 @@ import net.hatemachine.mortybot.listeners.CoreHooksListener;
 import net.hatemachine.mortybot.listeners.LinkListener;
 import net.hatemachine.mortybot.listeners.RejoinListener;
 import net.hatemachine.mortybot.listeners.ServerSupportListener;
-import net.hatemachine.mortybot.listeners.WordleCleanupListener;
+import net.hatemachine.mortybot.listeners.WordleListener;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.UtilSSLSocketFactory;
@@ -80,7 +80,7 @@ public class MortyBot extends PircBotX {
                 .addListener(new LinkListener())
                 .addListener(new RejoinListener())
                 .addListener(new ServerSupportListener())
-                .addListener(new WordleCleanupListener());
+                .addListener(new WordleListener());
 
         // Add our auto join channels if specified in the properties
         String channels = state.getStringProperty("auto.join.channels");
