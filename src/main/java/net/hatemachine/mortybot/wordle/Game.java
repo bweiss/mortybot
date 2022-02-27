@@ -19,11 +19,9 @@ package net.hatemachine.mortybot.wordle;
 
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotState;
-import net.hatemachine.mortybot.util.DateTimeUtils;
 import org.pircbotx.User;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -97,7 +95,7 @@ public class Game {
     }
 
     public void showAllTried(final GenericMessageEvent event) {
-        event.respondWith(String.format("[wordle] Player: %s, Attempts: %d/%d", player.getNick(), tried.size(), maxAttempts));
+        event.respondWith(String.format("Player: %s, Attempts: %d/%d", player.getNick(), tried.size(), maxAttempts));
         tried.forEach((k, v) -> event.respondWith("     " + formatTriedWord(v)));
     }
 
@@ -126,11 +124,6 @@ public class Game {
                 event.respondWith(row);
             }
         }
-    }
-
-    public void showDuration(final GenericMessageEvent event) {
-        Duration gameDuration = Duration.between(startTime, endTime);
-        event.respondWith("Game duration: " + DateTimeUtils.printDuration(gameDuration));
     }
 
     private void updateLetterState(String w) {
@@ -218,12 +211,24 @@ public class Game {
         return maxAttempts;
     }
 
+    public String getWord() {
+        return word;
+    }
+
     public GameState getState() {
         return state;
     }
 
+    public Map<Integer, String> getTried() {
+        return tried;
+    }
+
     public LocalDateTime getStartTime() {
         return startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
     }
 
     public boolean isActive() {

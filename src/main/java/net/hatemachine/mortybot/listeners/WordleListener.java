@@ -19,10 +19,12 @@ package net.hatemachine.mortybot.listeners;
 
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotState;
+import net.hatemachine.mortybot.util.DateTimeUtils;
 import net.hatemachine.mortybot.wordle.Game;
 import net.hatemachine.mortybot.wordle.GameManager;
 import net.hatemachine.mortybot.wordle.GameState;
 import net.hatemachine.mortybot.wordle.WordleException;
+import org.pircbotx.Colors;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
@@ -31,6 +33,7 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -69,7 +72,7 @@ public class WordleListener extends ListenerAdapter {
 
         if (optGame.isPresent()) {
             Game game = optGame.get();
-            log.debug("Found an existing game for {}", game.getPlayer());
+            log.debug("Found an existing game: {}", game);
 
             if (game.isActive()) {
                 String msg = event.getMessage().toLowerCase(Locale.ROOT);
@@ -82,13 +85,20 @@ public class WordleListener extends ListenerAdapter {
                         switch (state) {
 
                             case WON -> {
-                                event.respond(String.format("You win! The word was '%s'", msg));
-                                game.showDuration(event);
+                                Duration gameDuration = Duration.between(game.getStartTime(), game.getEndTime());
+                                event.respond(String.format("You win! The word was %s! [Attempts: %d/%d, Duration: %s]",
+                                        Colors.BOLD + game.getWord() + Colors.NORMAL,
+                                        game.getTried().size(),
+                                        game.getMaxAttempts(),
+                                        DateTimeUtils.printDuration(gameDuration)));
                             }
 
                             case LOST -> {
-                                event.respond("Max attempts reached. Game over.");
-                                game.showDuration(event);
+                                Duration gameDuration = Duration.between(game.getStartTime(), game.getEndTime());
+                                event.respond(String.format("Max attempts reached. Game over. [Attempts: %d/%d, Duration: %s]",
+                                        game.getTried().size(),
+                                        game.getMaxAttempts(),
+                                        DateTimeUtils.printDuration(gameDuration)));
                             }
 
                             case ACTIVE -> {

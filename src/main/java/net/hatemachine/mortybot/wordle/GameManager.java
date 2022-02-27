@@ -82,10 +82,8 @@ public class GameManager {
     }
 
     public void expireGames() {
-        log.debug("Checking for expired games");
-
         for (Game game : getActiveGames()) {
-            if (game.isActive()) {
+                if (game.isActive()) {
                 long maxGameMins = BotState.getBotState()
                         .getIntProperty("wordle.max.duration", BotDefaults.WORDLE_MAX_DURATION);
                 Duration duration = Duration.between(game.getStartTime(), LocalDateTime.now());
