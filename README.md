@@ -10,13 +10,15 @@ This is a simple IRC bot I wrote for fun and to learn Java. It is designed for [
 * Command handler
 * Auto-op
 * Link shortening/title display
+* Google search
 * Weather lookups
 * Stock symbol lookups
 * IMDB and rotten tomatoes search
-* IP address location lookups
+* GeoIP2 address location lookups
 * Merriam-Webster dictionary and word-of-the-day lookups
 * BottleBlueBook search
 * Urban Dictionary lookups
+* Wordle game
 * Support for 005 numeric
 
 ## Building and Installing
