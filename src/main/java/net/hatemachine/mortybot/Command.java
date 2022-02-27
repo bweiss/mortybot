@@ -20,6 +20,7 @@ package net.hatemachine.mortybot;
 import net.hatemachine.mortybot.commands.BottleCommand;
 import net.hatemachine.mortybot.commands.ConfigCommand;
 import net.hatemachine.mortybot.commands.DictionaryCommand;
+import net.hatemachine.mortybot.commands.GoogleCommand;
 import net.hatemachine.mortybot.commands.HelpCommand;
 import net.hatemachine.mortybot.commands.ImdbCommand;
 import net.hatemachine.mortybot.commands.GeoIpCommand;
@@ -60,6 +61,11 @@ public enum Command {
     GEOIP(GeoIpCommand.class, new String[] {
             "Shows the geographic location of an IP address or hostname",
             "Usage: GEOIP <IP|hostname>"
+    }),
+
+    GOO(GoogleCommand.class, new String[] {
+            "Performs a Google search and displays the top result",
+            "Usage: GOO <query>"
     }),
 
     HELP(HelpCommand.class, new String[] {
