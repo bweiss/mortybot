@@ -22,6 +22,7 @@ import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotState;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.pircbotx.Colors;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
@@ -96,7 +97,7 @@ public class LinkListener extends ListenerAdapter {
 
             // shortened link only
             if (shortLink.isPresent() && title.isEmpty() && !Objects.equals(link, shortLink.get())) {
-                event.respondWith(shortLink.get());
+                event.respondWith(Colors.BOLD + shortLink.get() + Colors.BOLD);
 
             // title only
             } else if (title.isPresent() && shortLink.isEmpty()) {
@@ -104,7 +105,9 @@ public class LinkListener extends ListenerAdapter {
 
             // short link and title
             } else if (shortLink.isPresent() && title.isPresent()) {
-                event.respondWith(String.format("%s :: %s", shortLink.get(), trimTitle(title.get(), maxTitleLength, "...")));
+                event.respondWith(String.format("%s :: %s",
+                        Colors.BOLD + shortLink.get() + Colors.BOLD,
+                        trimTitle(title.get(), maxTitleLength, "...")));
             }
         }
     }
