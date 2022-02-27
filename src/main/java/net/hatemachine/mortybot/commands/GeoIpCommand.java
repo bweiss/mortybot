@@ -30,6 +30,7 @@ import com.maxmind.geoip2.record.Subdivision;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotState;
 import net.hatemachine.mortybot.listeners.CommandListener;
+import org.pircbotx.Colors;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,17 +39,17 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.List;
 
-public class IpLookupCommand implements BotCommand {
+public class GeoIpCommand implements BotCommand {
 
     private static final String WEB_SERVICE_HOST = "geolite.info";
 
-    private static final Logger log = LoggerFactory.getLogger(IpLookupCommand.class);
+    private static final Logger log = LoggerFactory.getLogger(GeoIpCommand.class);
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;
     private final List<String> args;
 
-    public IpLookupCommand(GenericMessageEvent event, CommandListener.CommandSource source, List<String> args) {
+    public GeoIpCommand(GenericMessageEvent event, CommandListener.CommandSource source, List<String> args) {
         this.event = event;
         this.source = source;
         this.args = args;
@@ -60,8 +61,8 @@ public class IpLookupCommand implements BotCommand {
             throw new IllegalArgumentException("Not enough arguments");
 
         var bs = BotState.getBotState();
-        var accountId = bs.getIntProperty("command.iplookup.account.id", Integer.parseInt(System.getenv("MAXMIND_ACCOUNT_ID")));
-        var licenseKey = bs.getStringProperty("command.iplookup.license.key", System.getenv("MAXMIND_LICENSE_KEY"));
+        var accountId = bs.getIntProperty("command.geoip.maxmind.account.id", Integer.parseInt(System.getenv("MAXMIND_ACCOUNT_ID")));
+        var licenseKey = bs.getStringProperty("command.geoip.maxmind.license.key", System.getenv("MAXMIND_LICENSE_KEY"));
         var address = args.get(0);
 
         WebServiceClient client = new WebServiceClient.Builder(accountId, licenseKey)
@@ -76,7 +77,10 @@ public class IpLookupCommand implements BotCommand {
             City city = response.getCity();
 
             event.respondWith(String.format("[%s] %s, %s (%s)",
-                    args.get(0), city.getName(), subdivision.getIsoCode(), country.getName()));
+                    Colors.BOLD + args.get(0) + Colors.BOLD,
+                    city.getName(),
+                    subdivision.getIsoCode(),
+                    country.getName()));
 
         } catch (AddressNotFoundException e) {
             String errMsg = "Address not found";

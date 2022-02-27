@@ -22,7 +22,7 @@ import net.hatemachine.mortybot.commands.ConfigCommand;
 import net.hatemachine.mortybot.commands.DictionaryCommand;
 import net.hatemachine.mortybot.commands.HelpCommand;
 import net.hatemachine.mortybot.commands.ImdbCommand;
-import net.hatemachine.mortybot.commands.IpLookupCommand;
+import net.hatemachine.mortybot.commands.GeoIpCommand;
 import net.hatemachine.mortybot.commands.JoinCommand;
 import net.hatemachine.mortybot.commands.MessageCommand;
 import net.hatemachine.mortybot.commands.OpCommand;
@@ -57,6 +57,11 @@ public enum Command {
             "Usage: DICT <word>"
     }),
 
+    GEOIP(GeoIpCommand.class, new String[] {
+            "Shows the geographic location of an IP address or hostname",
+            "Usage: GEOIP <IP|hostname>"
+    }),
+
     HELP(HelpCommand.class, new String[] {
             "Shows help and usage information for bot commands",
             "Usage: HELP [topic]"
@@ -65,11 +70,6 @@ public enum Command {
     IMDB(ImdbCommand.class, new String[] {
             "Searches IMDB for movie titles or persons",
             "Usage: IMDB [-l] <query>"
-    }),
-
-    IPLOOKUP(IpLookupCommand.class, new String[] {
-            "Shows the location of an IP address or hostname",
-            "Usage: IPLOOKUP <IP>"
     }),
 
     JOIN(JoinCommand.class, new String[] {
