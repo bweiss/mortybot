@@ -22,6 +22,7 @@ import net.hatemachine.mortybot.commands.ConfigCommand;
 import net.hatemachine.mortybot.commands.DictionaryCommand;
 import net.hatemachine.mortybot.commands.GoogleCommand;
 import net.hatemachine.mortybot.commands.HelpCommand;
+import net.hatemachine.mortybot.commands.HostCommand;
 import net.hatemachine.mortybot.commands.ImdbCommand;
 import net.hatemachine.mortybot.commands.GeoIpCommand;
 import net.hatemachine.mortybot.commands.JoinCommand;
@@ -71,6 +72,11 @@ public enum Command {
     HELP(HelpCommand.class, new String[] {
             "Shows help and usage information for bot commands",
             "Usage: HELP [topic]"
+    }),
+
+    HOST(HostCommand.class, new String[] {
+            "Looks up basic information on a particular hostname or IP address",
+            "Usage: HOST <address>"
     }),
 
     IMDB(ImdbCommand.class, new String[] {

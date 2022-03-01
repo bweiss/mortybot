@@ -19,6 +19,7 @@ This is a simple IRC bot I wrote for fun and to learn Java. It is designed for [
 * BottleBlueBook search
 * Urban Dictionary lookups
 * Wordle game
+* Shodan host lookups
 * Support for 005 numeric
 
 ## Building and Installing
@@ -65,9 +66,9 @@ To get a list of commands and basic usage information, issue the HELP command in
 
 For example:
 
-> &lt;brian&gt; .help<br>
-> &lt;morty&gt; Commands: BOTTLE, CONFIG, DICT, HELP, IMDB, IPLOOKUP, JOIN, MSG, OP, PART, QUIT, RT, STOCK, TEST, URB, USER, WOTD, WTR, YEAR<br>
-> &lt;brian&gt; .help wtr<br>
+> &lt;rick&gt; .help<br>
+> &lt;morty&gt; Commands: BOTTLE, CONFIG, DICT, GEOIP, GOO, HELP, HOST, IMDB, JOIN, MSG, OP, PART, QUIT, RT, STOCK, URB, USER, WORDLE, WOTD, WTR, YEAR<br>
+> &lt;rick&gt; .help wtr<br>
 > &lt;morty&gt; Shows the weather for an area<br>
 > &lt;morty&gt; Usage: WTR &lt;query&gt;<br>
 
