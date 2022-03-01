@@ -23,6 +23,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.pircbotx.Colors;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.io.IOException;
@@ -31,8 +32,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Performs a Google search and displays the title and link for the top result.
+ */
 public class GoogleCommand implements BotCommand {
 
+    private static final String RESPONSE_PREFIX = "[" + Colors.BOLD + "google" + Colors.BOLD + "] ";
     private static final String SEARCH_URL = "https://www.google.com/search?q=";
 
     private final GenericMessageEvent event;
@@ -86,7 +91,7 @@ public class GoogleCommand implements BotCommand {
         if (results.isEmpty()) {
             event.respondWith("No results");
         } else {
-            event.respondWith(results.get(0).toString());
+            event.respondWith(RESPONSE_PREFIX + results.get(0).toString());
         }
     }
 
