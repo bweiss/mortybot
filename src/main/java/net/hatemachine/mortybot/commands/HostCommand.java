@@ -57,17 +57,18 @@ public class HostCommand implements BotCommand {
     private final CommandListener.CommandSource source;
     private final List<String> args;
 
-    record Host(String ip, List<String> hostnames, String asn, String city, String regionCode, String countryCode, String isp, String os, List<Integer> ports) {
+    record Host(String ip, List<String> hostnames, String asn, String city, String regionCode, String countryCode,
+                String isp, String os, List<Integer> ports) {
         @Override
         public String toString() {
-            return String.format("%s :: hostnames[%s], asn[%s], location[%s, %s], os[%s], ports%s",
+            return String.format("%s :: %s :: %s, %s :: %s :: %s :: ports[%s]",
                     Colors.BOLD + ip + Colors.BOLD,
                     hostnames.stream().sorted().collect(Collectors.joining(", ")),
-                    asn,
                     city,
                     regionCode,
+                    asn,
                     os,
-                    ports.stream().sorted().toList());
+                    ports.stream().sorted().map(Object::toString).collect(Collectors.joining(", ")));
         }
     }
 
@@ -86,6 +87,7 @@ public class HostCommand implements BotCommand {
         try {
             InetAddress addr = InetAddress.getByName(args.get(0));
             Optional<String> json = doShodanHostLookup(addr.getHostAddress());
+
             if (json.isPresent()) {
                 Host host = parseJson(json.get());
                 event.respondWith(host.toString());
@@ -136,7 +138,7 @@ public class HostCommand implements BotCommand {
         } catch (URISyntaxException e) {
             log.error("Invalid URI", e);
         } catch (IOException e) {
-            log.error("Error fetching body", e);
+            log.error("Error making HTTP request", e);
         } catch (InterruptedException e) {
             log.warn("Thread interrupted", e);
             Thread.currentThread().interrupt();
