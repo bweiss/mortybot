@@ -47,7 +47,7 @@ public class GoogleCommand implements BotCommand {
     record SearchResult(String url, String text) {
         @Override
         public String toString() {
-            return String.format("%s :: %s", text, url);
+            return String.format("%s: %s", text, url);
         }
     }
 
