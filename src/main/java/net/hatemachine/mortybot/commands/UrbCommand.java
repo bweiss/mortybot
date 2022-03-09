@@ -80,7 +80,7 @@ public class UrbCommand implements BotCommand {
             event.respondWith(response);
 
         } else {
-            event.respondWith("Definition not found");
+            event.respondWith(RESPONSE_PREFIX + "Definition not found");
         }
     }
 
