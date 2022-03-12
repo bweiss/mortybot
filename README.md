@@ -9,7 +9,7 @@ This is a simple IRC bot I wrote for fun and to learn Java. It is designed for [
 * Bot user management and persistence
 * Command handler
 * Auto-op
-* Link shortening/title display
+* Link shortening/title display/tweet lookups
 * Google search
 * Weather lookups
 * Stock symbol lookups
@@ -20,14 +20,13 @@ This is a simple IRC bot I wrote for fun and to learn Java. It is designed for [
 * Urban Dictionary lookups
 * Wordle game
 * Shodan host lookups
-* Support for 005 numeric
 
 ## Building and Installing
 
 Requirements:
 
 * JDK 17+
-* Maven (for building and packaging)
+* Maven
 
 To build and package the bot, use maven:
 
@@ -44,9 +43,21 @@ To install, simply unpack the archive of your choice into the desired directory.
 
 ## Configuring
 
-At minimum, you will need to edit the appropriate run script for your platform and set the value of the MORTYBOT_HOME environment variable.
+Most configuration of the bot is done via the conf/bot.properties file. You should edit this file to your liking prior to starting the bot. These can be modified while the bot is running via the CONFIG command.
 
-I also recommend having a look through conf/bot.properties and to setup an admin user for yourself in conf/users.conf.
+I also recommend setting up an admin user for yourself in conf/user.conf.
+
+### Features Requiring API Keys
+
+There are a number of features that require API keys to function. They can be set via properties file or environment variable.
+
+| Feature                                    | Property             | Environment Variable |
+|--------------------------------------------|----------------------|----------------------|
+| Link shortening with bit.ly                | bitly.api.key        | BITLY_API_KEY        |
+| MaxMind GeoLite IP lookups (GEOIP command) | maxmind.api.key      | MAXMIND_API_KEY      |
+| Shodan host lookups (HOST command)         | shodan.api.key       | SHODAN_API_KEY       |
+| Tweet lookups (link shortener)             | twitter.bearer.token | TWITTER_BEARER_TOKEN |
+
 
 ## Running the Bot
 
