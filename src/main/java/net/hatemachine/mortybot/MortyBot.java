@@ -70,7 +70,6 @@ public class MortyBot extends PircBotX {
                 .setRealName(state.getStringProperty("bot.realname", BotDefaults.BOT_REALNAME))
                 .addServer(state.getStringProperty("irc.server", BotDefaults.IRC_SERVER),
                         state.getIntProperty("irc.port", BotDefaults.IRC_PORT))
-                .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
                 .setAutoReconnect(state.getBooleanProperty("auto.reconnect", BotDefaults.AUTO_RECONNECT))
                 .setAutoReconnectDelay(new StaticDelay(state.getIntProperty("auto.reconnect.delay", BotDefaults.AUTO_RECONNECT_DELAY)))
                 .setAutoReconnectAttempts(state.getIntProperty("auto.reconnect.attempts", BotDefaults.AUTO_RECONNECT_ATTEMPTS))
@@ -81,6 +80,10 @@ public class MortyBot extends PircBotX {
                 .addListener(new RejoinListener())
                 .addListener(new ServerSupportListener())
                 .addListener(new WordleListener());
+
+        if (state.getBooleanProperty("irc.ssl", BotDefaults.IRC_SSL)) {
+            config.setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates());
+        }
 
         // Add our auto join channels if specified in the properties
         String channels = state.getStringProperty("auto.join.channels");

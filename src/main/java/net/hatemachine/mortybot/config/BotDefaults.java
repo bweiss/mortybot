@@ -31,6 +31,7 @@ public class BotDefaults {
     public static final String  BOT_COMMAND_PREFIX = ".";
     public static final String  IRC_SERVER = "irc.hatemachine.net";
     public static final int     IRC_PORT = 6697;
+    public static final boolean IRC_SSL = true;
     public static final boolean AUTO_RECONNECT = true;
     public static final int     AUTO_RECONNECT_DELAY = 30000;
     public static final int     AUTO_RECONNECT_ATTEMPTS = 3;
