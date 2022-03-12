@@ -44,7 +44,7 @@ import java.util.regex.Pattern;
 public class LinkListener extends ListenerAdapter {
 
     private static final Pattern URL_PATTERN = Pattern.compile("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&\\/\\/=]*)");
-    private static final Pattern TWEET_PATTERN = Pattern.compile("https?:\\/\\/(www\\.)?twitter.com\\/\\w+\\/status\\/(\\d+)");
+    private static final Pattern TWEET_PATTERN = Pattern.compile("https?:\\/\\/(www\\.|mobile\\.)?twitter.com\\/\\w+\\/status\\/(\\d+)");
 
     private static final Logger log = LoggerFactory.getLogger(LinkListener.class);
 
