@@ -87,7 +87,7 @@ public class WordleListener extends ListenerAdapter {
                             case WON -> {
                                 Duration gameDuration = Duration.between(game.getStartTime(), game.getEndTime());
                                 event.respond(String.format("You win! The word was %s! [Attempts: %d/%d, Duration: %s]",
-                                        Colors.BOLD + game.getWord() + Colors.NORMAL,
+                                        Colors.BOLD + game.getWord() + Colors.BOLD,
                                         game.getTried().size(),
                                         game.getMaxAttempts(),
                                         DateTimeUtils.printDuration(gameDuration)));
@@ -95,7 +95,8 @@ public class WordleListener extends ListenerAdapter {
 
                             case LOST -> {
                                 Duration gameDuration = Duration.between(game.getStartTime(), game.getEndTime());
-                                event.respond(String.format("Max attempts reached. Game over. [Attempts: %d/%d, Duration: %s]",
+                                event.respond(String.format("Game over. The word was %s! [Attempts: %d/%d, Duration: %s]",
+                                        Colors.BOLD + game.getWord() + Colors.BOLD,
                                         game.getTried().size(),
                                         game.getMaxAttempts(),
                                         DateTimeUtils.printDuration(gameDuration)));
