@@ -63,7 +63,7 @@ public class RtCommand implements BotCommand {
         }
 
         boolean listResults = false;
-        int maxResults = BotState.getBotState().getIntProperty("command.rt.max.results", BotDefaults.COMMAND_RT_MAX_RESULTS);
+        int maxResults = BotState.getBotState().getIntProperty("rt.max.results", BotDefaults.RT_MAX_RESULTS);
         String query;
 
         if (args.get(0).equals("-l")) {

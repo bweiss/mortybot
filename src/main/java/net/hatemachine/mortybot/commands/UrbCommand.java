@@ -72,7 +72,7 @@ public class UrbCommand implements BotCommand {
 
             // truncate our response if needed
             int maxLen = BotState.getBotState()
-                    .getIntProperty("command.urb.max.response.length", BotDefaults.COMMAND_URB_MAX_RESPONSE_LENGTH);
+                    .getIntProperty("urb.max.response.length", BotDefaults.URB_MAX_RESPONSE_LENGTH);
             if (response.length() > maxLen) {
                 response = response.substring(0, maxLen - 2) + "...";
             }

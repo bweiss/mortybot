@@ -55,17 +55,17 @@ public class BotDefaults {
     public static final int     WORDLE_MAX_DURATION = 30;
 
     // BottleCommand
-    public static final int     COMMAND_BOTTLE_MAX_RESULTS = 5;
+    public static final int     BOTTLE_MAX_RESULTS = 5;
 
     // ImdbCommand
-    public static final int     COMMAND_IMDB_MAX_RESULTS = 4;
+    public static final int     IMDB_MAX_RESULTS = 4;
 
     // RtCommand
-    public static final int     COMMAND_RT_MAX_RESULTS = 4;
+    public static final int     RT_MAX_RESULTS = 4;
 
     // StockCommand
-    public static final int     COMMAND_STOCK_MAX_SYMBOLS = 4;
+    public static final int     STOCK_MAX_SYMBOLS = 4;
 
     // UrbCommand
-    public static final int     COMMAND_URB_MAX_RESPONSE_LENGTH = 430;
+    public static final int     URB_MAX_RESPONSE_LENGTH = 430;
 }

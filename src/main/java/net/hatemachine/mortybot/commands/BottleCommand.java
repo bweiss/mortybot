@@ -47,7 +47,7 @@ public class BottleCommand implements BotCommand {
             throw new IllegalArgumentException("Not enough arguments");
 
         int maxResults = BotState.getBotState()
-                .getIntProperty("command.bottle.max.results", BotDefaults.COMMAND_BOTTLE_MAX_RESULTS);
+                .getIntProperty("bottle.max.results", BotDefaults.BOTTLE_MAX_RESULTS);
         boolean listResults = false;
         String query;
 

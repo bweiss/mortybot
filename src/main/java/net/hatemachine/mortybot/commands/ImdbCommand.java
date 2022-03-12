@@ -56,7 +56,7 @@ public class ImdbCommand implements BotCommand {
         }
 
         boolean listResults = false;
-        int maxResults = BotState.getBotState().getIntProperty("command.imdb.max.results", BotDefaults.COMMAND_IMDB_MAX_RESULTS);
+        int maxResults = BotState.getBotState().getIntProperty("imdb.max.results", BotDefaults.IMDB_MAX_RESULTS);
         String query;
 
         if (args.get(0).equals("-l")) {

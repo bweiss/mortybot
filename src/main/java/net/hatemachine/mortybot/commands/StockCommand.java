@@ -93,7 +93,7 @@ public class StockCommand implements BotCommand {
     @Override
     public void execute() {
         int maxSymbols = BotState.getBotState()
-                .getIntProperty("command.stock.max.symbols", BotDefaults.COMMAND_STOCK_MAX_SYMBOLS);
+                .getIntProperty("stock.max.symbols", BotDefaults.STOCK_MAX_SYMBOLS);
         for (int cnt = 0; cnt < maxSymbols; cnt++) {
             String symbol = args.get(cnt);
             Optional<String> json = fetchQuote(symbol);

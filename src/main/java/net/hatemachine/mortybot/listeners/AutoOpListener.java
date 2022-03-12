@@ -49,7 +49,7 @@ public class AutoOpListener extends ListenerAdapter {
     @Override
     public void onJoin(final JoinEvent event) {
         log.debug("onJoin event: {}", event);
-        boolean enabled = BotState.getBotState().getBooleanProperty("auto.op", BotDefaults.AUTO_OP);
+        boolean enabled = BotState.getBotState().getBooleanProperty("aop.enabled", BotDefaults.AUTO_OP);
         if (enabled) {
             handleJoin(event);
         }
@@ -91,7 +91,7 @@ public class AutoOpListener extends ListenerAdapter {
                 new Thread(() -> {
                     try {
                         int delay = BotState.getBotState()
-                                .getIntProperty("auto.op.delay", BotDefaults.AUTO_OP_DELAY);
+                                .getIntProperty("aop.delay", BotDefaults.AUTO_OP_DELAY);
                         Thread.sleep(delay);
                         processQueue(event, channel);
                     } catch (InterruptedException e) {
@@ -127,7 +127,7 @@ public class AutoOpListener extends ListenerAdapter {
         MortyBot bot = event.getBot();
         Map<String, String> serverSupport = bot.getServerSupportMap();
         BotState state = BotState.getBotState();
-        int maxModes = state.getIntProperty("auto.op.max.modes", BotDefaults.AUTO_OP_MAX_MODES);
+        int maxModes = state.getIntProperty("aop.max.modes", BotDefaults.AUTO_OP_MAX_MODES);
 
         try {
             maxModes = Integer.parseInt(serverSupport.get("MODES"));

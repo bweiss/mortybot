@@ -61,8 +61,8 @@ public class GeoIpCommand implements BotCommand {
             throw new IllegalArgumentException("Not enough arguments");
 
         var bs = BotState.getBotState();
-        var accountId = bs.getIntProperty("command.geoip.maxmind.account.id", Integer.parseInt(System.getenv("MAXMIND_ACCOUNT_ID")));
-        var licenseKey = bs.getStringProperty("command.geoip.maxmind.license.key", System.getenv("MAXMIND_LICENSE_KEY"));
+        var accountId = bs.getIntProperty("maxmind.account.id", Integer.parseInt(System.getenv("MAXMIND_ACCOUNT_ID")));
+        var licenseKey = bs.getStringProperty("maxmind.license.key", System.getenv("MAXMIND_LICENSE_KEY"));
         var address = args.get(0);
 
         WebServiceClient client = new WebServiceClient.Builder(accountId, licenseKey)
