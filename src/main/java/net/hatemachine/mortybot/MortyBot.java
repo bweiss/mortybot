@@ -24,7 +24,6 @@ import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.listeners.CoreHooksListener;
 import net.hatemachine.mortybot.listeners.LinkListener;
 import net.hatemachine.mortybot.listeners.RejoinListener;
-import net.hatemachine.mortybot.listeners.ServerSupportListener;
 import net.hatemachine.mortybot.listeners.WordleListener;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
@@ -36,8 +35,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 public class MortyBot extends PircBotX {
@@ -47,12 +44,10 @@ public class MortyBot extends PircBotX {
     private static final Logger log = LoggerFactory.getLogger(MortyBot.class);
 
     private final BotUserDao botUserDao;
-    private final Map<String, String> serverSupportMap;
 
     MortyBot(Configuration config) {
         super(config);
         this.botUserDao = new BotUserDaoImpl();
-        this.serverSupportMap = new HashMap<>();
     }
 
     /**
@@ -78,7 +73,6 @@ public class MortyBot extends PircBotX {
                 .addListener(new CommandListener(state.getStringProperty("bot.command.prefix", BotDefaults.BOT_COMMAND_PREFIX)))
                 .addListener(new LinkListener())
                 .addListener(new RejoinListener())
-                .addListener(new ServerSupportListener())
                 .addListener(new WordleListener());
 
         if (state.getBooleanProperty("irc.ssl", BotDefaults.IRC_SSL)) {
@@ -107,32 +101,6 @@ public class MortyBot extends PircBotX {
 
     public BotUserDao getBotUserDao() {
         return botUserDao;
-    }
-
-    /**
-     * Get a map of the server support (005 numeric).
-     *
-     * @return map of the server support parameters and their values
-     */
-    public Map<String, String> getServerSupportMap() {
-        return serverSupportMap;
-    }
-
-    /**
-     * Set the value for a server support parameter (005 numeric).
-     *
-     * @param key the key you want to set
-     * @param value the value to assign to that key
-     */
-    public void setServerSupportKey(String key, String value) {
-        serverSupportMap.put(key, value);
-    }
-
-    /**
-     * Clear the server support map. Used for events like server disconnects.
-     */
-    public void clearServerSupport() {
-        serverSupportMap.clear();
     }
 
     @Override

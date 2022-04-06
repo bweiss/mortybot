@@ -125,14 +125,11 @@ public class AutoOpListener extends ListenerAdapter {
      */
     private synchronized void processQueue(final JoinEvent event, final Channel channel) {
         MortyBot bot = event.getBot();
-        Map<String, String> serverSupport = bot.getServerSupportMap();
         BotState state = BotState.getBotState();
-        int maxModes = state.getIntProperty("aop.max.modes", BotDefaults.AUTO_OP_MAX_MODES);
-
-        try {
-            maxModes = Integer.parseInt(serverSupport.get("MODES"));
-        } catch (NumberFormatException e) {
-            log.warn("Couldn't determine server's maximum modes per command. Falling back to default...");
+        int maxModes = state.getIntProperty("aop.max.modes", -1);
+        if (maxModes == -1) {
+            int sInfoMaxModes = bot.getServerInfo().getMaxModes();
+            maxModes = sInfoMaxModes == -1 ? BotDefaults.AUTO_OP_MAX_MODES : sInfoMaxModes;
         }
 
         if (pending.containsKey(channel.getName())) {
