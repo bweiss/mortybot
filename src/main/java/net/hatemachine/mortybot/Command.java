@@ -132,7 +132,7 @@ public enum Command {
     USER(UserCommand.class, new String[] {
             "Manages bot users",
             "Usage: USER <subcommand> [target] [args]",
-            "Subcommands: LIST, SHOW ADD, REMOVE, ADDHOSTMASK, REMOVEHOSTMASK, ADDFLAG, REMOVEFLAG",
+            "Subcommands: LIST, SHOW, ADD, REMOVE, ADDHOSTMASK, REMOVEHOSTMASK, ADDFLAG, REMOVEFLAG",
             "Available user flags: " + Arrays.toString(BotUser.Flag.values())
     }),
 
