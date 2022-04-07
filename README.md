@@ -45,7 +45,19 @@ To install, simply unpack the archive of your choice into the desired directory.
 
 Most configuration of the bot is done via the conf/bot.properties file. You should edit this file to your liking prior to starting the bot. These can be modified while the bot is running via the CONFIG command.
 
-I also recommend setting up an admin user for yourself in conf/user.conf.
+I also recommend setting up an admin user for yourself. See below.
+
+### Bot Users
+
+Users can be added to the bot by editing conf/user.conf prior to starting the bot, or by issuing the USER command as an admin user.
+
+At minimum, a name and a hostmask (wildcards supported) must be provided. Optionally, you can also specify any combination of the bot user flags shown below.
+
+| Flag   | Description                                                                        |
+|--------|------------------------------------------------------------------------------------|
+| ADMIN  | Marks the user as an admin of the bot, allowing access to restricted commands      |
+| AOP    | Automatically grant operator status (+o) when this user joins one of our channels  |
+| IGNORE | Ignore commands and links from this user (typically used to ignore other bots)     |
 
 ### Features Requiring API Keys
 
@@ -57,7 +69,6 @@ There are a number of features that require API keys to function. They can be se
 | MaxMind GeoLite IP lookups (GEOIP command) | maxmind.api.key      | MAXMIND_API_KEY      |
 | Shodan host lookups (HOST command)         | shodan.api.key       | SHODAN_API_KEY       |
 | Tweet lookups (link shortener)             | twitter.bearer.token | TWITTER_BEARER_TOKEN |
-
 
 ## Running the Bot
 

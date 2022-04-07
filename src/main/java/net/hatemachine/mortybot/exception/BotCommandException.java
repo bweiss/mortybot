@@ -22,6 +22,7 @@ public class BotCommandException extends RuntimeException {
 
     public enum Reason {
         COMMAND_NOT_ENABLED,
+        USER_IGNORED,
         USER_UNAUTHORIZED
     }
 

@@ -28,9 +28,12 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
-import static net.hatemachine.mortybot.exception.BotCommandException.Reason.COMMAND_NOT_ENABLED;
-import static net.hatemachine.mortybot.exception.BotCommandException.Reason.USER_UNAUTHORIZED;
+import static net.hatemachine.mortybot.exception.BotCommandException.Reason.*;
 
+/**
+ * This class is used by the CommandListener to perform some checks on received commands prior to execution.
+ * It is responsible for checking whether the command is enabled and whether the user is authorized to use that command.
+ */
 public class BotCommandProxy implements InvocationHandler {
 
     private final BotCommand command;
@@ -53,14 +56,19 @@ public class BotCommandProxy implements InvocationHandler {
         GenericMessageEvent event = command.getEvent();
         MortyBot bot = event.getBot();
         User user = event.getUser();
+        List<BotUser> ignored = bot.getBotUserDao().getAll(user.getHostmask(), BotUser.Flag.IGNORE);
 
-        if (!enabled.contains(command.getName())) {
+        if (!ignored.isEmpty()) {
+            BotUser ignoredBotUser = ignored.get(0);
+            throw new BotCommandException(USER_IGNORED, user.getHostmask() + " [" + ignoredBotUser.getName() + "]");
+        } else if (!enabled.contains(command.getName())) {
             throw new BotCommandException(COMMAND_NOT_ENABLED, command.getName());
         } else if (adminOnly.contains(command.getName()) && !bot.getBotUserDao().isAdmin(user)) {
             throw new BotCommandException(USER_UNAUTHORIZED, command.getName() + " " + user);
         } else {
             result = m.invoke(command, args);
         }
+
         return result;
     }
 }

@@ -32,8 +32,9 @@ public class BotUser {
     private Set<Flag> flags = new HashSet<>();
 
     public enum Flag {
-        ADMIN,
-        AOP
+        ADMIN, // This user is an admin and has access to restricted commands
+        AOP,   // Automatically grant operator status (+o) to this user if they join one of our channels
+        IGNORE // Ignore commands and links from this user (typically used for other bots)
     }
 
     public BotUser(final String name, final String hostmask) {

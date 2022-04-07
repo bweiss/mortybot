@@ -20,12 +20,15 @@ package net.hatemachine.mortybot.listeners;
 import io.github.redouane59.twitter.TwitterClient;
 import io.github.redouane59.twitter.dto.tweet.Tweet;
 import io.github.redouane59.twitter.signature.TwitterCredentials;
+import net.hatemachine.mortybot.BotUser;
+import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.bitly.Bitly;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotState;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.pircbotx.Colors;
+import org.pircbotx.User;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
@@ -74,6 +77,15 @@ public class LinkListener extends ListenerAdapter {
         boolean shortenLinksFlag = bs.getBooleanProperty("links.shorten", BotDefaults.LINKS_SHORTEN);
         boolean showTitlesFlag = bs.getBooleanProperty("links.show.titles", BotDefaults.LINKS_SHOW_TITLES);
         boolean showTweetsFlag = bs.getBooleanProperty("links.show.tweets", BotDefaults.LINKS_SHOW_TWEETS);
+        MortyBot bot = event.getBot();
+        User user = event.getUser();
+        List<BotUser> ignored = bot.getBotUserDao().getAll(user.getHostmask(), BotUser.Flag.IGNORE);
+
+        if (!ignored.isEmpty()) {
+            BotUser ignoredBotUser = ignored.get(0);
+            log.info("User {} (BotUser: {}) has IGNORE flag, ignoring message...", user.getNick(), ignoredBotUser.getName());
+            return;
+        }
 
         List<String> links = parseMessage(event.getMessage());
 
