@@ -108,12 +108,12 @@ public class MortyBot extends PircBotX {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
-        MortyBot mortyBot = (MortyBot) o;
-        return botUserDao.equals(mortyBot.botUserDao);
+        MortyBot bot = (MortyBot) o;
+        return botId == bot.getBotId();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), botUserDao);
+        return Objects.hash(super.hashCode(), botId);
     }
 }
