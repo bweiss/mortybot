@@ -18,7 +18,7 @@
 package net.hatemachine.mortybot.wordle;
 
 import net.hatemachine.mortybot.config.BotDefaults;
-import net.hatemachine.mortybot.config.BotState;
+import net.hatemachine.mortybot.config.BotProperties;
 import org.pircbotx.User;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
@@ -45,7 +45,7 @@ public class Game {
     private LocalDateTime endTime;
 
     public Game(User player) {
-        this(player, BotState.getBotState().getIntProperty("wordle.max.attempts", BotDefaults.WORDLE_MAX_ATTEMPTS));
+        this(player, BotProperties.getBotProperties().getIntProperty("wordle.max.attempts", BotDefaults.WORDLE_MAX_ATTEMPTS));
     }
 
     public Game(User player, int maxAttempts) {
@@ -110,7 +110,7 @@ public class Game {
     }
 
     public void showLetters(final GenericMessageEvent event) {
-        boolean quietMode = BotState.getBotState().getBooleanProperty("wordle.quiet.mode", BotDefaults.WORDLE_QUIET_MODE);
+        boolean quietMode = BotProperties.getBotProperties().getBooleanProperty("wordle.quiet.mode", BotDefaults.WORDLE_QUIET_MODE);
 
         event.respondWith("-------------------");
 

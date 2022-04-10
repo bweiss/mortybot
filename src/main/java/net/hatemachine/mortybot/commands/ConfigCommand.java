@@ -19,7 +19,7 @@ package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.Command;
-import net.hatemachine.mortybot.config.BotState;
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
@@ -40,7 +40,7 @@ public class ConfigCommand implements BotCommand {
 
     @Override
     public void execute() {
-        BotState state = BotState.getBotState();
+        BotProperties state = BotProperties.getBotProperties();
         Properties props = state.getProperties();
 
         if (args.isEmpty()) {

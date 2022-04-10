@@ -32,20 +32,26 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 
-public class BotState {
+/**
+ * This manages all of our bot properties and provides a mechanism for other classes to get and set properties
+ * for the bot.
+ *
+ * It is also responsible for reading our properties file at startup as well as saving changes back to disk.
+ */
+public class BotProperties {
 
-    private static final Logger log = LoggerFactory.getLogger(BotState.class);
+    private static final Logger log = LoggerFactory.getLogger(BotProperties.class);
 
-    private static BotState botState = null;
+    private static BotProperties botProperties = null;
 
-    private final Properties state;
+    private final Properties properties;
 
-    private BotState() {
+    private BotProperties() {
         Path path = Path.of(this.getBotHome() + "/conf/" + BotDefaults.PROPERTIES_FILE);
-        state = new Properties();
+        properties = new Properties();
 
         try (BufferedReader reader = Files.newBufferedReader(path)) {
-            state.load(reader);
+            properties.load(reader);
         } catch (FileNotFoundException e) {
             log.warn("File not found: {}", path);
         } catch (IOException e) {
@@ -53,12 +59,12 @@ public class BotState {
         }
     }
 
-    public static BotState getBotState() {
-        if (botState == null) {
-            botState = new BotState();
+    public static BotProperties getBotProperties() {
+        if (botProperties == null) {
+            botProperties = new BotProperties();
         }
 
-        return botState;
+        return botProperties;
     }
 
     public String getBotHome() {
@@ -68,11 +74,11 @@ public class BotState {
     }
 
     public Properties getProperties() {
-        return state;
+        return properties;
     }
 
     public synchronized String getStringProperty(String name) {
-        return state.getProperty(name);
+        return properties.getProperty(name);
     }
 
     public synchronized String getStringProperty(String name, String defaultValue) {
@@ -81,7 +87,7 @@ public class BotState {
     }
 
     public synchronized void setStringProperty(String name, String newValue) {
-        state.setProperty(name, newValue);
+        properties.setProperty(name, newValue);
     }
 
     public synchronized boolean getBooleanProperty(String name, boolean defaultValue) {
@@ -130,7 +136,7 @@ public class BotState {
 
             // transfer into a TreeMap for sorting purposes
             Map<String, String> sortedMap = new TreeMap<>();
-            state.forEach((k, v) -> sortedMap.put(k.toString(), v.toString()));
+            properties.forEach((k, v) -> sortedMap.put(k.toString(), v.toString()));
 
             // write all properties to our file
             sortedMap.forEach((k, v) -> out.println(k + "=" + v));

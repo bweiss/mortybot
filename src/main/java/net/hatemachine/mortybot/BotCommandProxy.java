@@ -17,7 +17,7 @@
  */
 package net.hatemachine.mortybot;
 
-import net.hatemachine.mortybot.config.BotState;
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.exception.BotCommandException;
 import org.pircbotx.User;
 import org.pircbotx.hooks.types.GenericMessageEvent;
@@ -50,7 +50,7 @@ public class BotCommandProxy implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method m, Object[] args) throws IllegalAccessException, InvocationTargetException {
         Object result;
-        BotState bs = BotState.getBotState();
+        BotProperties bs = BotProperties.getBotProperties();
         List<String> enabled = Arrays.asList(bs.getStringProperty("commands.enabled").split(","));
         List<String> adminOnly = Arrays.asList(bs.getStringProperty("commands.restricted").split(","));
         GenericMessageEvent event = command.getEvent();

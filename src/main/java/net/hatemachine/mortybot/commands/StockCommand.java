@@ -27,7 +27,7 @@ import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotDefaults;
-import net.hatemachine.mortybot.config.BotState;
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.hooks.types.GenericMessageEvent;
@@ -92,7 +92,7 @@ public class StockCommand implements BotCommand {
 
     @Override
     public void execute() {
-        int maxSymbols = BotState.getBotState()
+        int maxSymbols = BotProperties.getBotProperties()
                 .getIntProperty("stock.max.symbols", BotDefaults.STOCK_MAX_SYMBOLS);
         for (int cnt = 0; cnt < maxSymbols; cnt++) {
             String symbol = args.get(cnt);

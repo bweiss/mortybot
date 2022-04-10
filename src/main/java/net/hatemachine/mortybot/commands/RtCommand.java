@@ -19,7 +19,7 @@ package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotDefaults;
-import net.hatemachine.mortybot.config.BotState;
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.rt.Movie;
 import net.hatemachine.mortybot.rt.RTHelper;
@@ -63,7 +63,7 @@ public class RtCommand implements BotCommand {
         }
 
         boolean listResults = false;
-        int maxResults = BotState.getBotState().getIntProperty("rt.max.results", BotDefaults.RT_MAX_RESULTS);
+        int maxResults = BotProperties.getBotProperties().getIntProperty("rt.max.results", BotDefaults.RT_MAX_RESULTS);
         String query;
 
         if (args.get(0).equals("-l")) {

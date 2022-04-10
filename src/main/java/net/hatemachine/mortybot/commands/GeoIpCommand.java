@@ -28,7 +28,7 @@ import com.maxmind.geoip2.record.City;
 import com.maxmind.geoip2.record.Country;
 import com.maxmind.geoip2.record.Subdivision;
 import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.config.BotState;
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.Colors;
 import org.pircbotx.hooks.types.GenericMessageEvent;
@@ -60,7 +60,7 @@ public class GeoIpCommand implements BotCommand {
         if (args.isEmpty())
             throw new IllegalArgumentException("Not enough arguments");
 
-        var bs = BotState.getBotState();
+        var bs = BotProperties.getBotProperties();
         var accountId = bs.getIntProperty("maxmind.account.id", Integer.parseInt(System.getenv("MAXMIND_ACCOUNT_ID")));
         var licenseKey = bs.getStringProperty("maxmind.license.key", System.getenv("MAXMIND_LICENSE_KEY"));
         var address = args.get(0);

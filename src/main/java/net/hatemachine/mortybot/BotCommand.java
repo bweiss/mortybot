@@ -17,7 +17,7 @@
  */
 package net.hatemachine.mortybot;
 
-import net.hatemachine.mortybot.config.BotState;
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
@@ -35,7 +35,7 @@ public interface BotCommand {
     }
 
     default boolean isEnabled() {
-        String prop = BotState.getBotState().getStringProperty("commands.enabled");
+        String prop = BotProperties.getBotProperties().getStringProperty("commands.enabled");
         List<String> enabled = Arrays.asList(prop.split(","));
         return (enabled.contains(this.getClass().getSimpleName()));
     }

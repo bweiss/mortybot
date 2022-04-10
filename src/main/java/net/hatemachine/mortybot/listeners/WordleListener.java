@@ -19,7 +19,7 @@ package net.hatemachine.mortybot.listeners;
 
 import net.hatemachine.mortybot.ExtendedListenerAdapter;
 import net.hatemachine.mortybot.config.BotDefaults;
-import net.hatemachine.mortybot.config.BotState;
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.events.DccChatMessageEvent;
 import net.hatemachine.mortybot.util.DateTimeUtils;
 import net.hatemachine.mortybot.wordle.Game;
@@ -110,7 +110,7 @@ public class WordleListener extends ExtendedListenerAdapter {
                             }
 
                             case ACTIVE -> {
-                                boolean quietMode = BotState.getBotState().getBooleanProperty("wordle.quiet.mode",
+                                boolean quietMode = BotProperties.getBotProperties().getBooleanProperty("wordle.quiet.mode",
                                         BotDefaults.WORDLE_QUIET_MODE);
                                 if (quietMode) {
                                     game.showLastTried(event);

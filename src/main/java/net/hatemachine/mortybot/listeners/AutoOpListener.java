@@ -20,7 +20,7 @@ package net.hatemachine.mortybot.listeners;
 import net.hatemachine.mortybot.BotUser;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
-import net.hatemachine.mortybot.config.BotState;
+import net.hatemachine.mortybot.config.BotProperties;
 import org.pircbotx.Channel;
 import org.pircbotx.UserHostmask;
 import org.pircbotx.hooks.ListenerAdapter;
@@ -49,7 +49,7 @@ public class AutoOpListener extends ListenerAdapter {
     @Override
     public void onJoin(final JoinEvent event) {
         log.debug("onJoin event: {}", event);
-        boolean enabled = BotState.getBotState().getBooleanProperty("aop.enabled", BotDefaults.AUTO_OP);
+        boolean enabled = BotProperties.getBotProperties().getBooleanProperty("aop.enabled", BotDefaults.AUTO_OP);
         if (enabled) {
             handleJoin(event);
         }
@@ -90,7 +90,7 @@ public class AutoOpListener extends ListenerAdapter {
 
                 new Thread(() -> {
                     try {
-                        int delay = BotState.getBotState()
+                        int delay = BotProperties.getBotProperties()
                                 .getIntProperty("aop.delay", BotDefaults.AUTO_OP_DELAY);
                         Thread.sleep(delay);
                         processQueue(event, channel);
@@ -125,7 +125,7 @@ public class AutoOpListener extends ListenerAdapter {
      */
     private synchronized void processQueue(final JoinEvent event, final Channel channel) {
         MortyBot bot = event.getBot();
-        BotState state = BotState.getBotState();
+        BotProperties state = BotProperties.getBotProperties();
         int maxModes = state.getIntProperty("aop.max.modes", -1);
         if (maxModes == -1) {
             int sInfoMaxModes = bot.getServerInfo().getMaxModes();

@@ -18,7 +18,7 @@
 package net.hatemachine.mortybot.bitly;
 
 import com.google.gson.Gson;
-import net.hatemachine.mortybot.config.BotState;
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.util.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +38,7 @@ public class Bitly {
     private Bitly() {}
 
     public static Optional<String> shorten(String url) throws IOException, InterruptedException {
-        BotState state = BotState.getBotState();
+        BotProperties state = BotProperties.getBotProperties();
         String apiEndpoint = state.getStringProperty("bitly.api.endpoint", System.getenv("BITLY_API_ENDPOINT"));
         String apiKey = state.getStringProperty("bitly.api.key", System.getenv("BITLY_API_KEY"));
         Validate.notNullOrEmpty(url);

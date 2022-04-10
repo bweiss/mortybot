@@ -20,7 +20,7 @@ package net.hatemachine.mortybot.listeners;
 import net.hatemachine.mortybot.BotUser;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
-import net.hatemachine.mortybot.config.BotState;
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.dcc.DccManager;
 import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.User;
@@ -44,8 +44,8 @@ public class DccRequestListener extends ListenerAdapter {
     @Override
     public void onIncomingChatRequest(IncomingChatRequestEvent event) throws InterruptedException {
         MortyBot bot = event.getBot();
-        BotState botState = BotState.getBotState();
-        boolean dccEnabled = botState.getBooleanProperty("dcc.chat.enabled", BotDefaults.DCC_CHAT_ENABLED);
+        BotProperties botProperties = BotProperties.getBotProperties();
+        boolean dccEnabled = botProperties.getBooleanProperty("dcc.chat.enabled", BotDefaults.DCC_CHAT_ENABLED);
         User user = (User) Validate.notNull(event.getUser());
         List<BotUser> matchedBotUsers = bot.getBotUserDao().getAll(user.getHostmask(), BotUser.Flag.DCC);
         Optional<BotUser> botUser = matchedBotUsers.isEmpty() ? Optional.empty() : Optional.of(matchedBotUsers.get(0));

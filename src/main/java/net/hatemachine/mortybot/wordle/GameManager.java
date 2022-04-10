@@ -18,7 +18,7 @@
 package net.hatemachine.mortybot.wordle;
 
 import net.hatemachine.mortybot.config.BotDefaults;
-import net.hatemachine.mortybot.config.BotState;
+import net.hatemachine.mortybot.config.BotProperties;
 import org.pircbotx.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,7 +84,7 @@ public class GameManager {
     public void expireGames() {
         for (Game game : getActiveGames()) {
                 if (game.isActive()) {
-                long maxGameMins = BotState.getBotState()
+                long maxGameMins = BotProperties.getBotProperties()
                         .getIntProperty("wordle.max.duration", BotDefaults.WORDLE_MAX_DURATION);
                 Duration duration = Duration.between(game.getStartTime(), LocalDateTime.now());
                 Duration maxDuration = Duration.ofMinutes(maxGameMins);

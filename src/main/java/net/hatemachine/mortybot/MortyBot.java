@@ -18,7 +18,7 @@
 package net.hatemachine.mortybot;
 
 import net.hatemachine.mortybot.config.BotDefaults;
-import net.hatemachine.mortybot.config.BotState;
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.AutoOpListener;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.listeners.CoreHooksListener;
@@ -62,7 +62,7 @@ public class MortyBot extends PircBotX {
      * @param args command line arguments for the bot
      */
     public static void main(String[] args) {
-        BotState state = BotState.getBotState();
+        BotProperties state = BotProperties.getBotProperties();
 
         // Build our configuration
         Configuration.Builder config = new Configuration.Builder()

@@ -18,7 +18,7 @@
 package net.hatemachine.mortybot;
 
 import com.darwinsys.io.FileSaver;
-import net.hatemachine.mortybot.config.BotState;
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.exception.BotUserException;
 import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.User;
@@ -198,7 +198,7 @@ public class BotUserDaoImpl implements BotUserDao {
      */
     private void init() {
         synchronized (this.accessLock) {
-            var path = Path.of(BotState.getBotState().getBotHome() + "/conf/" + USER_FILE);
+            var path = Path.of(BotProperties.getBotProperties().getBotHome() + "/conf/" + USER_FILE);
 
             try {
                 List<String> lines = Files.readAllLines(path);
@@ -219,7 +219,7 @@ public class BotUserDaoImpl implements BotUserDao {
      */
     private void save() {
         synchronized (this.accessLock) {
-            var path = Path.of(BotState.getBotState().getBotHome() + "/conf/" + USER_FILE);
+            var path = Path.of(BotProperties.getBotProperties().getBotHome() + "/conf/" + USER_FILE);
 
             try {
                 FileSaver saver = new FileSaver(path);

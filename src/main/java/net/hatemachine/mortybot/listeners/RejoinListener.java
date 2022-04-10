@@ -18,7 +18,7 @@
 package net.hatemachine.mortybot.listeners;
 
 import net.hatemachine.mortybot.MortyBot;
-import net.hatemachine.mortybot.config.BotState;
+import net.hatemachine.mortybot.config.BotProperties;
 import org.pircbotx.User;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.KickEvent;
@@ -61,7 +61,7 @@ public class RejoinListener extends ListenerAdapter {
     @Override
     public void onServerPing(final ServerPingEvent event) {
         MortyBot bot = event.getBot();
-        String[] channels = BotState.getBotState().getStringProperty("auto.join.channels").split(" ");
+        String[] channels = BotProperties.getBotProperties().getStringProperty("auto.join.channels").split(" ");
         for (String chan : channels) {
             if (!bot.getUserChannelDao().containsChannel(chan)) {
                 log.info("Auto-joining channel {}", chan);

@@ -24,7 +24,7 @@ import net.hatemachine.mortybot.BotUser;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.bitly.Bitly;
 import net.hatemachine.mortybot.config.BotDefaults;
-import net.hatemachine.mortybot.config.BotState;
+import net.hatemachine.mortybot.config.BotProperties;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.pircbotx.Colors;
@@ -70,7 +70,7 @@ public class LinkListener extends ListenerAdapter {
      * @param event the event being handled
      */
     private void handleMessage(final GenericMessageEvent event) {
-        var bs = BotState.getBotState();
+        var bs = BotProperties.getBotProperties();
         int maxLinks = bs.getIntProperty("links.max", BotDefaults.LINKS_MAX);
         int minLenToShorten = bs.getIntProperty("links.min.length", BotDefaults.LINKS_MIN_LENGTH);
         int maxTitleLength = bs.getIntProperty("links.max.title.length", BotDefaults.LINKS_MAX_TITLE_LENGTH);

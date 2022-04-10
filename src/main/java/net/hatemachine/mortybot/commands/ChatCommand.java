@@ -21,7 +21,7 @@ import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.BotUser;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
-import net.hatemachine.mortybot.config.BotState;
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.dcc.DccManager;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.User;
@@ -48,8 +48,8 @@ public class ChatCommand implements BotCommand {
     @Override
     public void execute() {
         MortyBot bot = event.getBot();
-        BotState botState = BotState.getBotState();
-        boolean dccEnabled = botState.getBooleanProperty("dcc.chat.enabled", BotDefaults.DCC_CHAT_ENABLED);
+        BotProperties botProperties = BotProperties.getBotProperties();
+        boolean dccEnabled = botProperties.getBooleanProperty("dcc.chat.enabled", BotDefaults.DCC_CHAT_ENABLED);
 
         if (dccEnabled) {
             User user;

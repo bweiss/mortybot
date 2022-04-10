@@ -21,7 +21,7 @@ import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.config.BotState;
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.Colors;
 import org.pircbotx.hooks.types.GenericMessageEvent;
@@ -104,7 +104,7 @@ public class HostCommand implements BotCommand {
      * @return an optional that may contain json with information about the host
      */
     private static Optional<String> doShodanHostLookup(String ip) {
-        String apiKey = BotState.getBotState().getStringProperty("shodan.api.key", System.getenv("SHODAN_API_KEY"));
+        String apiKey = BotProperties.getBotProperties().getStringProperty("shodan.api.key", System.getenv("SHODAN_API_KEY"));
         Optional<String> jsonOptional = Optional.empty();
 
         if (apiKey == null || apiKey.isBlank()) {

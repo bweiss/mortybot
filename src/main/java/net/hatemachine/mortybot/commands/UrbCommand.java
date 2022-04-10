@@ -19,7 +19,7 @@ package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotDefaults;
-import net.hatemachine.mortybot.config.BotState;
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.urban.Definition;
 import net.hatemachine.mortybot.urban.UrbanDictionary;
@@ -71,7 +71,7 @@ public class UrbCommand implements BotCommand {
             String response = RESPONSE_PREFIX + String.format("%s (%d): %s", def.term(), defNum, def.meaning());
 
             // truncate our response if needed
-            int maxLen = BotState.getBotState()
+            int maxLen = BotProperties.getBotProperties()
                     .getIntProperty("urb.max.response.length", BotDefaults.URB_MAX_RESPONSE_LENGTH);
             if (response.length() > maxLen) {
                 response = response.substring(0, maxLen - 2) + "...";
