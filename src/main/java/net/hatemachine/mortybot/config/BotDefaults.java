@@ -42,6 +42,9 @@ public class BotDefaults {
     public static final int     AUTO_OP_DELAY = 10000;
     public static final int     AUTO_OP_MAX_MODES = 3;
 
+    // ChatCommand, DccListener
+    public static final boolean DCC_CHAT_ENABLED = true;
+
     // LinkListener
     public static final boolean LINKS_SHORTEN = true;
     public static final boolean LINKS_SHOW_TITLES = true;

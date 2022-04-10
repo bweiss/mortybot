@@ -40,7 +40,7 @@ public class BotState {
 
     private final Properties state;
 
-    public BotState() {
+    private BotState() {
         Path path = Path.of(this.getBotHome() + "/conf/" + BotDefaults.PROPERTIES_FILE);
         state = new Properties();
 

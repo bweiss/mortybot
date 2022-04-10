@@ -34,6 +34,7 @@ public class BotUser {
     public enum Flag {
         ADMIN, // This user is an admin and has access to restricted commands
         AOP,   // Automatically grant operator status (+o) to this user if they join one of our channels
+        DCC,   // Allows the user to establish a DCC CHAT connection with the bot
         IGNORE // Ignore commands and links from this user (typically used for other bots)
     }
 
@@ -93,6 +94,10 @@ public class BotUser {
 
     public Set<Flag> getFlags() {
         return flags;
+    }
+
+    public boolean isAdmin() {
+        return flags.contains(Flag.ADMIN);
     }
 
     @Override

@@ -8,6 +8,7 @@ This is a simple IRC bot I wrote for fun and to learn Java. It is designed for [
 
 * Bot user management and persistence
 * Command handler
+* DCC CHAT with party line
 * Auto-op
 * Link shortening/title display/tweet lookups
 * Google search
@@ -53,11 +54,12 @@ Users can be added to the bot by editing conf/user.conf prior to starting the bo
 
 At minimum, a name and a hostmask (wildcards supported) must be provided. Optionally, you can also specify any combination of the bot user flags shown below.
 
-| Flag   | Description                                                                        |
-|--------|------------------------------------------------------------------------------------|
-| ADMIN  | Marks the user as an admin of the bot, allowing access to restricted commands      |
-| AOP    | Automatically grant operator status (+o) when this user joins one of our channels  |
-| IGNORE | Ignore commands and links from this user (typically used to ignore other bots)     |
+| Flag   | Description                                                                       |
+|--------|-----------------------------------------------------------------------------------|
+| ADMIN  | Marks the user as an admin of the bot, allowing access to restricted commands     |
+| AOP    | Automatically grant operator status (+o) when this user joins one of our channels |
+| DCC    | Allows the user to establish a DCC CHAT connection with the bot                   |
+| IGNORE | Ignore commands and links from this user (typically used to ignore other bots)    |
 
 ### Features Requiring API Keys
 

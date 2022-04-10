@@ -18,6 +18,7 @@
 package net.hatemachine.mortybot;
 
 import net.hatemachine.mortybot.commands.BottleCommand;
+import net.hatemachine.mortybot.commands.ChatCommand;
 import net.hatemachine.mortybot.commands.ConfigCommand;
 import net.hatemachine.mortybot.commands.DictionaryCommand;
 import net.hatemachine.mortybot.commands.GoogleCommand;
@@ -47,6 +48,11 @@ public enum Command {
     BOTTLE(BottleCommand.class, new String[] {
             "Searches Bottle Blue Book for bottles",
             "Usage: BOTTLE <query>"
+    }),
+
+    CHAT(ChatCommand.class, new String[] {
+            "Tells the bot to initiate a DCC chat request with you or [nick] if specified",
+            "Usage: CHAT [nick]"
     }),
 
     CONFIG(ConfigCommand.class, new String[] {

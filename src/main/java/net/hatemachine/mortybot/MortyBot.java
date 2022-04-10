@@ -22,6 +22,8 @@ import net.hatemachine.mortybot.config.BotState;
 import net.hatemachine.mortybot.listeners.AutoOpListener;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.listeners.CoreHooksListener;
+import net.hatemachine.mortybot.listeners.DccChatListener;
+import net.hatemachine.mortybot.listeners.DccRequestListener;
 import net.hatemachine.mortybot.listeners.LinkListener;
 import net.hatemachine.mortybot.listeners.RejoinListener;
 import net.hatemachine.mortybot.listeners.WordleListener;
@@ -34,12 +36,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 public class MortyBot extends PircBotX {
 
-    public static final String VERSION = "0.6.0";
+    public static final String VERSION = "0.7.0-SNAPSHOT";
 
     private static final Logger log = LoggerFactory.getLogger(MortyBot.class);
 
@@ -71,6 +77,8 @@ public class MortyBot extends PircBotX {
                 .setAutoNickChange(state.getBooleanProperty("auto.nick.change", BotDefaults.AUTO_NICK_CHANGE))
                 .addListener(new AutoOpListener())
                 .addListener(new CommandListener(state.getStringProperty("bot.command.prefix", BotDefaults.BOT_COMMAND_PREFIX)))
+                .addListener(new DccChatListener())
+                .addListener(new DccRequestListener())
                 .addListener(new LinkListener())
                 .addListener(new RejoinListener())
                 .addListener(new WordleListener());
@@ -85,6 +93,51 @@ public class MortyBot extends PircBotX {
             config.addAutoJoinChannels(Arrays.asList(state.getStringProperty("auto.join.channels").split(" ")));
         }
 
+        // DCC settings
+        // TODO: support ranges for dcc.ports
+        String dccPortsStr = state.getStringProperty("dcc.ports");
+        List<Integer> dccPorts = new ArrayList<>();
+        if (dccPortsStr != null && !dccPortsStr.isBlank()) {
+            dccPorts = Arrays.stream(state.getStringProperty("dcc.ports").split(","))
+                    .map(Integer::parseInt)
+                    .toList();
+        }
+        if (!dccPorts.isEmpty()) {
+            config.setDccPorts(dccPorts);
+        }
+
+        String dccLocalAddress = state.getStringProperty("dcc.local.address");
+        if (dccLocalAddress != null) {
+            try {
+                InetAddress localAddress = InetAddress.getByName(dccLocalAddress);
+                config.setDccLocalAddress(localAddress);
+            } catch (UnknownHostException e) {
+                log.warn("Unknown host provided by dcc.local.address property ({}), falling back to default", dccLocalAddress);
+            }
+        }
+
+        String dccPublicAddress = state.getStringProperty("dcc.public.address");
+        if (dccPublicAddress != null) {
+            try {
+                InetAddress publicAddress = InetAddress.getByName(dccPublicAddress);
+                config.setDccPublicAddress(publicAddress);
+            } catch (UnknownHostException e) {
+                log.warn("Unknown host provided by dcc.public.address property ({}), falling back to default", dccLocalAddress);
+            }
+        }
+
+        int dccAcceptTimeout = state.getIntProperty("dcc.accept.timeout", -1);
+        if (dccAcceptTimeout > -1) {
+            config.setDccAcceptTimeout(dccAcceptTimeout);
+        }
+
+        int dccResumeAcceptTimeout = state.getIntProperty("dcc.resume.accept.timeout", -1);
+        if (dccResumeAcceptTimeout > -1) {
+            config.setDccResumeAcceptTimeout(dccResumeAcceptTimeout);
+        }
+
+        config.setDccFilenameQuotes(state.getBooleanProperty("dcc.filename.quotes", true));
+
         // Replace the CoreHooks listener with our own implementation
         config.replaceCoreHooksListener(new CoreHooksListener());
 
@@ -95,7 +148,7 @@ public class MortyBot extends PircBotX {
         } catch (IrcException e) {
             log.error(e.getMessage());
         } catch (IOException e) {
-            log.error("Exception encountered during startup", e);
+            log.error("Exception encountered in main()", e);
         }
     }
 

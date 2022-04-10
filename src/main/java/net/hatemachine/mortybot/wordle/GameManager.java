@@ -101,7 +101,7 @@ public class GameManager {
     public void purgeInactiveGames() {
         for (Game game : getInactiveGames()) {
             log.debug("Purging inactive game: {}", game);
-            gamesMap.remove(game.getPlayer(), game);
+            gamesMap.remove(game.getPlayer());
         }
     }
 }

@@ -20,9 +20,11 @@ package net.hatemachine.mortybot.listeners;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.BotCommandProxy;
 import net.hatemachine.mortybot.Command;
+import net.hatemachine.mortybot.ExtendedListenerAdapter;
+import net.hatemachine.mortybot.dcc.DccManager;
+import net.hatemachine.mortybot.events.DccChatMessageEvent;
 import net.hatemachine.mortybot.exception.BotCommandException;
 import org.pircbotx.User;
-import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
 import org.pircbotx.hooks.types.GenericMessageEvent;
@@ -33,15 +35,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.PRIVATE;
-import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.PUBLIC;
+import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.*;
 
 /**
- * Listen for commands from users. These can come from any source but currently only
- * messages from channels or direct private messages from users are supported.
- * This will likely be expanded to include DCC chat at some point.
+ * Listen for commands from users.
+ * These can come from a number of different sources (e.g. channel messages, private messages, or DCC chat).
  */
-public class CommandListener extends ListenerAdapter {
+public class CommandListener extends ExtendedListenerAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(CommandListener.class);
 
@@ -49,7 +49,8 @@ public class CommandListener extends ListenerAdapter {
 
     public enum CommandSource {
         PRIVATE,
-        PUBLIC
+        PUBLIC,
+        DCC
     }
 
     public CommandListener() {
@@ -62,7 +63,7 @@ public class CommandListener extends ListenerAdapter {
 
     @Override
     public void onMessage(final MessageEvent event) {
-        log.debug("onMessage event: {}", event);
+        log.debug("MessageEvent triggered: {}", event);
         if (event.getMessage().startsWith(getCommandPrefix())) {
             handleCommand(event, PUBLIC);
         }
@@ -70,9 +71,17 @@ public class CommandListener extends ListenerAdapter {
 
     @Override
     public void onPrivateMessage(final PrivateMessageEvent event) {
-        log.debug("onPrivateMessage event: {}", event);
+        log.debug("PrivateMessageEvent triggered: {}", event);
         if (event.getMessage().startsWith(getCommandPrefix())) {
             handleCommand(event, PRIVATE);
+        }
+    }
+
+    @Override
+    public void onDccChatMessage(final DccChatMessageEvent event) {
+        log.debug("DccChatMessageEvent triggered: {}", event);
+        if (event.getMessage().startsWith(getCommandPrefix())) {
+            handleCommand(event, DCC);
         }
     }
 
@@ -89,7 +98,12 @@ public class CommandListener extends ListenerAdapter {
         List<String> args = tokens.subList(1, tokens.size());
         User user = event.getUser();
 
-        log.info("{} command triggered by {}, args: {}", commandStr, user.getNick(), args);
+        log.info("{} command triggered by {}, source: {}, args: {}", commandStr, user.getNick(), source, args);
+
+        if (source == DCC) {
+            DccManager dccManager = DccManager.getManager();
+            dccManager.dispatchMessage(String.format("*** %s command triggered by %s", commandStr, user.getNick()), true);
+        }
 
         try {
             Command command = Enum.valueOf(Command.class, commandStr);
