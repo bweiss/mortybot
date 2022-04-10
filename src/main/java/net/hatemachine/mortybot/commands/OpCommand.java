@@ -32,8 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.PRIVATE;
-import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.PUBLIC;
+import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.*;
 
 public class OpCommand implements BotCommand {
 
@@ -58,7 +57,7 @@ public class OpCommand implements BotCommand {
 
         if (source == PUBLIC) {
             targetChannels.add(((MessageEvent) event).getChannel());
-        } else if (source == PRIVATE) {
+        } else if (source == PRIVATE || source == DCC) {
             targetChannels.addAll(dao.getChannels(targetUser));
         }
 
