@@ -37,6 +37,7 @@ import net.hatemachine.mortybot.commands.TestCommand;
 import net.hatemachine.mortybot.commands.UrbCommand;
 import net.hatemachine.mortybot.commands.UserCommand;
 import net.hatemachine.mortybot.commands.WeatherCommand;
+import net.hatemachine.mortybot.commands.WhoCommand;
 import net.hatemachine.mortybot.commands.WordleCommand;
 import net.hatemachine.mortybot.commands.WotdCommand;
 import net.hatemachine.mortybot.commands.YearCommand;
@@ -140,6 +141,11 @@ public enum Command {
             "Usage: USER <subcommand> [target] [args]",
             "Subcommands: LIST, SHOW, ADD, REMOVE, ADDHOSTMASK, REMOVEHOSTMASK, ADDFLAG, REMOVEFLAG",
             "Available user flags: " + Arrays.toString(BotUser.Flag.values())
+    }),
+
+    WHO(WhoCommand.class, new String[] {
+            "Displays all users connected to the party line (DCC chat only)",
+            "Usage: WHO"
     }),
 
     WORDLE(WordleCommand.class, new String[] {
