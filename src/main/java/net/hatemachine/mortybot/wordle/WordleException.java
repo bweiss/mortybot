@@ -1,6 +1,6 @@
 /*
  * MortyBot - An IRC bot built on the PircBotX framework.
- * Copyright © 2022 Brian Weiss (brianmweiss@gmail.com)
+ * Copyright © 2022 Brian Weiss (brian@hatemachine.net)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

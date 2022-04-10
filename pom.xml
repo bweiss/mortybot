@@ -2,7 +2,7 @@
 <!--
 
     MortyBot - An IRC bot built on the PircBotX framework.
-    Copyright © 2022 Brian Weiss (brianmweiss@gmail.com)
+    Copyright © 2022 Brian Weiss (brian@hatemachine.net)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@
         <developer>
             <id>bweiss</id>
             <name>Brian Weiss</name>
-            <email>brianmweiss@gmail.com</email>
+            <email>brian@hatemachine.net</email>
             <roles>
                 <role>developer</role>
             </roles>
@@ -172,7 +172,7 @@
                 <configuration>
                     <properties>
                         <owner>Brian Weiss</owner>
-                        <email>brianmweiss@gmail.com</email>
+                        <email>brian@hatemachine.net</email>
                     </properties>
                     <licenseSets>
                         <licenseSet>
