@@ -152,14 +152,7 @@ public class BotProperties {
     }
 
     public Path getConfigDir() {
-        String configDir = "conf";
-        String sysPropConfigDir = System.getProperty("mortybot.config.dir");
-
-        if (sysPropConfigDir != null) {
-            configDir = sysPropConfigDir;
-        }
-
-        String pathSeparator = FileSystems.getDefault().getSeparator();
-        return Path.of(this.getBotHome() + pathSeparator + configDir + pathSeparator);
+        String prop = System.getProperty("mortybot.config.dir");
+        return Path.of(prop != null ? prop : "conf");
     }
 }
