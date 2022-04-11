@@ -65,10 +65,6 @@
     </properties>
 
     <repositories>
-<!--        <repository>-->
-<!--            <id>jitpack.io</id>-->
-<!--            <url>https://jitpack.io</url>-->
-<!--        </repository>-->
         <repository>
             <id>sonatype-nexus-snapshots</id>
             <name>Sonatype Nexus Snapshots</name>
@@ -168,6 +164,12 @@
             <groupId>io.github.redouane59.twitter</groupId>
             <artifactId>twittered</artifactId>
             <version>2.16</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>31.1-jre</version>
         </dependency>
     </dependencies>
 
