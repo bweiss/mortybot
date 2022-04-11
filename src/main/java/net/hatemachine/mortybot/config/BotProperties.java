@@ -49,15 +49,15 @@ public class BotProperties {
 
     private BotProperties() {
         String pathSeparator = FileSystems.getDefault().getSeparator();
-        Path path = Path.of(getConfigDir() + pathSeparator + BotDefaults.PROPERTIES_FILE);
+        Path propertiesFile = Path.of(getBotConfigDir() + pathSeparator + BotDefaults.PROPERTIES_FILE);
         properties = new Properties();
 
-        try (BufferedReader reader = Files.newBufferedReader(path)) {
+        try (BufferedReader reader = Files.newBufferedReader(propertiesFile)) {
             properties.load(reader);
         } catch (FileNotFoundException e) {
-            log.warn("File not found: {}", path);
+            log.warn("File not found: {}", propertiesFile);
         } catch (IOException e) {
-            log.error("Unable to read bot properties file: {}", path, e);
+            log.error("Unable to read bot properties file: {}", propertiesFile, e);
         }
     }
 
@@ -73,6 +73,11 @@ public class BotProperties {
         String home = System.getenv("MORTYBOT_HOME");
         String home2 = System.getProperty("user.dir");
         return home == null ? home2 : home;
+    }
+
+    public Path getBotConfigDir() {
+        String prop = System.getProperty("mortybot.config.dir");
+        return Path.of(prop != null ? prop : "conf");
     }
 
     public Properties getProperties() {
@@ -120,10 +125,11 @@ public class BotProperties {
     }
 
     public synchronized void save() {
-        Path path = Path.of(getBotHome() + "/conf/" + BotDefaults.PROPERTIES_FILE);
+        String pathSeparator = FileSystems.getDefault().getSeparator();
+        Path propertiesFile = Path.of(getBotConfigDir() + pathSeparator + BotDefaults.PROPERTIES_FILE);
 
         try {
-            FileSaver saver = new FileSaver(path);
+            FileSaver saver = new FileSaver(propertiesFile);
             Writer writer = saver.getWriter();
             PrintWriter out = new PrintWriter(writer);
 
@@ -147,12 +153,7 @@ public class BotProperties {
             saver.finish();
 
         } catch (IOException e) {
-            log.error("Unable to write bot properties file: {}", path, e);
+            log.error("Unable to write bot properties file: {}", propertiesFile, e);
         }
-    }
-
-    public Path getConfigDir() {
-        String prop = System.getProperty("mortybot.config.dir");
-        return Path.of(prop != null ? prop : "conf");
     }
 }

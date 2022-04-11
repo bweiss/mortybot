@@ -200,7 +200,7 @@ public class BotUserDaoImpl implements BotUserDao {
     private void init() {
         synchronized (this.accessLock) {
             String pathSeparator = FileSystems.getDefault().getSeparator();
-            Path configDir = BotProperties.getBotProperties().getConfigDir();
+            Path configDir = BotProperties.getBotProperties().getBotConfigDir();
             Path userFile = Path.of(configDir + pathSeparator + USER_FILE);
 
             try {
@@ -223,7 +223,7 @@ public class BotUserDaoImpl implements BotUserDao {
     private void save() {
         synchronized (this.accessLock) {
             String pathSeparator = FileSystems.getDefault().getSeparator();
-            Path configDir = BotProperties.getBotProperties().getConfigDir();
+            Path configDir = BotProperties.getBotProperties().getBotConfigDir();
             Path userFile = Path.of(configDir + pathSeparator + USER_FILE);
 
             try {
