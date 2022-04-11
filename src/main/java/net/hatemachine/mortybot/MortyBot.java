@@ -17,6 +17,9 @@
  */
 package net.hatemachine.mortybot;
 
+import com.google.common.collect.ContiguousSet;
+import com.google.common.collect.DiscreteDomain;
+import com.google.common.collect.Range;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.AutoOpListener;
@@ -42,6 +45,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MortyBot extends PircBotX {
 
@@ -94,13 +99,26 @@ public class MortyBot extends PircBotX {
         }
 
         // DCC settings
-        // TODO: support ranges for dcc.ports
         String dccPortsStr = state.getStringProperty("dcc.ports");
         List<Integer> dccPorts = new ArrayList<>();
         if (dccPortsStr != null && !dccPortsStr.isBlank()) {
-            dccPorts = Arrays.stream(state.getStringProperty("dcc.ports").split(","))
-                    .map(Integer::parseInt)
-                    .toList();
+            String[] split = state.getStringProperty("dcc.ports").split(",");
+            Pattern rangePattern = Pattern.compile("(\\d+)-(\\d+)");
+            for (String s : split) {
+                Matcher matcher = rangePattern.matcher(s);
+                if (matcher.find()) {
+                    int p1 = Integer.parseInt(matcher.group(1));
+                    int p2 = Integer.parseInt(matcher.group(2));
+                    Range<Integer> ports = Range.closed(Math.min(p1, p2), Math.max(p1, p2));
+                    dccPorts.addAll(ContiguousSet.create(ports, DiscreteDomain.integers()));
+                } else {
+                    try {
+                        dccPorts.add(Integer.parseInt(s));
+                    } catch (NumberFormatException e) {
+                        log.warn("Invalid port {}", s);
+                    }
+                }
+            }
         }
         if (!dccPorts.isEmpty()) {
             config.setDccPorts(dccPorts);
