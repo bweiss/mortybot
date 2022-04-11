@@ -26,6 +26,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -47,7 +48,8 @@ public class BotProperties {
     private final Properties properties;
 
     private BotProperties() {
-        Path path = Path.of(this.getBotHome() + "/conf/" + BotDefaults.PROPERTIES_FILE);
+        String pathSeparator = FileSystems.getDefault().getSeparator();
+        Path path = Path.of(getConfigDir() + pathSeparator + BotDefaults.PROPERTIES_FILE);
         properties = new Properties();
 
         try (BufferedReader reader = Files.newBufferedReader(path)) {
@@ -147,5 +149,17 @@ public class BotProperties {
         } catch (IOException e) {
             log.error("Unable to write bot properties file: {}", path, e);
         }
+    }
+
+    public Path getConfigDir() {
+        String configDir = "conf";
+        String sysPropConfigDir = System.getProperty("mortybot.config.dir");
+
+        if (sysPropConfigDir != null) {
+            configDir = sysPropConfigDir;
+        }
+
+        String pathSeparator = FileSystems.getDefault().getSeparator();
+        return Path.of(this.getBotHome() + pathSeparator + configDir + pathSeparator);
     }
 }

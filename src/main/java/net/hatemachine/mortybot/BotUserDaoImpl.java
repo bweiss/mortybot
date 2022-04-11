@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -198,10 +199,12 @@ public class BotUserDaoImpl implements BotUserDao {
      */
     private void init() {
         synchronized (this.accessLock) {
-            var path = Path.of(BotProperties.getBotProperties().getBotHome() + "/conf/" + USER_FILE);
+            String pathSeparator = FileSystems.getDefault().getSeparator();
+            Path configDir = BotProperties.getBotProperties().getConfigDir();
+            Path userFile = Path.of(configDir + pathSeparator + USER_FILE);
 
             try {
-                List<String> lines = Files.readAllLines(path);
+                List<String> lines = Files.readAllLines(userFile);
                 for (String line : lines) {
                     if (line != null && !line.trim().isEmpty() && !line.startsWith("#")) {
                         Optional<BotUser> user = parseLine(line);
@@ -219,10 +222,12 @@ public class BotUserDaoImpl implements BotUserDao {
      */
     private void save() {
         synchronized (this.accessLock) {
-            var path = Path.of(BotProperties.getBotProperties().getBotHome() + "/conf/" + USER_FILE);
+            String pathSeparator = FileSystems.getDefault().getSeparator();
+            Path configDir = BotProperties.getBotProperties().getConfigDir();
+            Path userFile = Path.of(configDir + pathSeparator + USER_FILE);
 
             try {
-                FileSaver saver = new FileSaver(path);
+                FileSaver saver = new FileSaver(userFile);
                 Writer writer = saver.getWriter();
                 PrintWriter out = new PrintWriter(writer);
 
