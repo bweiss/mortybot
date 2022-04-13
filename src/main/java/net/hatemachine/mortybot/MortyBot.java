@@ -99,6 +99,7 @@ public class MortyBot extends PircBotX {
         }
 
         // DCC settings
+        // prop: dcc.ports
         String dccPortsStr = state.getStringProperty("dcc.ports");
         List<Integer> dccPorts = new ArrayList<>();
         if (dccPortsStr != null && !dccPortsStr.isBlank()) {
@@ -124,6 +125,7 @@ public class MortyBot extends PircBotX {
             config.setDccPorts(dccPorts);
         }
 
+        // prop: dcc.local.address
         String dccLocalAddress = state.getStringProperty("dcc.local.address");
         if (dccLocalAddress != null) {
             try {
@@ -134,6 +136,7 @@ public class MortyBot extends PircBotX {
             }
         }
 
+        // prop: dcc.public.address
         String dccPublicAddress = state.getStringProperty("dcc.public.address");
         if (dccPublicAddress != null) {
             try {
@@ -144,16 +147,19 @@ public class MortyBot extends PircBotX {
             }
         }
 
+        // prop: dcc.accept.timeout
         int dccAcceptTimeout = state.getIntProperty("dcc.accept.timeout", -1);
         if (dccAcceptTimeout > -1) {
             config.setDccAcceptTimeout(dccAcceptTimeout);
         }
 
+        // prop: dcc.resume.accept.timeout
         int dccResumeAcceptTimeout = state.getIntProperty("dcc.resume.accept.timeout", -1);
         if (dccResumeAcceptTimeout > -1) {
             config.setDccResumeAcceptTimeout(dccResumeAcceptTimeout);
         }
 
+        // prop: dcc.filename.quotes
         config.setDccFilenameQuotes(state.getBooleanProperty("dcc.filename.quotes", true));
 
         // Replace the CoreHooks listener with our own implementation
