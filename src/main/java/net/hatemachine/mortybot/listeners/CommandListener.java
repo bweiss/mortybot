@@ -97,19 +97,18 @@ public class CommandListener extends ExtendedListenerAdapter {
         String commandStr = tokens.get(0).substring(getCommandPrefix().length()).toUpperCase(Locale.ROOT);
         List<String> args = tokens.subList(1, tokens.size());
         User user = event.getUser();
-
-        log.info("{} command triggered by {}, source: {}, args: {}", commandStr, user.getNick(), source, args);
-
-        if (source == DCC) {
-            DccManager dccManager = DccManager.getManager();
-            dccManager.dispatchMessage(String.format("*** %s command triggered by %s", commandStr, user.getNick()), true);
-        }
+        DccManager dccManager = DccManager.getManager();
 
         try {
             Command command = Enum.valueOf(Command.class, commandStr);
             BotCommand botCommand = (BotCommand) command.getBotCommandClass()
                     .getDeclaredConstructor(GenericMessageEvent.class, CommandListener.CommandSource.class, List.class)
                     .newInstance(event, source, args);
+
+            log.info("{} command triggered by {}, source: {}, args: {}", commandStr, user.getNick(), source, args);
+            if (source == DCC) {
+                dccManager.dispatchMessage(String.format("*** %s command triggered by %s", commandStr, user.getNick()), true);
+            }
 
             BotCommandProxy.newInstance(botCommand).execute();
 
