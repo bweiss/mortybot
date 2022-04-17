@@ -23,9 +23,14 @@ import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+/**
+ * CONFIG command that allows you to view and set bot properties.
+ */
 public class ConfigCommand implements BotCommand {
 
     private final GenericMessageEvent event;
@@ -40,35 +45,66 @@ public class ConfigCommand implements BotCommand {
 
     @Override
     public void execute() {
-        BotProperties state = BotProperties.getBotProperties();
-        Properties props = state.getProperties();
-
         if (args.isEmpty()) {
             for (String line : Command.CONFIG.getHelp()) {
                 event.respondWith(line);
             }
-        }
 
-        else if (args.size() == 1) {
+        } else if (args.size() == 1) {
             String propName = args.get(0);
-            if (props.containsKey(propName)) {
-                event.respondWith(propName + ": " + props.getProperty(propName));
+            BotProperties props = BotProperties.getBotProperties();
+            String prop = props.getStringProperty(propName);
+
+            if (prop != null) {
+                // exact match, show current value
+                event.respondWith(propName + ": " + prop);
             } else {
-                event.respondWith("No such property");
-            }
-        }
+                // see if we match any known properties
+                List<String> matching = findMatchingProperties(propName);
 
-        else {
+                if (!matching.isEmpty()) {
+                    event.respondWith(String.format("Found %d matching properties:", matching.size()));
+                    event.respondWith(String.join(", ", matching));
+                } else {
+                    event.respondWith("No matching properties");
+                }
+            }
+
+        } else {
             String propName = args.get(0);
-            if (props.containsKey(propName)) {
+            BotProperties props = BotProperties.getBotProperties();
+            String prop = props.getStringProperty(propName);
+
+            if (prop != null) {
                 String newValue = String.join(" ", args.subList(1, args.size()));
-                state.setStringProperty(propName, newValue);
-                state.save();
+                props.setStringProperty(propName, newValue);
+                props.save();
                 event.respondWith(propName + " -> " + newValue);
             } else {
                 event.respondWith("No such property");
             }
         }
+    }
+
+    /**
+     * Find all property keys that match a given string.
+     *
+     * @param s the string you want to match
+     * @return a <code>List</code> of property keys that contain <code>s</code>
+     */
+    private static List<String> findMatchingProperties(String s) {
+        List<String> matching = new ArrayList<>();
+        Pattern patt = Pattern.compile(s);
+        BotProperties props = BotProperties.getBotProperties();
+
+        props.getAll().forEach((k, v) -> {
+            Matcher m = patt.matcher(k.toString());
+            if (m.find()) {
+                matching.add(k.toString());
+            }
+        });
+
+        return matching;
     }
 
     @Override

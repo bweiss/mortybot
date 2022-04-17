@@ -34,6 +34,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * DCC manager class. Right now this is just responsible for keeping track of DCC CHAT sessions
+ * and dispatching messages to the party line.
+ */
 public class DccManager {
 
     private static final Logger log = LoggerFactory.getLogger(DccManager.class);
@@ -120,7 +124,7 @@ public class DccManager {
             try {
                 chat.sendLine(message);
             } catch (IOException e) {
-                log.error("Exception encountered dispatching message to party line", e);
+                log.error("Failed to dispatch message to party line", e);
             }
         }
     }

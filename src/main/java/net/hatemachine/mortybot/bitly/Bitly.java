@@ -38,9 +38,9 @@ public class Bitly {
     private Bitly() {}
 
     public static Optional<String> shorten(String url) throws IOException, InterruptedException {
-        BotProperties state = BotProperties.getBotProperties();
-        String apiEndpoint = state.getStringProperty("bitly.api.endpoint", System.getenv("BITLY_API_ENDPOINT"));
-        String apiKey = state.getStringProperty("bitly.api.key", System.getenv("BITLY_API_KEY"));
+        BotProperties props = BotProperties.getBotProperties();
+        String apiEndpoint = props.getStringProperty("bitly.api.endpoint", System.getenv("BITLY_API_ENDPOINT"));
+        String apiKey = props.getStringProperty("bitly.api.key", System.getenv("BITLY_API_KEY"));
         Validate.notNullOrEmpty(url);
         Validate.notNullOrEmpty(apiEndpoint);
         Validate.notNullOrEmpty(apiKey);

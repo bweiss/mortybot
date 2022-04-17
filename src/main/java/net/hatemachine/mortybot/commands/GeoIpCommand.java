@@ -39,6 +39,11 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.List;
 
+/**
+ * Performs a GeoIP2 (GeoLite2) lookup on an IP address. This requires a free GeoLite2 account and license key.
+ *
+ * <a href="https://dev.maxmind.com/geoip/geolite2-free-geolocation-data">https://dev.maxmind.com/geoip/geolite2-free-geolocation-data</a>
+ */
 public class GeoIpCommand implements BotCommand {
 
     private static final String WEB_SERVICE_HOST = "geolite.info";
@@ -57,19 +62,19 @@ public class GeoIpCommand implements BotCommand {
 
     @Override
     public void execute() {
-        if (args.isEmpty())
+        if (args.isEmpty()) {
             throw new IllegalArgumentException("Not enough arguments");
+        }
 
-        var bs = BotProperties.getBotProperties();
-        var accountId = bs.getIntProperty("maxmind.account.id", Integer.parseInt(System.getenv("MAXMIND_ACCOUNT_ID")));
-        var licenseKey = bs.getStringProperty("maxmind.license.key", System.getenv("MAXMIND_LICENSE_KEY"));
+        var botProperties = BotProperties.getBotProperties();
+        var accountId = botProperties.getIntProperty("maxmind.account.id", Integer.parseInt(System.getenv("MAXMIND_ACCOUNT_ID")));
+        var licenseKey = botProperties.getStringProperty("maxmind.license.key", System.getenv("MAXMIND_LICENSE_KEY"));
         var address = args.get(0);
 
-        WebServiceClient client = new WebServiceClient.Builder(accountId, licenseKey)
+        try (WebServiceClient client = new WebServiceClient.Builder(accountId, licenseKey)
                 .host(WEB_SERVICE_HOST)
-                .build();
+                .build();) {
 
-        try {
             InetAddress ipAddress = InetAddress.getByName(address);
             CityResponse response = client.city(ipAddress);
             Country country = response.getCountry();

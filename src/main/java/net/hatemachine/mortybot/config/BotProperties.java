@@ -80,7 +80,7 @@ public class BotProperties {
         return Path.of(prop != null ? prop : "conf");
     }
 
-    public Properties getProperties() {
+    public Properties getAll() {
         return properties;
     }
 

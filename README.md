@@ -90,11 +90,12 @@ To get a list of commands and basic usage information, issue the HELP command in
 
 For example:
 
-> &lt;rick&gt; .help<br>
-> &lt;morty&gt; Commands: BOTTLE, CONFIG, DICT, GEOIP, GOO, HELP, HOST, IMDB, JOIN, MSG, OP, PART, QUIT, RT, STOCK, URB, USER, WORDLE, WOTD, WTR, YEAR<br>
-> &lt;rick&gt; .help wtr<br>
-> &lt;morty&gt; Shows the weather for an area<br>
-> &lt;morty&gt; Usage: WTR &lt;query&gt;<br>
+> &lt;rick&gt; .help<br/>
+> &lt;morty&gt; Commands: BOTTLE, CHAT, CONFIG, DICT, GEOIP, GOO, HELP, HOST, IMDB, JOIN, MSG, OP, PART, QUIT, RT, STOCK, URB, USER, WHO, WORDLE, WOTD, WTR, YEAR<br/>
+> &lt;morty&gt; Type .HELP &lt;command&gt; to get more information about a command<br/>
+> &lt;rick&gt; .help wtr<br/>
+> &lt;morty&gt; Shows the weather for an area<br/>
+> &lt;morty&gt; Usage: WTR &lt;query&gt;<br/>
 
 ## License
 

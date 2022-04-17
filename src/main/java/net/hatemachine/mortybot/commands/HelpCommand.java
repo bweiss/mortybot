@@ -19,6 +19,7 @@ package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.Command;
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
@@ -83,15 +84,20 @@ public class HelpCommand implements BotCommand {
                 })
                 .map(Command::toString)
                 .collect(Collectors.joining(", ")));
+
+        event.respondWith(String.format("Type %sHELP <command> to get more information about a command",
+                BotProperties.getBotProperties().getStringProperty("bot.command.prefix")));
     }
 
     private void respondWithCommandHelp() {
         String commandStr = args.get(0).toUpperCase(Locale.ROOT);
+
         try {
             Command command = Enum.valueOf(Command.class, commandStr);
             BotCommand botCommand = (BotCommand) command.getBotCommandClass()
                     .getDeclaredConstructor(GenericMessageEvent.class, CommandListener.CommandSource.class, List.class)
                     .newInstance(event, source, args);
+
             if (botCommand.isEnabled()) {
                 for (String line : command.getHelp()) {
                     event.respondWith(line);
