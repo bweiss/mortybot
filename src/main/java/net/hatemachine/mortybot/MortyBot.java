@@ -67,43 +67,43 @@ public class MortyBot extends PircBotX {
      * @param args command line arguments for the bot
      */
     public static void main(String[] args) {
-        BotProperties state = BotProperties.getBotProperties();
+        BotProperties props = BotProperties.getBotProperties();
 
         // Build our configuration
         Configuration.Builder config = new Configuration.Builder()
-                .setName(state.getStringProperty("bot.name", BotDefaults.BOT_NAME))
-                .setLogin(state.getStringProperty("bot.login", BotDefaults.BOT_LOGIN))
-                .setRealName(state.getStringProperty("bot.realname", BotDefaults.BOT_REALNAME))
-                .addServer(state.getStringProperty("irc.server", BotDefaults.IRC_SERVER),
-                        state.getIntProperty("irc.port", BotDefaults.IRC_PORT))
-                .setAutoReconnect(state.getBooleanProperty("auto.reconnect", BotDefaults.AUTO_RECONNECT))
-                .setAutoReconnectDelay(new StaticDelay(state.getIntProperty("auto.reconnect.delay", BotDefaults.AUTO_RECONNECT_DELAY)))
-                .setAutoReconnectAttempts(state.getIntProperty("auto.reconnect.attempts", BotDefaults.AUTO_RECONNECT_ATTEMPTS))
-                .setAutoNickChange(state.getBooleanProperty("auto.nick.change", BotDefaults.AUTO_NICK_CHANGE))
+                .setName(props.getStringProperty("bot.name", BotDefaults.BOT_NAME))
+                .setLogin(props.getStringProperty("bot.login", BotDefaults.BOT_LOGIN))
+                .setRealName(props.getStringProperty("bot.realname", BotDefaults.BOT_REALNAME))
+                .addServer(props.getStringProperty("irc.server", BotDefaults.IRC_SERVER),
+                        props.getIntProperty("irc.port", BotDefaults.IRC_PORT))
+                .setAutoReconnect(props.getBooleanProperty("auto.reconnect", BotDefaults.AUTO_RECONNECT))
+                .setAutoReconnectDelay(new StaticDelay(props.getIntProperty("auto.reconnect.delay", BotDefaults.AUTO_RECONNECT_DELAY)))
+                .setAutoReconnectAttempts(props.getIntProperty("auto.reconnect.attempts", BotDefaults.AUTO_RECONNECT_ATTEMPTS))
+                .setAutoNickChange(props.getBooleanProperty("auto.nick.change", BotDefaults.AUTO_NICK_CHANGE))
                 .addListener(new AutoOpListener())
-                .addListener(new CommandListener(state.getStringProperty("bot.command.prefix", BotDefaults.BOT_COMMAND_PREFIX)))
+                .addListener(new CommandListener(props.getStringProperty("bot.command.prefix", BotDefaults.BOT_COMMAND_PREFIX)))
                 .addListener(new DccChatListener())
                 .addListener(new DccRequestListener())
                 .addListener(new LinkListener())
                 .addListener(new RejoinListener())
                 .addListener(new WordleListener());
 
-        if (state.getBooleanProperty("irc.ssl", BotDefaults.IRC_SSL)) {
+        if (props.getBooleanProperty("irc.ssl", BotDefaults.IRC_SSL)) {
             config.setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates());
         }
 
         // Add our auto join channels if specified in the properties
-        String channels = state.getStringProperty("auto.join.channels");
+        String channels = props.getStringProperty("auto.join.channels");
         if (channels != null && !channels.trim().isEmpty()) {
-            config.addAutoJoinChannels(Arrays.asList(state.getStringProperty("auto.join.channels").split(" ")));
+            config.addAutoJoinChannels(Arrays.asList(props.getStringProperty("auto.join.channels").split(" ")));
         }
 
         // DCC settings
         // prop: dcc.ports
-        String dccPortsStr = state.getStringProperty("dcc.ports");
+        String dccPortsStr = props.getStringProperty("dcc.ports");
         List<Integer> dccPorts = new ArrayList<>();
         if (dccPortsStr != null && !dccPortsStr.isBlank()) {
-            String[] split = state.getStringProperty("dcc.ports").split(",");
+            String[] split = props.getStringProperty("dcc.ports").split(",");
             Pattern rangePattern = Pattern.compile("(\\d+)-(\\d+)");
             for (String s : split) {
                 Matcher matcher = rangePattern.matcher(s);
@@ -126,7 +126,7 @@ public class MortyBot extends PircBotX {
         }
 
         // prop: dcc.local.address
-        String dccLocalAddress = state.getStringProperty("dcc.local.address");
+        String dccLocalAddress = props.getStringProperty("dcc.local.address");
         if (dccLocalAddress != null) {
             try {
                 InetAddress localAddress = InetAddress.getByName(dccLocalAddress);
@@ -137,7 +137,7 @@ public class MortyBot extends PircBotX {
         }
 
         // prop: dcc.public.address
-        String dccPublicAddress = state.getStringProperty("dcc.public.address");
+        String dccPublicAddress = props.getStringProperty("dcc.public.address");
         if (dccPublicAddress != null) {
             try {
                 InetAddress publicAddress = InetAddress.getByName(dccPublicAddress);
@@ -148,19 +148,19 @@ public class MortyBot extends PircBotX {
         }
 
         // prop: dcc.accept.timeout
-        int dccAcceptTimeout = state.getIntProperty("dcc.accept.timeout", -1);
+        int dccAcceptTimeout = props.getIntProperty("dcc.accept.timeout", -1);
         if (dccAcceptTimeout > -1) {
             config.setDccAcceptTimeout(dccAcceptTimeout);
         }
 
         // prop: dcc.resume.accept.timeout
-        int dccResumeAcceptTimeout = state.getIntProperty("dcc.resume.accept.timeout", -1);
+        int dccResumeAcceptTimeout = props.getIntProperty("dcc.resume.accept.timeout", -1);
         if (dccResumeAcceptTimeout > -1) {
             config.setDccResumeAcceptTimeout(dccResumeAcceptTimeout);
         }
 
         // prop: dcc.filename.quotes
-        config.setDccFilenameQuotes(state.getBooleanProperty("dcc.filename.quotes", true));
+        config.setDccFilenameQuotes(props.getBooleanProperty("dcc.filename.quotes", true));
 
         // Replace the CoreHooks listener with our own implementation
         config.replaceCoreHooksListener(new CoreHooksListener());
