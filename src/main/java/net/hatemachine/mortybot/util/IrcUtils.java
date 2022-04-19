@@ -47,11 +47,11 @@ public class IrcUtils {
      * 9: nick!*@*.domain
      * 10:*!*user@*
      *
-     * @param method an integer representing the masking method
      * @param address the address you want to mask in the form nick!user@host
+     * @param maskType an integer representing the mask type to use
      * @return the masked address
      */
-    public static String maskAddress(int method, String address) {
+    public static String maskAddress(String address, int maskType) {
         Validate.address(address);
         int firstExclamation = address.indexOf('!');
         int firstAt = address.indexOf('@');
@@ -59,7 +59,7 @@ public class IrcUtils {
         String username = address.substring(firstExclamation + 1, firstAt);
         String hostname = address.substring(firstAt + 1);
 
-        return switch (method) {
+        return switch (maskType) {
             case 0 -> String.format("*!%s@%s", username, hostname);
             case 1 -> String.format("*!*%s@%s", username, hostname);
             case 2 -> String.format("*!*@%s", hostname);
