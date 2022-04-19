@@ -46,11 +46,11 @@ To install, simply unpack the archive of your choice into the desired directory.
 
 Most configuration of the bot is done via the conf/bot.properties file. You should edit this file to your liking prior to starting the bot. These can be modified while the bot is running via the CONFIG command.
 
-I also recommend setting up an admin user for yourself. See below.
+I also recommend setting up an admin user for yourself either by editing conf/users.conf or issuing the REGISTER command to the bot after starting it.
 
 ### Bot Users
 
-Users can be added to the bot by editing conf/user.conf prior to starting the bot, or by issuing the USER command as an admin user.
+Users can be added to the bot by editing conf/user.conf prior to starting the bot, issuing a REGISTER command, or by issuing the USER ADD command as an admin user.
 
 At minimum, a name and a hostmask (wildcards supported) must be provided. Optionally, you can also specify any combination of the bot user flags shown below.
 
@@ -91,7 +91,7 @@ To get a list of commands and basic usage information, issue the HELP command in
 For example:
 
 > &lt;rick&gt; .help<br/>
-> &lt;morty&gt; Commands: BOTTLE, CHAT, CONFIG, DICT, GEOIP, GOO, HELP, HOST, IMDB, JOIN, MSG, OP, PART, QUIT, RT, STOCK, URB, USER, WHO, WORDLE, WOTD, WTR, YEAR<br/>
+> &lt;morty&gt; Commands: BOTTLE, CHAT, CONFIG, DICT, GEOIP, GOO, HELP, HOST, IMDB, JOIN, MSG, OP, PART, QUIT, REGISTER, RT, STOCK, URB, USER, WHO, WORDLE, WOTD, WTR, YEAR<br/>
 > &lt;morty&gt; Type .HELP &lt;command&gt; to get more information about a command<br/>
 > &lt;rick&gt; .help wtr<br/>
 > &lt;morty&gt; Shows the weather for an area<br/>

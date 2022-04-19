@@ -31,6 +31,7 @@ import net.hatemachine.mortybot.commands.MessageCommand;
 import net.hatemachine.mortybot.commands.OpCommand;
 import net.hatemachine.mortybot.commands.PartCommand;
 import net.hatemachine.mortybot.commands.QuitCommand;
+import net.hatemachine.mortybot.commands.RegisterCommand;
 import net.hatemachine.mortybot.commands.RtCommand;
 import net.hatemachine.mortybot.commands.StockCommand;
 import net.hatemachine.mortybot.commands.TestCommand;
@@ -114,6 +115,11 @@ public enum Command {
     QUIT(QuitCommand.class, new String[] {
             "Makes the bot quit and shutdown",
             "Usage: QUIT"
+    }),
+
+    REGISTER(RegisterCommand.class, new String[] {
+            "Registers yourself as the admin of the bot (only works if there are no existing users)",
+            "Usage: REGISTER [name] [hostmask]"
     }),
 
     RT(RtCommand.class, new String[] {

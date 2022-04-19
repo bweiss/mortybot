@@ -65,6 +65,10 @@ public class BotDefaults {
     // ImdbCommand
     public static final int     IMDB_MAX_RESULTS = 4;
 
+    // RegisterCommand
+    public static final String  REGISTER_BOT_USER_FLAGS = "ADMIN,AOP,DCC";
+    public static final int     REGISTER_MASK_TYPE = 0;
+
     // RtCommand
     public static final int     RT_MAX_RESULTS = 4;
 
@@ -73,4 +77,7 @@ public class BotDefaults {
 
     // UrbCommand
     public static final int     URB_MAX_RESPONSE_LENGTH = 430;
+
+    // UserCommand
+    public static final int     USER_ADD_MASK_TYPE = 3;
 }

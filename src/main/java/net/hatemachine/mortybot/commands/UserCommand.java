@@ -20,10 +20,13 @@ package net.hatemachine.mortybot.commands;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.BotUser;
 import net.hatemachine.mortybot.BotUserDao;
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.exception.BotUserException;
+import net.hatemachine.mortybot.util.IrcUtils;
 import net.hatemachine.mortybot.util.Validate;
+import org.pircbotx.User;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +35,13 @@ import java.util.List;
 import java.util.Locale;
 
 import static java.util.stream.Collectors.joining;
+import static net.hatemachine.mortybot.config.BotDefaults.USER_ADD_MASK_TYPE;
 
+/**
+ * USER command that allows you to view and manipulate bot users.
+ *
+ * Supported subcommands: LIST, SHOW, ADD, REMOVE, ADDHOSTMASK, REMOVEHOSTMASK, ADDFLAG, REMOVEFLAG
+ */
 public class UserCommand implements BotCommand {
 
     private static final String NOT_ENOUGH_ARGS   = "Too few arguments";
@@ -51,8 +60,9 @@ public class UserCommand implements BotCommand {
 
     @Override
     public void execute() throws IllegalArgumentException {
-        if (args.isEmpty())
+        if (args.isEmpty()) {
             throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
+        }
 
         String command = args.get(0).toUpperCase();
         List<String> newArgs = args.subList(1, args.size());
@@ -77,30 +87,54 @@ public class UserCommand implements BotCommand {
     /**
      * Add a user to the bot.
      *
-     * @param args the name and initial hostmask of the user in the form of "name nick!user@host" (may contain wildcards)
+     * @param args {@link List} of arguments. Should contain name at minimum and an optional hostmask (may contain wildcards).
      * @throws IllegalArgumentException if there are not enough arguments
      */
     private void addCommand(List<String> args) throws IllegalArgumentException {
-        if (args.size() < 2)
+        if (args.isEmpty()) {
             throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
+        }
 
         MortyBot bot = event.getBot();
         String name = args.get(0);
-        String hostmask = args.get(1);
+        String hostmask = "";
         String flags = "";
+
+        // if no hostmask provided, see if there is a known user with that nick and attempt to pull their hostmask
+        if (args.size() == 1) {
+            User user = bot.getUserChannelDao().getUser(name);
+            if (user != null) {
+                // this fails if the bot doesn't yet know the user's full hostmask
+                try {
+                    hostmask = IrcUtils.maskAddress(user.getHostmask(),
+                            BotProperties.getBotProperties().getIntProperty("user.add.mask.type", USER_ADD_MASK_TYPE));
+                } catch (IllegalArgumentException e) {
+                    event.respondWith(String.format("Could not determine hostmask for %s. Try specifying manually.", name));
+                    return;
+                }
+            }
+        } else {
+            hostmask = args.get(1);
+        }
 
         if (args.size() > 2) {
             flags = args.get(2);
         }
 
-        try {
-            bot.getBotUserDao().add(new BotUser(Validate.botUserName(name), Validate.hostmask(hostmask), flags));
-            event.respondWith("User added");
-        } catch (BotUserException e) {
-            handleBotUserException(e, "addCommand", args);
-        } catch (IllegalArgumentException e) {
-            log.error("Error adding user: {}", e.getMessage());
-            event.respondWith(e.getMessage());
+        List<BotUser> matchedUsers = bot.getBotUserDao().getAll(hostmask);
+
+        if (!matchedUsers.isEmpty()) {
+            event.respondWith("A user with a matching hostmask already exists");
+        } else {
+            try {
+                bot.getBotUserDao().add(new BotUser(Validate.botUserName(name), Validate.hostmask(hostmask), flags));
+                event.respondWith("User added");
+            } catch (BotUserException e) {
+                handleBotUserException(e, "addCommand", args);
+            } catch (IllegalArgumentException e) {
+                log.error("Error adding user: {}", e.getMessage());
+                event.respondWith(e.getMessage());
+            }
         }
     }
 
@@ -111,8 +145,9 @@ public class UserCommand implements BotCommand {
      * @throws IllegalArgumentException if there are not enough arguments
      */
     private void addFlagCommand(List<String> args) throws IllegalArgumentException {
-        if (args.size() < 2)
+        if (args.size() < 2) {
             throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
+        }
 
         MortyBot bot = event.getBot();
         String name = args.get(0);
@@ -141,8 +176,9 @@ public class UserCommand implements BotCommand {
      * @throws IllegalArgumentException if there are not enough arguments
      */
     private void addHostmaskCommand(List<String> args) throws IllegalArgumentException {
-        if (args.size() < 2)
+        if (args.size() < 2) {
             throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
+        }
 
         MortyBot bot = event.getBot();
         String name = args.get(0);
@@ -184,8 +220,9 @@ public class UserCommand implements BotCommand {
      * @throws IllegalArgumentException if there are too few arguments
      */
     private void removeCommand(List<String> args) throws IllegalArgumentException {
-        if (args.isEmpty())
+        if (args.isEmpty()) {
             throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
+        }
 
         MortyBot bot = event.getBot();
         String name = args.get(0);
@@ -240,8 +277,9 @@ public class UserCommand implements BotCommand {
      * @throws IllegalArgumentException if there are too few arguments
      */
     private void removeHostmaskCommand(List<String> args) throws IllegalArgumentException {
-        if (args.size() < 2)
+        if (args.size() < 2) {
             throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
+        }
 
         MortyBot bot = event.getBot();
         String name = args.get(0);
@@ -268,8 +306,9 @@ public class UserCommand implements BotCommand {
      * @throws IllegalArgumentException if there are too few arguments
      */
     private void showCommand(List<String> args) throws IllegalArgumentException {
-        if (args.isEmpty())
+        if (args.isEmpty()) {
             throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
+        }
 
         MortyBot bot = event.getBot();
         String name = args.get(0);
