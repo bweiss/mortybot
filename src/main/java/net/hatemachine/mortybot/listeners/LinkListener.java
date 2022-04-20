@@ -70,23 +70,30 @@ public class LinkListener extends ListenerAdapter {
      * @param event the event being handled
      */
     private void handleMessage(final GenericMessageEvent event) {
-        var bs = BotProperties.getBotProperties();
-        int maxLinks = bs.getIntProperty("links.max", BotDefaults.LINKS_MAX);
-        int minLenToShorten = bs.getIntProperty("links.min.length", BotDefaults.LINKS_MIN_LENGTH);
-        int maxTitleLength = bs.getIntProperty("links.max.title.length", BotDefaults.LINKS_MAX_TITLE_LENGTH);
-        boolean shortenLinksFlag = bs.getBooleanProperty("links.shorten", BotDefaults.LINKS_SHORTEN);
-        boolean showTitlesFlag = bs.getBooleanProperty("links.show.titles", BotDefaults.LINKS_SHOW_TITLES);
-        boolean showTweetsFlag = bs.getBooleanProperty("links.show.tweets", BotDefaults.LINKS_SHOW_TWEETS);
+        BotProperties props = BotProperties.getBotProperties();
+        int maxLinks = props.getIntProperty("links.max", BotDefaults.LINKS_MAX);
+        int minLenToShorten = props.getIntProperty("links.min.length", BotDefaults.LINKS_MIN_LENGTH);
+        int maxTitleLength = props.getIntProperty("links.max.title.length", BotDefaults.LINKS_MAX_TITLE_LENGTH);
+        boolean shortenLinksFlag = props.getBooleanProperty("links.shorten", BotDefaults.LINKS_SHORTEN);
+        boolean showTitlesFlag = props.getBooleanProperty("links.show.titles", BotDefaults.LINKS_SHOW_TITLES);
+        boolean showTweetsFlag = props.getBooleanProperty("links.show.tweets", BotDefaults.LINKS_SHOW_TWEETS);
         MortyBot bot = event.getBot();
         User user = event.getUser();
-        List<BotUser> ignored = bot.getBotUserDao().getAll(user.getHostmask(), BotUser.Flag.IGNORE);
 
+        String commandPrefix = BotProperties.getBotProperties().getStringProperty("command.prefix", BotDefaults.BOT_COMMAND_PREFIX);
+        if (event.getMessage().startsWith(commandPrefix)) {
+            // Commands should be ignored
+            return;
+        }
+
+        List<BotUser> ignored = bot.getBotUserDao().getAll(user.getHostmask(), BotUser.Flag.IGNORE);
         if (!ignored.isEmpty()) {
             BotUser ignoredBotUser = ignored.get(0);
             log.info("User {} (BotUser: {}) has IGNORE flag, ignoring message...", user.getNick(), ignoredBotUser.getName());
             return;
         }
 
+        // Parse the message looking for links
         List<String> links = parseMessage(event.getMessage());
 
         for (int i = 0; i < links.size() && i < maxLinks; i++) {
@@ -100,7 +107,7 @@ public class LinkListener extends ListenerAdapter {
                     Matcher matcher = TWEET_PATTERN.matcher(link);
                     if (matcher.find()) {
                         String tweetId = matcher.group(2);
-                        String bearerToken = bs.getStringProperty("twitter.bearer.token", System.getenv("TWITTER_BEARER_TOKEN"));
+                        String bearerToken = props.getStringProperty("twitter.bearer.token", System.getenv("TWITTER_BEARER_TOKEN"));
                         TwitterClient twitterClient = new TwitterClient(TwitterCredentials.builder()
                                 .bearerToken(bearerToken)
                                 .build());
