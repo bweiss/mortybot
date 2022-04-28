@@ -62,11 +62,28 @@ public class MortyBot extends PircBotX {
     }
 
     /**
-     * Main entry point for the bot. Responsible for initial configuration and starting the bot.
+     * Main entry point for the bot.
      *
      * @param args command line arguments for the bot
      */
     public static void main(String[] args) {
+        // Start the bot
+        try (MortyBot bot = new MortyBot(buildConfiguration())) {
+            log.info("Starting bot with nick: {}", bot.getNick());
+            bot.startBot();
+        } catch (IrcException e) {
+            log.error(e.getMessage());
+        } catch (IOException e) {
+            log.error("Exception encountered in main()", e);
+        }
+    }
+
+    /**
+     * Builds the bot's configuration based on our properties and defaults (see {@link BotProperties} and {@link BotDefaults})
+     *
+     * @return {@link Configuration} containing all of the bot's properties
+     */
+    private static Configuration buildConfiguration() {
         BotProperties props = BotProperties.getBotProperties();
 
         // Build our configuration
@@ -165,15 +182,7 @@ public class MortyBot extends PircBotX {
         // Replace the CoreHooks listener with our own implementation
         config.replaceCoreHooksListener(new CoreHooksListener());
 
-        // Start the bot
-        try (MortyBot bot = new MortyBot(config.buildConfiguration())) {
-            log.info("Starting bot with nick: {}", bot.getNick());
-            bot.startBot();
-        } catch (IrcException e) {
-            log.error(e.getMessage());
-        } catch (IOException e) {
-            log.error("Exception encountered in main()", e);
-        }
+        return config.buildConfiguration();
     }
 
     public BotUserDao getBotUserDao() {
