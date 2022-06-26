@@ -13,7 +13,8 @@
                     primary key autoincrement,
             username    text    not null,
             hostmasks   text,
-            flags       text
+            flags       text,
+            zip_code    text
         );
 
         create unique index bot_users_bot_user_id_uindex
