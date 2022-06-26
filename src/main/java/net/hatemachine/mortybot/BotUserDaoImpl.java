@@ -23,10 +23,7 @@ import net.hatemachine.mortybot.model.BotUser;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.dynamic.sql.select.SelectDSLCompleter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,7 +34,6 @@ import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 
 public class BotUserDaoImpl implements BotUserDao {
 
-    private static final Logger log = LoggerFactory.getLogger(BotUserDaoImpl.class);
     private static final SqlSessionFactory sqlSessionFactory = MyBatisUtil.getSqlSessionFactory();
 
     /**
@@ -91,10 +87,6 @@ public class BotUserDaoImpl implements BotUserDao {
             if (matchingUsers > 0) {
                 throw new BotUserException(USER_EXISTS, botUser.toString());
             }
-
-            // TODO: update lastModified timestamp any time we add or update a user
-            LocalDateTime now = LocalDateTime.now();
-            log.debug("XXX now: {}", now);
 
             int rows = mapper.insert(botUser);
             session.commit();

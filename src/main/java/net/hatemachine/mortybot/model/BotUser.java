@@ -11,6 +11,17 @@ import java.util.regex.Pattern;
 import static net.hatemachine.mortybot.util.StringUtils.wildcardToRegex;
 
 public class BotUser {
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T12:33:00.9333934-04:00", comments="Source field: bot_users.bot_user_id")
+    private Integer botUserId;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T12:33:00.9384323-04:00", comments="Source field: bot_users.username")
+    private String username;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T12:33:00.9384323-04:00", comments="Source field: bot_users.hostmasks")
+    private String hostmasks;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T12:33:00.9391213-04:00", comments="Source field: bot_users.flags")
+    private String flags;
 
     public BotUser(String username, String hostmasks, String flags) {
         this.username = username;
@@ -18,80 +29,42 @@ public class BotUser {
         this.flags = flags;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-25T20:44:47.4103996-04:00", comments="Source field: bot_users.bot_user_id")
-    private Integer botUserId;
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-25T20:44:47.4260454-04:00", comments="Source field: bot_users.username")
-    private String username;
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-25T20:44:47.4260454-04:00", comments="Source field: bot_users.realname")
-    private String realname;
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-25T20:44:47.4260454-04:00", comments="Source field: bot_users.last_modified")
-    private String lastModified;
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-25T20:44:47.4260454-04:00", comments="Source field: bot_users.hostmasks")
-    private String hostmasks;
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-25T20:44:47.4260454-04:00", comments="Source field: bot_users.flags")
-    private String flags;
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-25T20:44:47.4260454-04:00", comments="Source field: bot_users.bot_user_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T12:33:00.9374362-04:00", comments="Source field: bot_users.bot_user_id")
     public Integer getBotUserId() {
         return botUserId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-25T20:44:47.4260454-04:00", comments="Source field: bot_users.bot_user_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T12:33:00.9384323-04:00", comments="Source field: bot_users.bot_user_id")
     public void setBotUserId(Integer botUserId) {
         this.botUserId = botUserId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-25T20:44:47.4260454-04:00", comments="Source field: bot_users.username")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T12:33:00.9384323-04:00", comments="Source field: bot_users.username")
     public String getUsername() {
         return username;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-25T20:44:47.4260454-04:00", comments="Source field: bot_users.username")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T12:33:00.9384323-04:00", comments="Source field: bot_users.username")
     public void setUsername(String username) {
         this.username = username;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-25T20:44:47.4260454-04:00", comments="Source field: bot_users.realname")
-    public String getRealname() {
-        return realname;
-    }
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-25T20:44:47.4260454-04:00", comments="Source field: bot_users.realname")
-    public void setRealname(String realname) {
-        this.realname = realname;
-    }
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-25T20:44:47.4260454-04:00", comments="Source field: bot_users.last_modified")
-    public String getLastModified() {
-        return lastModified;
-    }
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-25T20:44:47.4260454-04:00", comments="Source field: bot_users.last_modified")
-    public void setLastModified(String lastModified) {
-        this.lastModified = lastModified;
-    }
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-25T20:44:47.4260454-04:00", comments="Source field: bot_users.hostmasks")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T12:33:00.9384323-04:00", comments="Source field: bot_users.hostmasks")
     public String getHostmasks() {
         return hostmasks;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-25T20:44:47.4260454-04:00", comments="Source field: bot_users.hostmasks")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T12:33:00.9391213-04:00", comments="Source field: bot_users.hostmasks")
     public void setHostmasks(String hostmasks) {
         this.hostmasks = hostmasks;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-25T20:44:47.4260454-04:00", comments="Source field: bot_users.flags")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T12:33:00.9391213-04:00", comments="Source field: bot_users.flags")
     public String getFlags() {
         return flags;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-25T20:44:47.4260454-04:00", comments="Source field: bot_users.flags")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T12:33:00.9391213-04:00", comments="Source field: bot_users.flags")
     public void setFlags(String flags) {
         this.flags = flags;
     }
@@ -146,8 +119,6 @@ public class BotUser {
         return "BotUser{" +
                 "botUserId=" + botUserId +
                 ", username='" + username + '\'' +
-                ", realname='" + realname + '\'' +
-                ", lastModified='" + lastModified + '\'' +
                 ", hostmasks='" + hostmasks + '\'' +
                 ", flags='" + flags + '\'' +
                 '}';
