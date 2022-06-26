@@ -27,14 +27,13 @@
         <environment id="development">
             <transactionManager type="JDBC"/>
             <dataSource type="UNPOOLED">
-                <property name="driver" value="org.sqlite.JDBC"/>
-                <property name="url" value="jdbc:sqlite:mortybot.db"/>
+                <property name="driver" value="${db.driver}"/>
+                <property name="url" value="${db.url}"/>
             </dataSource>
         </environment>
     </environments>
 
     <mappers>
-        <mapper resource="CreateTableMapper.xml" />
         <mapper class="net.hatemachine.mortybot.mapper.BotUserMapper" />
     </mappers>
 </configuration>

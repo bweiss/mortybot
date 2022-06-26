@@ -17,9 +17,13 @@
  */
 package net.hatemachine.mortybot;
 
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.exception.BotUserException;
 import net.hatemachine.mortybot.mapper.BotUserMapper;
 import net.hatemachine.mortybot.model.BotUser;
+import org.apache.ibatis.migration.JavaMigrationLoader;
+import org.apache.ibatis.migration.JdbcConnectionProvider;
+import org.apache.ibatis.migration.operations.UpOperation;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.dynamic.sql.select.SelectDSLCompleter;
@@ -37,11 +41,12 @@ public class BotUserDaoImpl implements BotUserDao {
     private static final SqlSessionFactory sqlSessionFactory = MyBatisUtil.getSqlSessionFactory();
 
     static {
-        // create our database tables if they don't exist yet
-        try (SqlSession session = sqlSessionFactory.openSession()) {
-            session.insert("net.hatemachine.mortybot.mapper.CreateTableMapper.createBotUsersTableIfNotExists");
-            session.commit();
-        }
+        // perform any pending database migration operations
+        BotProperties props = BotProperties.getBotProperties();
+
+        new UpOperation().operate(
+                new JdbcConnectionProvider(props.getStringProperty("db.driver"), props.getStringProperty("db.url"), null, null),
+                new JavaMigrationLoader("net.hatemachine.mortybot.migration"), null, null);
     }
 
     /**

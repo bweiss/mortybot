@@ -11,20 +11,20 @@ import java.util.regex.Pattern;
 import static net.hatemachine.mortybot.util.StringUtils.wildcardToRegex;
 
 public class BotUser {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T16:25:50.4576175-04:00", comments="Source field: bot_users.bot_user_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6085291-04:00", comments="Source field: bot_users.bot_user_id")
     private Integer botUserId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T16:25:50.460617-04:00", comments="Source field: bot_users.username")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6115289-04:00", comments="Source field: bot_users.username")
     private String username;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T16:25:50.4616218-04:00", comments="Source field: bot_users.hostmasks")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6115289-04:00", comments="Source field: bot_users.hostmasks")
     private String hostmasks;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T16:25:50.4616218-04:00", comments="Source field: bot_users.flags")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6115289-04:00", comments="Source field: bot_users.flags")
     private String flags;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T16:25:50.4616218-04:00", comments="Source field: bot_users.zip_code")
-    private String zipCode;
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6115289-04:00", comments="Source field: bot_users.location")
+    private String location;
 
     public BotUser(String username, String hostmasks, String flags) {
         this.username = username;
@@ -32,54 +32,54 @@ public class BotUser {
         this.flags = flags;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T16:25:50.460617-04:00", comments="Source field: bot_users.bot_user_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6115289-04:00", comments="Source field: bot_users.bot_user_id")
     public Integer getBotUserId() {
         return botUserId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T16:25:50.460617-04:00", comments="Source field: bot_users.bot_user_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6115289-04:00", comments="Source field: bot_users.bot_user_id")
     public void setBotUserId(Integer botUserId) {
         this.botUserId = botUserId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T16:25:50.4616218-04:00", comments="Source field: bot_users.username")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6115289-04:00", comments="Source field: bot_users.username")
     public String getUsername() {
         return username;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T16:25:50.4616218-04:00", comments="Source field: bot_users.username")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6115289-04:00", comments="Source field: bot_users.username")
     public void setUsername(String username) {
         this.username = username;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T16:25:50.4616218-04:00", comments="Source field: bot_users.hostmasks")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6115289-04:00", comments="Source field: bot_users.hostmasks")
     public String getHostmasks() {
         return hostmasks;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T16:25:50.4616218-04:00", comments="Source field: bot_users.hostmasks")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6115289-04:00", comments="Source field: bot_users.hostmasks")
     public void setHostmasks(String hostmasks) {
         this.hostmasks = hostmasks;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T16:25:50.4616218-04:00", comments="Source field: bot_users.flags")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6115289-04:00", comments="Source field: bot_users.flags")
     public String getFlags() {
         return flags;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T16:25:50.4616218-04:00", comments="Source field: bot_users.flags")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6115289-04:00", comments="Source field: bot_users.flags")
     public void setFlags(String flags) {
         this.flags = flags;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T16:25:50.4616218-04:00", comments="Source field: bot_users.zip_code")
-    public String getZipCode() {
-        return zipCode;
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6115289-04:00", comments="Source field: bot_users.location")
+    public String getLocation() {
+        return location;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T16:25:50.4616218-04:00", comments="Source field: bot_users.zip_code")
-    public void setZipCode(String zipCode) {
-        this.zipCode = zipCode;
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6115289-04:00", comments="Source field: bot_users.location")
+    public void setLocation(String location) {
+        this.location = location;
     }
 
     public boolean hasMatchingHostmask(String userhost) {
