@@ -34,6 +34,7 @@
     </environments>
 
     <mappers>
+        <mapper resource="CreateTableMapper.xml" />
         <mapper class="net.hatemachine.mortybot.mapper.BotUserMapper" />
     </mappers>
 </configuration>

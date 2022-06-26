@@ -36,6 +36,14 @@ public class BotUserDaoImpl implements BotUserDao {
 
     private static final SqlSessionFactory sqlSessionFactory = MyBatisUtil.getSqlSessionFactory();
 
+    static {
+        // create our database tables if they don't exist yet
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            session.insert("net.hatemachine.mortybot.mapper.CreateTableMapper.createBotUsersTableIfNotExists");
+            session.commit();
+        }
+    }
+
     /**
      * Get a bot user by their id.
      *

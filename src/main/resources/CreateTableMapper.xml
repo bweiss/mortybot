@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.hatemachine.mortybot.mapper.CreateTableMapper">
+    <cache />
+    <insert id="createBotUsersTableIfNotExists">
+        create table bot_users
+        (
+            bot_user_id integer not null
+                constraint bot_users_pk
+                    primary key autoincrement,
+            username    text    not null,
+            hostmasks   text,
+            flags       text
+        );
+
+        create unique index bot_users_bot_user_id_uindex
+            on bot_users (bot_user_id);
+
+        create unique index bot_users_username_uindex
+            on bot_users (username);
+    </insert>
+</mapper>
