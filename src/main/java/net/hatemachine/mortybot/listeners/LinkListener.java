@@ -20,7 +20,7 @@ package net.hatemachine.mortybot.listeners;
 import io.github.redouane59.twitter.TwitterClient;
 import io.github.redouane59.twitter.dto.tweet.Tweet;
 import io.github.redouane59.twitter.signature.TwitterCredentials;
-import net.hatemachine.mortybot.BotUser;
+import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.bitly.Bitly;
 import net.hatemachine.mortybot.config.BotDefaults;
@@ -86,10 +86,11 @@ public class LinkListener extends ListenerAdapter {
             return;
         }
 
-        List<BotUser> ignored = bot.getBotUserDao().getAll(user.getHostmask(), BotUser.Flag.IGNORE);
-        if (!ignored.isEmpty()) {
-            BotUser ignoredBotUser = ignored.get(0);
-            log.info("User {} (BotUser: {}) has IGNORE flag, ignoring message...", user.getNick(), ignoredBotUser.getName());
+        List<BotUser> botUsers = bot.getBotUserDao().getAll(user.getHostmask());
+        boolean ignoreUser = botUsers.stream().anyMatch(u -> u.hasFlag("IGNORE"));
+
+        if (ignoreUser) {
+            log.info("User {} has IGNORE flag, ignoring message...", user.getNick());
             return;
         }
 

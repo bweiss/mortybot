@@ -18,7 +18,7 @@
 package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.BotUser;
+import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.BotUserDao;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;

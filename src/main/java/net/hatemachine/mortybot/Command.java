@@ -42,6 +42,7 @@ import net.hatemachine.mortybot.commands.WhoCommand;
 import net.hatemachine.mortybot.commands.WordleCommand;
 import net.hatemachine.mortybot.commands.WotdCommand;
 import net.hatemachine.mortybot.commands.YearCommand;
+import net.hatemachine.mortybot.model.BotUser;
 
 import java.util.Arrays;
 
@@ -146,7 +147,7 @@ public enum Command {
             "Manages bot users",
             "Usage: USER <subcommand> [target] [args]",
             "Subcommands: LIST, SHOW, ADD, REMOVE, ADDHOSTMASK, REMOVEHOSTMASK, ADDFLAG, REMOVEFLAG",
-            "Available user flags: " + Arrays.toString(BotUser.Flag.values())
+            "Available user flags: ADMIN, AOP, DCC, IGNORE"
     }),
 
     WHO(WhoCommand.class, new String[] {

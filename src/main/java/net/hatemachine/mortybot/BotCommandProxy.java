@@ -19,6 +19,7 @@ package net.hatemachine.mortybot;
 
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.exception.BotCommandException;
+import net.hatemachine.mortybot.model.BotUser;
 import org.pircbotx.User;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
@@ -56,14 +57,16 @@ public class BotCommandProxy implements InvocationHandler {
         GenericMessageEvent event = command.getEvent();
         MortyBot bot = event.getBot();
         User user = event.getUser();
-        List<BotUser> ignored = bot.getBotUserDao().getAll(user.getHostmask(), BotUser.Flag.IGNORE);
+        BotUserDao botUserDao = bot.getBotUserDao();
+        List<BotUser> botUsers = botUserDao.getAll(user.getHostmask());
+        boolean ignoredUser = botUsers.stream().anyMatch(u -> u.hasFlag("IGNORE"));
+        boolean adminUser = botUsers.stream().anyMatch(u -> u.hasFlag("ADMIN"));
 
-        if (!ignored.isEmpty()) {
-            BotUser ignoredBotUser = ignored.get(0);
-            throw new BotCommandException(USER_IGNORED, user.getHostmask() + " [" + ignoredBotUser.getName() + "]");
+        if (ignoredUser) {
+            throw new BotCommandException(USER_IGNORED, user.toString());
         } else if (!enabled.contains(command.getName())) {
             throw new BotCommandException(COMMAND_NOT_ENABLED, command.getName());
-        } else if (adminOnly.contains(command.getName()) && !bot.getBotUserDao().isAdmin(user)) {
+        } else if (adminOnly.contains(command.getName()) && !adminUser) {
             throw new BotCommandException(USER_UNAUTHORIZED, command.getName() + " " + user);
         } else {
             result = m.invoke(command, args);

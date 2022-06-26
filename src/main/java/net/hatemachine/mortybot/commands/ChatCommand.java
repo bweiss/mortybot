@@ -18,7 +18,7 @@
 package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.BotUser;
+import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
@@ -60,11 +60,12 @@ public class ChatCommand implements BotCommand {
             }
 
             if (user != null) {
-                List<BotUser> matchedBotUsers = bot.getBotUserDao().getAll(user.getHostmask(), BotUser.Flag.DCC);
+                List<BotUser> botUsers = bot.getBotUserDao().getAll(user.getHostmask());
+                boolean dccFlag = botUsers.stream().anyMatch(u -> u.hasFlag("DCC"));
 
-                if (!matchedBotUsers.isEmpty()) {
-                    BotUser botUser = matchedBotUsers.get(0);
-                    log.info("Sending DCC CHAT request to {} (bot_user: {})", user.getHostmask(), botUser.getName());
+                if (dccFlag) {
+                    BotUser botUser = botUsers.get(0);
+                    log.info("Sending DCC CHAT request to {} (bot_user: {})", user.getHostmask(), botUser);
                     DccManager mgr = DccManager.getManager();
                     mgr.startDccChat(user);
                 }

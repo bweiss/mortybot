@@ -18,36 +18,46 @@
 package net.hatemachine.mortybot;
 
 import net.hatemachine.mortybot.exception.BotUserException;
-import org.pircbotx.User;
+import net.hatemachine.mortybot.model.BotUser;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface BotUserDao {
 
     /**
-     * @param name unique identifier for the bot user
-     * @return a bot user if one exists with unique identifier <code>name</code>
-     * @throws BotUserException if any error occurs
+     * Get a bot user by their id.
+     *
+     * @param id the id of the bot user you want to retrieve
+     * @return an {@link Optional} containing a {@link BotUser} if one exists with that id
      */
-    BotUser getByName(String name) throws BotUserException;
+    Optional<BotUser> get(Integer id);
+
+    /**
+     * Get a bot user by their username.
+     *
+     * @param uname the username of the bot user you want to retrieve
+     * @return an {@link Optional} containing a {@link BotUser} if one exists with that username
+     */
+    Optional<BotUser> getByUsername(String uname);
 
     /**
      * @param botUser the bot user to be added
      * @throws BotUserException if any error occurs
      */
-    void add(BotUser botUser) throws BotUserException;
+    int add(BotUser botUser) throws BotUserException;
 
     /**
      * @param botUser the bot user to be updated
      * @throws BotUserException if any error occurs
      */
-    void update(BotUser botUser) throws BotUserException;
+    int update(BotUser botUser) throws BotUserException;
 
     /**
      * @param botUser the bot user to be deleted
      * @throws BotUserException if any error occurs
      */
-    void delete(BotUser botUser) throws BotUserException;
+    int delete(BotUser botUser) throws BotUserException;
 
     /**
      * @return list of all bot users.
@@ -55,27 +65,10 @@ public interface BotUserDao {
     List<BotUser> getAll();
 
     /**
-     * @param hostmask the hostmask to search for
-     * @return all bot users that match <code>hostmask</code>
+     * Get all the bot users that match a particular hostmask.
+     *
+     * @param hostmask the user's hostmask
+     * @return list of bot users with matching hostmasks
      */
     List<BotUser> getAll(String hostmask);
-
-    /**
-     * @param flag the flag to search for
-     * @return all bot users that have <code>flag</code>
-     */
-    List<BotUser> getAll(BotUser.Flag flag);
-
-    /**
-     * @param hostmask the hostmask to search for
-     * @param flag the flag to search for
-     * @return all bot users that match <code>hostmask</code> and have <code>flag</code>
-     */
-    List<BotUser> getAll(String hostmask, BotUser.Flag flag);
-
-    /**
-     * @param user the user to check
-     * @return true if the user is a bot admin
-     */
-    boolean isAdmin(User user);
 }

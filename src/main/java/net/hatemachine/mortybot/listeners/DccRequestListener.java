@@ -17,7 +17,7 @@
  */
 package net.hatemachine.mortybot.listeners;
 
-import net.hatemachine.mortybot.BotUser;
+import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
@@ -47,10 +47,10 @@ public class DccRequestListener extends ListenerAdapter {
         BotProperties botProperties = BotProperties.getBotProperties();
         boolean dccEnabled = botProperties.getBooleanProperty("dcc.chat.enabled", BotDefaults.DCC_CHAT_ENABLED);
         User user = (User) Validate.notNull(event.getUser());
-        List<BotUser> matchedBotUsers = bot.getBotUserDao().getAll(user.getHostmask(), BotUser.Flag.DCC);
-        Optional<BotUser> botUser = matchedBotUsers.isEmpty() ? Optional.empty() : Optional.of(matchedBotUsers.get(0));
+        List<BotUser> botUsers = bot.getBotUserDao().getAll(user.getHostmask());
+        boolean dccFlag = botUsers.stream().anyMatch(u -> u.hasFlag("DCC"));
 
-        if (dccEnabled && botUser.isPresent()) {
+        if (dccEnabled && dccFlag) {
             Thread.sleep(1000);
             log.info("Accepting DCC CHAT request from {}", user.getHostmask());
             DccManager mgr = DccManager.getManager();

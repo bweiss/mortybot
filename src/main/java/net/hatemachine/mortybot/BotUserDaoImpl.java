@@ -17,62 +17,63 @@
  */
 package net.hatemachine.mortybot;
 
-import com.darwinsys.io.FileSaver;
-import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.exception.BotUserException;
-import net.hatemachine.mortybot.util.Validate;
-import org.pircbotx.User;
+import net.hatemachine.mortybot.mapper.BotUserMapper;
+import net.hatemachine.mortybot.model.BotUser;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.dynamic.sql.select.SelectDSLCompleter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Writer;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static net.hatemachine.mortybot.exception.BotUserException.Reason.UNKNOWN_USER;
 import static net.hatemachine.mortybot.exception.BotUserException.Reason.USER_EXISTS;
+import static net.hatemachine.mortybot.mapper.BotUserDynamicSqlSupport.*;
+import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 
 public class BotUserDaoImpl implements BotUserDao {
-    
-    private static final String USER_FILE = "users.conf";
 
     private static final Logger log = LoggerFactory.getLogger(BotUserDaoImpl.class);
+    private static final SqlSessionFactory sqlSessionFactory = MyBatisUtil.getSqlSessionFactory();
 
-    private final Object accessLock = new Object();
-    private final Map<String, BotUser> botUserMap = new HashMap<>();
+    /**
+     * Get a bot user by their id.
+     *
+     * @param id the id of the bot user you want to retrieve
+     * @return an {@link Optional} containing a {@link BotUser} if one exists with that id
+     */
+    @Override
+    public synchronized Optional<BotUser> get(final Integer id) {
+        Optional<BotUser> optionalBotUser;
 
-    public BotUserDaoImpl() {
-        init();
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            BotUserMapper mapper = session.getMapper(BotUserMapper.class);
+            optionalBotUser = mapper.selectOne(c -> c.where(botUserId, isEqualTo(id)));
+        }
+
+        return optionalBotUser;
     }
 
     /**
-     * Get a bot user by name.
+     * Get a bot user by their username.
      *
-     * @param name unique identifier for the bot user
-     * @return a bot user if one exists with unique identifier <code>name</code>
-     * @throws BotUserException if any error occurs
+     * @param uname the username of the bot user you want to retrieve
+     * @return an {@link Optional} containing a {@link BotUser} if one exists with that username
      */
     @Override
-    public BotUser getByName(final String name) throws BotUserException {
-        synchronized (this.accessLock) {
-            if (!botUserMap.containsKey(name))
-                throw new BotUserException(UNKNOWN_USER, name);
+    public synchronized Optional<BotUser> getByUsername(final String uname) {
+        Optional<BotUser> optionalBotUser;
 
-            return botUserMap.get(name);
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            BotUserMapper mapper = session.getMapper(BotUserMapper.class);
+            optionalBotUser = mapper.selectOne(c -> c.where(username, isEqualTo(uname)));
         }
+
+        return optionalBotUser;
     }
 
     /**
@@ -82,13 +83,22 @@ public class BotUserDaoImpl implements BotUserDao {
      * @throws BotUserException if any error occurs
      */
     @Override
-    public void add(final BotUser botUser) throws BotUserException {
-        synchronized (this.accessLock) {
-            if (botUserMap.containsKey(botUser.getName()))
-                throw new BotUserException(USER_EXISTS, botUser.getName());
+    public synchronized int add(final BotUser botUser) throws BotUserException {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            BotUserMapper mapper = session.getMapper(BotUserMapper.class);
+            long matchingUsers = mapper.count(c -> c.where(username, isEqualTo(botUser.getUsername())));
 
-            botUserMap.put(botUser.getName(), botUser);
-            save();
+            if (matchingUsers > 0) {
+                throw new BotUserException(USER_EXISTS, botUser.toString());
+            }
+
+            // TODO: update lastModified timestamp any time we add or update a user
+            LocalDateTime now = LocalDateTime.now();
+            log.debug("XXX now: {}", now);
+
+            int rows = mapper.insert(botUser);
+            session.commit();
+            return rows;
         }
     }
 
@@ -99,14 +109,18 @@ public class BotUserDaoImpl implements BotUserDao {
      * @throws BotUserException if any error occurs
      */
     @Override
-    public void update(final BotUser botUser) throws BotUserException {
-        synchronized (this.accessLock) {
-            if (!botUserMap.containsKey(botUser.getName()))
-                throw new BotUserException(UNKNOWN_USER, botUser.getName());
+    public synchronized int update(final BotUser botUser) throws BotUserException {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            BotUserMapper mapper = session.getMapper(BotUserMapper.class);
+            long matchingUsers = mapper.count(c -> c.where(botUserId, isEqualTo(botUser.getBotUserId())));
 
-            botUserMap.remove(botUser.getName());
-            botUserMap.put(botUser.getName(), botUser);
-            save();
+            if (matchingUsers == 0) {
+                throw new BotUserException(UNKNOWN_USER, botUser.toString());
+            }
+
+            int rows = mapper.updateByPrimaryKey(botUser);
+            session.commit();
+            return rows;
         }
     }
 
@@ -117,13 +131,18 @@ public class BotUserDaoImpl implements BotUserDao {
      * @throws BotUserException if any error occurs
      */
     @Override
-    public void delete(final BotUser botUser) throws BotUserException {
-        synchronized (this.accessLock) {
-            if (!botUserMap.containsKey(botUser.getName()))
-                throw new BotUserException(UNKNOWN_USER, botUser.getName());
+    public synchronized int delete(final BotUser botUser) throws BotUserException {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            BotUserMapper mapper = session.getMapper(BotUserMapper.class);
+            long matchingUsers = mapper.count(c -> c.where(botUserId, isEqualTo(botUser.getBotUserId())));
 
-            botUserMap.remove(botUser.getName());
-            save();
+            if (matchingUsers == 0) {
+                throw new BotUserException(UNKNOWN_USER, botUser.toString());
+            }
+
+            int rows = mapper.deleteByPrimaryKey(botUser.getBotUserId());
+            session.commit();
+            return rows;
         }
     }
 
@@ -133,9 +152,10 @@ public class BotUserDaoImpl implements BotUserDao {
      * @return a list of bot users
      */
     @Override
-    public List<BotUser> getAll() {
-        synchronized (this.accessLock) {
-            return new ArrayList<>(botUserMap.values());
+    public synchronized List<BotUser> getAll() {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            BotUserMapper mapper = session.getMapper(BotUserMapper.class);
+            return mapper.select(SelectDSLCompleter.allRows());
         }
     }
 
@@ -145,165 +165,9 @@ public class BotUserDaoImpl implements BotUserDao {
      * @param hostmask the user's hostmask
      * @return list of bot users with matching hostmasks
      */
-    public List<BotUser> getAll(String hostmask) {
-        synchronized (this.accessLock) {
-            return getAll().stream()
-                    .filter(u -> u.hasMatchingHostmask(hostmask))
-                    .toList();
-        }
-    }
-
-    /**
-     * Get all the bot users that have a specific user flag.
-     *
-     * @param flag the user flag you are interested in
-     * @return list of bot users that have the flag
-     */
-    public List<BotUser> getAll(BotUser.Flag flag) {
-        synchronized (this.accessLock) {
-            return getAll().stream()
-                    .filter(u -> u.getFlags().contains(flag))
-                    .toList();
-        }
-    }
-
-    /**
-     * Get all the bot users that have a matching hostmask and flag.
-     *
-     * @param hostmask the user's hostmask
-     * @param flag the user flag you are interested in
-     * @return list of bot users matching both the hostmask and flag
-     */
-    public List<BotUser> getAll(String hostmask, BotUser.Flag flag) {
-        synchronized (this.accessLock) {
-            return getAll().stream()
-                    .filter(u -> u.getFlags().contains(flag))
-                    .filter(u -> u.hasMatchingHostmask(hostmask))
-                    .toList();
-        }
-    }
-
-    /**
-     * Find out if a user is an admin.
-     *
-     * @param user that you want to verify
-     * @return true if user is an admin
-     */
-    public boolean isAdmin(User user) {
-        List<BotUser> admins = this.getAll(user.getHostmask(), BotUser.Flag.ADMIN);
-        return !admins.isEmpty();
-    }
-
-    /**
-     * Load our initial bot users from disk.
-     */
-    private void init() {
-        synchronized (this.accessLock) {
-            String pathSeparator = FileSystems.getDefault().getSeparator();
-            Path configDir = BotProperties.getBotProperties().getBotConfigDir();
-            Path userFile = Path.of(configDir + pathSeparator + USER_FILE);
-
-            try {
-                List<String> lines = Files.readAllLines(userFile);
-                for (String line : lines) {
-                    if (line != null && !line.trim().isEmpty() && !line.startsWith("#")) {
-                        Optional<BotUser> user = parseLine(line);
-                        user.ifPresent(botUser -> botUserMap.put(botUser.getName(), botUser));
-                    }
-                }
-            } catch (IOException e) {
-                log.error("Error reading bot user file: {}", e.getMessage());
-            }
-        }
-    }
-
-    /**
-     * Save all bot users to disk.
-     */
-    private void save() {
-        synchronized (this.accessLock) {
-            String pathSeparator = FileSystems.getDefault().getSeparator();
-            Path configDir = BotProperties.getBotProperties().getBotConfigDir();
-            Path userFile = Path.of(configDir + pathSeparator + USER_FILE);
-
-            try {
-                FileSaver saver = new FileSaver(userFile);
-                Writer writer = saver.getWriter();
-                PrintWriter out = new PrintWriter(writer);
-
-                for (BotUser user : getAll()) {
-                    String line = user.getName() +
-                            " " +
-                            String.join(",", user.getHostmasks()) +
-                            " " +
-                            user.getFlags().stream().map(BotUser.Flag::toString).collect(Collectors.joining(","));
-                    out.println(line);
-                }
-
-                out.close();
-                saver.finish();
-
-            } catch (IOException e) {
-                log.error("Exception encountered writing user file", e);
-            }
-        }
-    }
-
-    /**
-     * Parses a line of text representing a bot user. This should be of the following format.
-     *
-     *  name hostmask1,hostmask2 flag1,flag2
-     *
-     *  e.g.
-     *  brian *!brian@hatemachine.net,*!brian@hugmachine.net ADMIN,AOP
-     *
-     * @param line the line of text to be parsed
-     * @return an optional containing a bot user if one is created successfully
-     */
-    private static Optional<BotUser> parseLine(String line) {
-        Optional<BotUser> botUser = Optional.empty();
-        List<String> tokens = Arrays.asList(line.split(" "));
-
-        if (tokens.size() >= 2) {
-            String name = tokens.get(0);
-            String[] hostmasks = tokens.get(1).split(",");
-            Set<BotUser.Flag> flags = new HashSet<>();
-
-            // parse any user flags if present
-            if (tokens.size() == 3) {
-                flags = parseFlags(tokens.get(2));
-            }
-
-            BotUser user = new BotUser(Validate.botUserName(name), Validate.hostmask(hostmasks[0]), flags);
-
-            // check for additional hostmasks and add them to the user
-            if (hostmasks.length > 1) {
-                for (int i = 1; i < hostmasks.length; i++) {
-                    user.addHostmask(Validate.hostmask(hostmasks[i]));
-                }
-            }
-
-            botUser = Optional.of(user);
-        }
-
-        return botUser;
-    }
-
-    /**
-     * Parse a comma-delimited string of user flags into a set of enums representing those flags.
-     *
-     * @param flagList the comma-delimited list of flags
-     * @return a set of user flags
-     */
-    private static Set<BotUser.Flag> parseFlags(String flagList) {
-        Set<BotUser.Flag> flags = new HashSet<>();
-        for (String flagStr : flagList.split(",")) {
-            try {
-                flags.add(Enum.valueOf(BotUser.Flag.class, flagStr.toUpperCase(Locale.ROOT)));
-            } catch (IllegalArgumentException e) {
-                log.error("Invalid bot user flag: {}", e.getMessage());
-            }
-        }
-        return flags;
+    public synchronized List<BotUser> getAll(String hostmask) {
+        return getAll().stream()
+                .filter(u -> u.hasMatchingHostmask(hostmask))
+                .toList();
     }
 }

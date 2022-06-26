@@ -17,7 +17,7 @@
  */
 package net.hatemachine.mortybot.dcc;
 
-import net.hatemachine.mortybot.BotUser;
+import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.events.DccChatMessageEvent;
 import org.pircbotx.User;
@@ -113,10 +113,12 @@ public class DccManager {
             Chat chat = cs.getChat();
             User user = chat.getUser();
 
+            // if adminOnly flag is set, skip over users that do not have the ADMIN flag
             if (adminOnly) {
                 MortyBot bot = user.getBot();
-                List<BotUser> matchedBotUsers = bot.getBotUserDao().getAll(user.getHostmask(), BotUser.Flag.ADMIN);
-                if (matchedBotUsers.isEmpty()) {
+                List<BotUser> botUsers = bot.getBotUserDao().getAll(user.getHostmask());
+                boolean adminFlag = botUsers.stream().anyMatch(u -> u.hasFlag("ADMIN"));
+                if (!adminFlag) {
                     continue;
                 }
             }

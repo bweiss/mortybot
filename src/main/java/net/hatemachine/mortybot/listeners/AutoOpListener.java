@@ -17,7 +17,7 @@
  */
 package net.hatemachine.mortybot.listeners;
 
-import net.hatemachine.mortybot.BotUser;
+import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
@@ -73,9 +73,10 @@ public class AutoOpListener extends ListenerAdapter {
         final Channel channel = event.getChannel();
         final UserHostmask hostmask = event.getUserHostmask();
         final String nick = hostmask.getNick();
-        final List<BotUser> matchedUsers = bot.getBotUserDao().getAll(hostmask.getHostmask(), BotUser.Flag.AOP);
+        final List<BotUser> botUsers = bot.getBotUserDao().getAll(hostmask.getHostmask());
+        boolean aopFlag = botUsers.stream().anyMatch(u -> u.hasFlag("AOP"));
 
-        if (!matchedUsers.isEmpty()) {
+        if (aopFlag) {
             log.debug("Adding {} to auto-op queue for {}", nick, channel.getName());
 
             if (pending.containsKey(channel.getName())) {

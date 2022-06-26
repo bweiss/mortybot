@@ -18,7 +18,7 @@
 package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.BotUser;
+import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.BotUserDao;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 import static java.util.stream.Collectors.joining;
 import static net.hatemachine.mortybot.config.BotDefaults.USER_ADD_MASK_TYPE;
@@ -51,11 +52,13 @@ public class UserCommand implements BotCommand {
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;
     private final List<String> args;
+    private final BotUserDao botUserDao;
 
     public UserCommand(GenericMessageEvent event, CommandListener.CommandSource source, List<String> args) {
         this.event = event;
         this.source = source;
         this.args = args;
+        this.botUserDao = ((MortyBot)event.getBot()).getBotUserDao();
     }
 
     @Override
@@ -103,9 +106,10 @@ public class UserCommand implements BotCommand {
         // if no hostmask provided, see if there is a known user with that nick and attempt to pull their hostmask
         if (args.size() == 1) {
             User user = bot.getUserChannelDao().getUser(name);
+
             if (user != null) {
-                // this fails if the bot doesn't yet know the user's full hostmask
                 try {
+                    // this fails if the bot doesn't yet know the user's full hostmask
                     hostmask = IrcUtils.maskAddress(user.getHostmask(),
                             BotProperties.getBotProperties().getIntProperty("user.add.mask.type", USER_ADD_MASK_TYPE));
                 } catch (IllegalArgumentException e) {
@@ -121,13 +125,14 @@ public class UserCommand implements BotCommand {
             flags = args.get(2);
         }
 
-        List<BotUser> matchedUsers = bot.getBotUserDao().getAll(hostmask);
+        List<BotUser> matchedUsers = botUserDao.getAll(hostmask);
 
         if (!matchedUsers.isEmpty()) {
             event.respondWith("A user with a matching hostmask already exists");
         } else {
             try {
-                bot.getBotUserDao().add(new BotUser(Validate.botUserName(name), Validate.hostmask(hostmask), flags));
+                BotUser botUser = new BotUser(Validate.botUserName(name), Validate.hostmask(hostmask), flags);
+                botUserDao.add(botUser);
                 event.respondWith("User added");
             } catch (BotUserException e) {
                 handleBotUserException(e, "addCommand", args);
@@ -149,18 +154,19 @@ public class UserCommand implements BotCommand {
             throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
         }
 
-        MortyBot bot = event.getBot();
-        String name = args.get(0);
-        String flagStr = args.get(1).toUpperCase(Locale.ROOT);
-        BotUser.Flag flag;
+        String username = args.get(0);
+        String flag = args.get(1).toUpperCase(Locale.ROOT);
 
         try {
-            flag = Enum.valueOf(BotUser.Flag.class, flagStr);
-            BotUserDao dao = bot.getBotUserDao();
-            BotUser botUser = dao.getByName(name);
-            botUser.addFlag(flag);
-            dao.update(botUser);
-            event.respondWith("Flag added");
+            Optional<BotUser> optionalBotUser = botUserDao.getByUsername(username);
+            if (optionalBotUser.isPresent()) {
+                BotUser botUser = optionalBotUser.get();
+                botUser.addFlag(flag);
+                botUserDao.update(botUser);
+                event.respondWith("Flag added");
+            } else {
+                event.respondWith("User not found");
+            }
         } catch (BotUserException e) {
             handleBotUserException(e, "addFlagCommand", args);
         } catch (IllegalArgumentException e) {
@@ -180,16 +186,19 @@ public class UserCommand implements BotCommand {
             throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
         }
 
-        MortyBot bot = event.getBot();
-        String name = args.get(0);
+        String username = args.get(0);
         String hostmask = args.get(1);
 
         try {
-            BotUserDao dao = bot.getBotUserDao();
-            BotUser botUser = dao.getByName(name);
-            botUser.addHostmask(Validate.hostmask(hostmask));
-            dao.update(botUser);
-            event.respondWith("Hostmask added");
+            Optional<BotUser> optionalBotUser = botUserDao.getByUsername(username);
+            if (optionalBotUser.isPresent()) {
+                BotUser botUser = optionalBotUser.get();
+                botUser.addHostmask(Validate.hostmask(hostmask));
+                botUserDao.update(botUser);
+                event.respondWith("Hostmask added");
+            } else {
+                event.respondWith("User not found");
+            }
         } catch (BotUserException e) {
             handleBotUserException(e, "addHostmaskCommand", args);
         } catch (IllegalArgumentException e) {
@@ -202,12 +211,11 @@ public class UserCommand implements BotCommand {
      * List all bot users.
      */
     private void listCommand() {
-        MortyBot bot = event.getBot();
-        List<BotUser> users = bot.getBotUserDao().getAll();
+        List<BotUser> users = botUserDao.getAll();
 
         if (!users.isEmpty()) {
             // TODO: improve formatting and handling of larger user lists
-            String usernames = users.stream().map(BotUser::getName).collect(joining(", "));
+            String usernames = users.stream().map(BotUser::getUsername).collect(joining(", "));
             event.respondWith("Bot Users: " + usernames);
             event.respondWith("USER SHOW <username> to see details");
         }
@@ -224,14 +232,17 @@ public class UserCommand implements BotCommand {
             throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
         }
 
-        MortyBot bot = event.getBot();
-        String name = args.get(0);
+        String username = args.get(0);
 
         try {
-            BotUserDao dao = bot.getBotUserDao();
-            BotUser botUser = dao.getByName(name);
-            dao.delete(botUser);
-            event.respondWith("User removed");
+            Optional<BotUser> optionalBotUser = botUserDao.getByUsername(username);
+            if (optionalBotUser.isPresent()) {
+                BotUser botUser = optionalBotUser.get();
+                botUserDao.delete(botUser);
+                event.respondWith("User removed");
+            } else {
+                event.respondWith("User not found");
+            }
         } catch (BotUserException e) {
             handleBotUserException(e, "removeCommand", args);
         } catch (IllegalArgumentException e) {
@@ -250,18 +261,19 @@ public class UserCommand implements BotCommand {
         if (args.size() < 2)
             throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
 
-        MortyBot bot = event.getBot();
-        String name = args.get(0);
-        String flagStr = args.get(1).toUpperCase(Locale.ROOT);
-        BotUser.Flag flag;
+        String username = args.get(0);
+        String flag = args.get(1).toUpperCase(Locale.ROOT);
 
         try {
-            flag = Enum.valueOf(BotUser.Flag.class, flagStr);
-            BotUserDao dao = bot.getBotUserDao();
-            BotUser botUser = dao.getByName(name);
-            botUser.removeFlag(flag);
-            dao.update(botUser);
-            event.respondWith("Flag removed");
+            Optional<BotUser> optionalBotUser = botUserDao.getByUsername(username);
+            if (optionalBotUser.isPresent()) {
+                BotUser botUser = optionalBotUser.get();
+                botUser.removeFlag(flag);
+                botUserDao.update(botUser);
+                event.respondWith("Flag removed");
+            } else {
+                event.respondWith("User not found");
+            }
         } catch (BotUserException e) {
             handleBotUserException(e, "removeFlagCommand", args);
         } catch (IllegalArgumentException e) {
@@ -281,16 +293,19 @@ public class UserCommand implements BotCommand {
             throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
         }
 
-        MortyBot bot = event.getBot();
-        String name = args.get(0);
+        String username = args.get(0);
         String hostmask = args.get(1);
 
         try {
-            BotUserDao dao = bot.getBotUserDao();
-            BotUser botUser = dao.getByName(name);
-            botUser.removeHostmask(hostmask);
-            dao.update(botUser);
-            event.respondWith("Hostmask removed");
+            Optional<BotUser> optionalBotUser = botUserDao.getByUsername(username);
+            if (optionalBotUser.isPresent()) {
+                BotUser botUser = optionalBotUser.get();
+                botUser.removeHostmask(hostmask);
+                botUserDao.update(botUser);
+                event.respondWith("Hostmask removed");
+            } else {
+                event.respondWith("User not found");
+            }
         } catch (BotUserException e) {
             handleBotUserException(e, "removeHostmaskCommand", args);
         } catch (IllegalArgumentException e) {
@@ -310,14 +325,16 @@ public class UserCommand implements BotCommand {
             throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
         }
 
-        MortyBot bot = event.getBot();
-        String name = args.get(0);
+        String username = args.get(0);
 
         try {
-            BotUser botUser = bot.getBotUserDao().getByName(name);
-            event.respondWith(botUser.toString());
-        } catch (BotUserException e) {
-            handleBotUserException(e, "addCommand", args);
+            Optional<BotUser> optionalBotUser = botUserDao.getByUsername(username);
+            if (optionalBotUser.isPresent()) {
+                BotUser botUser = optionalBotUser.get();
+                event.respondWith(botUser.toString());
+            } else {
+                event.respondWith("User not found");
+            }
         } catch (IllegalArgumentException e) {
             log.error("Error showing user: {}", e.getMessage());
             event.respondWith(e.getMessage());
