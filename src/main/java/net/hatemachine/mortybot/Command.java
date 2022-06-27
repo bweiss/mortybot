@@ -146,7 +146,7 @@ public enum Command {
     USER(UserCommand.class, new String[] {
             "Manages bot users",
             "Usage: USER <subcommand> [target] [args]",
-            "Subcommands: LIST, SHOW, ADD, REMOVE, ADDHOSTMASK, REMOVEHOSTMASK, ADDFLAG, REMOVEFLAG",
+            "Subcommands: LIST, SHOW, ADD, REMOVE, ADDHOSTMASK, REMOVEHOSTMASK, ADDFLAG, REMOVEFLAG, SETLOCATION",
             "Available user flags: ADMIN, AOP, DCC, IGNORE"
     }),
 
@@ -167,8 +167,9 @@ public enum Command {
     }),
 
     WTR(WeatherCommand.class, new String[] {
-            "Shows the weather for an area",
-            "Usage: WTR <query>"
+            "Shows the weather for a location",
+            "Usage: WTR [-d] [location]",
+            "If the -d option is present the bot will attempt to save your default location (requires being registered with the bot)"
     }),
 
     YEAR(YearCommand.class, new String[] {

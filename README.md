@@ -14,7 +14,7 @@ This is a simple IRC bot I wrote for fun and to learn Java. It is designed for [
 * Google search
 * Weather lookups
 * Stock symbol lookups
-* IMDB and rotten tomatoes search
+* IMDB and Rotten Tomatoes search
 * GeoIP2 address location lookups
 * Merriam-Webster dictionary and word-of-the-day lookups
 * BottleBlueBook search
@@ -40,19 +40,19 @@ You can then find the packaged archives in the target directory.
 > mortybot.tar.gz<br>
 > mortybot.zip<br>
 
-To install, simply unpack the archive of your choice into the desired directory.
+To install, simply unpack the archive of your choice into the desired directory and ensure you've configured a suitable Java runtime (you should set JAVA_HOME in one of the provided run scripts or at the system level).
 
 ## Configuring
 
-Most configuration of the bot is done via the conf/bot.properties file. You should edit this file to your liking prior to starting the bot. These can be modified while the bot is running via the CONFIG command.
-
-I also recommend setting up an admin user for yourself either by editing conf/users.conf or issuing the REGISTER command to the bot after starting it.
+Most configuration of the bot is done via the conf/bot.properties file. You should edit this file to your liking prior to starting the bot. These properties can be modified while the bot is running via the CONFIG command.
 
 ### Bot Users
 
-Users can be added to the bot by editing conf/user.conf prior to starting the bot, issuing a REGISTER command, or by issuing the USER ADD command as an admin user.
+Upon starting the bot for the first time, it is highly recommended that you issue a REGISTER command in a private message to the bot. This will register you with your current hostmask and the ADMIN, AOP, and DCC flags.
 
-At minimum, a name and a hostmask (wildcards supported) must be provided. Optionally, you can also specify any combination of the bot user flags shown below.
+Further users can be added by an admin user via the USER ADD command (see HELP USER) or a user can register themselves (with no flags) by issuing a REGISTER command in a public or private message.
+
+Supported flags:
 
 | Flag   | Description                                                                       |
 |--------|-----------------------------------------------------------------------------------|

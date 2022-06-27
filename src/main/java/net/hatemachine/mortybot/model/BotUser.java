@@ -134,6 +134,7 @@ public class BotUser {
                 ", username='" + username + '\'' +
                 ", hostmasks='" + hostmasks + '\'' +
                 ", flags='" + flags + '\'' +
+                ", location='" + location + '\'' +
                 '}';
     }
 }
