@@ -217,6 +217,7 @@
                             <excludes>
                                 <exclude>**/*.txt</exclude>
                                 <exclude>**/*.log</exclude>
+                                <exclude>**/*.db</exclude>
                                 <exclude>.git*</exclude>
                                 <exclude>README.md</exclude>
                                 <exclude>.idea/**</exclude>
@@ -395,7 +396,7 @@
                 <configuration>
                     <jdbcDriver>org.sqlite.JDBC</jdbcDriver>
                     <jdbcURL>jdbc:sqlite:mortybot.db</jdbcURL>
-                    <overwrite>true</overwrite>
+                    <overwrite>false</overwrite>
                 </configuration>
                 <dependencies>
                     <dependency>
