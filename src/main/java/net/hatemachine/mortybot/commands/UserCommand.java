@@ -132,7 +132,7 @@ public class UserCommand implements BotCommand {
             event.respondWith("A user with a matching hostmask already exists");
         } else {
             try {
-                BotUser botUser = new BotUser(Validate.botUserName(name), Validate.hostmask(hostmask), flags);
+                BotUser botUser = new BotUser(Validate.botUserName(name), Validate.hostmask(hostmask), Validate.botUserFlags(flags));
                 botUserDao.add(botUser);
                 event.respondWith("User added");
             } catch (BotUserException e) {
@@ -156,7 +156,7 @@ public class UserCommand implements BotCommand {
         }
 
         String username = args.get(0);
-        String flag = args.get(1).toUpperCase(Locale.ROOT);
+        String flag = Validate.botUserFlags(args.get(1));
 
         try {
             Optional<BotUser> optionalBotUser = botUserDao.getByUsername(username);

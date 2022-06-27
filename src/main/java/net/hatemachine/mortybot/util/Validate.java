@@ -17,11 +17,24 @@
  */
 package net.hatemachine.mortybot.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.text.NumberFormat;
 import java.text.ParsePosition;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Validate {
+
+    enum BotUserFlag {
+        ADMIN,
+        AOP,
+        DCC,
+        IGNORE
+    }
 
     private static final int MAX_BOT_USER_NAME_LENGTH = 16;
     private static final Pattern BOT_USER_NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_]+");
@@ -31,6 +44,8 @@ public class Validate {
     private static final Pattern ADDRESS_PATTERN = Pattern.compile("[a-zA-Z0-9\\[\\]|_-]+![a-zA-Z0-9~]+@[a-zA-Z0-9.:-]+");
     private static final Pattern HOSTMASK_PATTERN = Pattern.compile("[\\\\*a-zA-Z0-9\\[\\]|_-]+![\\\\*a-zA-Z0-9~]+@[\\\\*a-zA-Z0-9.:-]+");
     private static final Pattern ZIP_CODE_PATTERN = Pattern.compile("^\\d{5}(?:[-\\s]\\d{4})?$");
+
+    private static final Logger log = LoggerFactory.getLogger(Validate.class);
 
     private Validate() {
         throw new IllegalStateException("Utility class");
@@ -123,5 +138,28 @@ public class Validate {
         if (!isZipCode(s))
             throw new IllegalArgumentException("Invalid zip code");
         return s;
+    }
+
+    /**
+     * Validate a comma-delimited list of bot user flags (e.g. "ADMIN,DCC"),
+     * returning only those that are valid.
+     *
+     * @param s comma-delimited string of bot user flags
+     * @return {@link String} of validated bot user flags delimited by commas
+     */
+    public static String botUserFlags(String s) {
+        Set<BotUserFlag> flags = new HashSet<>();
+
+        for (String flag : s.split(",")) {
+            try {
+                flags.add(Enum.valueOf(BotUserFlag.class, flag.toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                log.debug("Invalid flag: {}", flag);
+            }
+        }
+
+        return flags.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
     }
 }

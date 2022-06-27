@@ -58,36 +58,37 @@ public class RegisterCommand implements BotCommand {
         User user = event.getUser();
         BotUserDao dao = bot.getBotUserDao();
         String userName = "";
-        String userHostmask = "";
-        String userFlags = BotDefaults.REGISTER_BOT_USER_FLAGS;
+        String maskedAddress = "";
+        String userFlags = dao.count() > 0 ? "" : BotDefaults.REGISTER_BOT_USER_FLAGS;
 
-        if (bot.getBotUserDao().getAll().isEmpty()) {
-            try {
-                if (args.isEmpty()) {
-                    userName = Validate.botUserName(user.getNick());
-                } else {
-                    userName = Validate.botUserName(args.get(0));
-                }
+        // check if the user already matches an existing bot user
+        List<BotUser> matchingUsers = dao.getAll(user.getHostmask());
+        if (!matchingUsers.isEmpty()) {
+            event.respondWith("You already match an existing user!");
+            return;
+        }
 
-                if (args.size() < 2) {
-                    userHostmask = IrcUtils.maskAddress(user.getHostmask(), BotDefaults.REGISTER_MASK_TYPE);
-                } else {
-                    userHostmask = Validate.hostmask(args.get(1));
-                }
-
-                dao.add(new BotUser(Validate.botUserName(userName), Validate.hostmask(userHostmask), userFlags));
-                event.respondWith(String.format("Registered %s with hostmask %s and flags %s",
-                        userName, userHostmask, userFlags));
-
-            } catch (BotUserException e) {
-                log.error("There was an error trying to add {} ({}) to the bot: {} {}",
-                        userName, userHostmask, e.getReason(), e.getMessage());
-                event.respondWith("Error registering user: " + e.getMessage());
-
-            } catch (IllegalArgumentException e) {
-                log.warn("Illegal argument: {}", e.getMessage());
-                event.respondWith(e.getMessage());
+        try {
+            if (args.isEmpty()) {
+                userName = Validate.botUserName(user.getNick());
+            } else {
+                userName = Validate.botUserName(args.get(0));
             }
+
+            maskedAddress = IrcUtils.maskAddress(user.getHostmask(), BotDefaults.REGISTER_MASK_TYPE);
+            dao.add(new BotUser(Validate.botUserName(userName), Validate.hostmask(maskedAddress), Validate.botUserFlags(userFlags)));
+
+            event.respondWith(String.format("Registered %s with hostmask %s and flags %s",
+                    userName, maskedAddress, userFlags));
+
+        } catch (BotUserException e) {
+            log.error("There was an error trying to add {} ({}) to the bot: {} {}",
+                    userName, maskedAddress, e.getReason(), e.getMessage());
+            event.respondWith("Error registering user");
+
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid argument: {}", e.getMessage());
+            event.respondWith(e.getMessage());
         }
     }
 

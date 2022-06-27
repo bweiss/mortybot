@@ -42,9 +42,6 @@ import net.hatemachine.mortybot.commands.WhoCommand;
 import net.hatemachine.mortybot.commands.WordleCommand;
 import net.hatemachine.mortybot.commands.WotdCommand;
 import net.hatemachine.mortybot.commands.YearCommand;
-import net.hatemachine.mortybot.model.BotUser;
-
-import java.util.Arrays;
 
 public enum Command {
 
@@ -119,8 +116,8 @@ public enum Command {
     }),
 
     REGISTER(RegisterCommand.class, new String[] {
-            "Registers yourself as the admin of the bot (only works if there are no existing users)",
-            "Usage: REGISTER [name] [hostmask]"
+            "Registers yourself with the bot",
+            "Usage: REGISTER [name]"
     }),
 
     RT(RtCommand.class, new String[] {
