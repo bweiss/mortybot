@@ -71,4 +71,11 @@ public interface BotUserDao {
      * @return list of bot users with matching hostmasks
      */
     List<BotUser> getAll(String hostmask);
+
+    /**
+     * Get a total count of all bot users.
+     *
+     * @return number of total bot users
+     */
+    long count();
 }

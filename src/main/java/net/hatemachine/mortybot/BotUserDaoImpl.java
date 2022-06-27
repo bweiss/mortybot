@@ -26,6 +26,7 @@ import org.apache.ibatis.migration.JdbcConnectionProvider;
 import org.apache.ibatis.migration.operations.UpOperation;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.dynamic.sql.select.CountDSLCompleter;
 import org.mybatis.dynamic.sql.select.SelectDSLCompleter;
 
 import java.util.List;
@@ -174,5 +175,17 @@ public class BotUserDaoImpl implements BotUserDao {
         return getAll().stream()
                 .filter(u -> u.hasMatchingHostmask(hostmask))
                 .toList();
+    }
+
+    /**
+     * Get a total count of all bot users.
+     *
+     * @return number of total bot users
+     */
+    public synchronized long count() {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            BotUserMapper mapper = session.getMapper(BotUserMapper.class);
+            return mapper.count(CountDSLCompleter.allRows());
+        }
     }
 }
