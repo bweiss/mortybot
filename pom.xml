@@ -218,6 +218,7 @@
                                 <exclude>**/*.txt</exclude>
                                 <exclude>**/*.log</exclude>
                                 <exclude>**/*.db</exclude>
+                                <exclude>**/*.sql</exclude>
                                 <exclude>.git*</exclude>
                                 <exclude>README.md</exclude>
                                 <exclude>.idea/**</exclude>
