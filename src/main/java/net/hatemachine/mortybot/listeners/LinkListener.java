@@ -145,7 +145,7 @@ public class LinkListener extends ListenerAdapter {
                 }
 
                 // shortened link only
-                if (shortLink.isPresent() && title.isEmpty() && !Objects.equals(link, shortLink.get())) {
+                if ((shortLink.isPresent() && !shortLink.get().equals(link)) && !shortLink.get().isBlank() && title.isEmpty()) {
                     event.respondWith(Colors.BOLD + shortLink.get() + Colors.BOLD);
 
                 // title only
@@ -157,6 +157,10 @@ public class LinkListener extends ListenerAdapter {
                     event.respondWith(String.format("%s :: %s",
                             Colors.BOLD + shortLink.get() + Colors.BOLD,
                             trimTitle(title.get(), maxTitleLength, "...")));
+
+                // nothing to do
+                } else {
+                    log.debug("No title or shortened link (link: {}", link);
                 }
             }
         }
@@ -191,19 +195,24 @@ public class LinkListener extends ListenerAdapter {
     private Optional<String> fetchTitle(final String link) {
         log.debug("Fetching title for link: {}", link);
         Document doc = null;
+        String title = "";
 
         try {
-            doc = Jsoup.connect(link).get();
+            doc = Jsoup.connect(link).ignoreContentType(true).get();
         } catch (IOException e) {
             log.error("Failed to fetch page [URL: {}]", link, e);
         }
 
         if (doc != null) {
-            String title = doc.title();
+            title = doc.title();
             log.debug("Title: {}", title);
-            return Optional.of(title);
-        } else {
+        }
+
+//        boolean titlePresent = (title.isEmpty() || title.isBlank());
+        if (title.isEmpty() || title.isBlank()) {
             return Optional.empty();
+        } else {
+            return Optional.of(title);
         }
     }
 
