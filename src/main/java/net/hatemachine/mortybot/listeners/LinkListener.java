@@ -39,7 +39,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -208,7 +207,6 @@ public class LinkListener extends ListenerAdapter {
             log.debug("Title: {}", title);
         }
 
-//        boolean titlePresent = (title.isEmpty() || title.isBlank());
         if (title.isEmpty() || title.isBlank()) {
             return Optional.empty();
         } else {

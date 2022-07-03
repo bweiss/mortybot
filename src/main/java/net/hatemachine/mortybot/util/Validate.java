@@ -158,8 +158,18 @@ public class Validate {
             }
         }
 
-        return flags.stream()
-                .map(String::valueOf)
-                .collect(Collectors.joining(","));
+        if (flags.size() == 1) {
+            return flags.stream()
+                    .map(BotUserFlag::toString)
+                    .collect(Collectors.joining());
+
+        } else if (flags.size() > 1) {
+            return flags.stream()
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(","));
+
+        } else {
+            return "";
+        }
     }
 }

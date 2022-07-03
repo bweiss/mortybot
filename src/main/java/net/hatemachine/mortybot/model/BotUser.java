@@ -18,6 +18,7 @@
 package net.hatemachine.mortybot.model;
 
 import com.google.common.collect.Sets;
+import net.hatemachine.mortybot.util.Validate;
 
 import javax.annotation.Generated;
 import java.util.Arrays;
@@ -120,14 +121,12 @@ public class BotUser {
     }
 
     public void addFlag(String flag) {
-        Set<String> flagSet = Sets.newHashSet(Arrays.asList(flags.split(",")));
-        flagSet.add(flag);
-        flags = String.join(",", flagSet);
+        flags = Validate.botUserFlags(flags + "," + flag);
     }
 
-    public void removeFlag(String hostmask) {
+    public void removeFlag(String flag) {
         Set<String> flagSet = Sets.newHashSet(Arrays.asList(flags.split(",")));
-        flagSet.remove(hostmask);
+        flagSet.remove(flag);
         flags = String.join(",", flagSet);
     }
 

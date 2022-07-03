@@ -31,9 +31,7 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.*;
 
 import static java.util.stream.Collectors.joining;
 import static net.hatemachine.mortybot.config.BotDefaults.USER_ADD_MASK_TYPE;
@@ -45,7 +43,10 @@ import static net.hatemachine.mortybot.config.BotDefaults.USER_ADD_MASK_TYPE;
  */
 public class UserCommand implements BotCommand {
 
-    private static final String NOT_ENOUGH_ARGS   = "Too few arguments";
+    private static final int LIST_COMMAND_MAX_USERS_PER_LINE = 20;
+
+    private static final String NOT_ENOUGH_ARGS_STR = "Too few arguments";
+    private static final String UNKNOWN_USER_STR = "Unknown user";
 
     private static final Logger log = LoggerFactory.getLogger(UserCommand.class);
 
@@ -64,7 +65,7 @@ public class UserCommand implements BotCommand {
     @Override
     public void execute() throws IllegalArgumentException {
         if (args.isEmpty()) {
-            throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
+            throw new IllegalArgumentException(NOT_ENOUGH_ARGS_STR);
         }
 
         String command = args.get(0).toUpperCase();
@@ -96,7 +97,7 @@ public class UserCommand implements BotCommand {
      */
     private void addCommand(List<String> args) throws IllegalArgumentException {
         if (args.isEmpty()) {
-            throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
+            throw new IllegalArgumentException(NOT_ENOUGH_ARGS_STR);
         }
 
         MortyBot bot = event.getBot();
@@ -135,8 +136,10 @@ public class UserCommand implements BotCommand {
                 BotUser botUser = new BotUser(Validate.botUserName(name), Validate.hostmask(hostmask), Validate.botUserFlags(flags));
                 botUserDao.add(botUser);
                 event.respondWith("User added");
+
             } catch (BotUserException e) {
                 handleBotUserException(e, "addCommand", args);
+
             } catch (IllegalArgumentException e) {
                 log.error("Error adding user: {}", e.getMessage());
                 event.respondWith(e.getMessage());
@@ -152,7 +155,7 @@ public class UserCommand implements BotCommand {
      */
     private void addFlagCommand(List<String> args) throws IllegalArgumentException {
         if (args.size() < 2) {
-            throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
+            throw new IllegalArgumentException(NOT_ENOUGH_ARGS_STR);
         }
 
         String username = args.get(0);
@@ -160,19 +163,18 @@ public class UserCommand implements BotCommand {
 
         try {
             Optional<BotUser> optionalBotUser = botUserDao.getByUsername(username);
+
             if (optionalBotUser.isPresent()) {
                 BotUser botUser = optionalBotUser.get();
                 botUser.addFlag(flag);
                 botUserDao.update(botUser);
-                event.respondWith("Flag added");
+                event.respondWith("Flag(s) added");
             } else {
-                event.respondWith("User not found");
+                event.respondWith(UNKNOWN_USER_STR);
             }
+
         } catch (BotUserException e) {
             handleBotUserException(e, "addFlagCommand", args);
-        } catch (IllegalArgumentException e) {
-            log.error("Error adding flag: {}", e.getMessage());
-            event.respondWith(e.getMessage());
         }
     }
 
@@ -184,7 +186,7 @@ public class UserCommand implements BotCommand {
      */
     private void addHostmaskCommand(List<String> args) throws IllegalArgumentException {
         if (args.size() < 2) {
-            throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
+            throw new IllegalArgumentException(NOT_ENOUGH_ARGS_STR);
         }
 
         String username = args.get(0);
@@ -198,7 +200,7 @@ public class UserCommand implements BotCommand {
                 botUserDao.update(botUser);
                 event.respondWith("Hostmask added");
             } else {
-                event.respondWith("User not found");
+                event.respondWith(UNKNOWN_USER_STR);
             }
         } catch (BotUserException e) {
             handleBotUserException(e, "addHostmaskCommand", args);
@@ -215,10 +217,29 @@ public class UserCommand implements BotCommand {
         List<BotUser> users = botUserDao.getAll();
 
         if (!users.isEmpty()) {
-            // TODO: improve formatting and handling of larger user lists
-            String usernames = users.stream().map(BotUser::getUsername).collect(joining(", "));
-            event.respondWith("Bot Users: " + usernames);
+            List<List<BotUser>> groups = new ArrayList<>();
+            Deque<BotUser> userDeque = new ArrayDeque<>(users);
+
+            while (!userDeque.isEmpty()) {
+                List<BotUser> group = new ArrayList<>();
+                for (int i = 0; !userDeque.isEmpty() && i < LIST_COMMAND_MAX_USERS_PER_LINE; i++) {
+                    group.add(userDeque.pop());
+                }
+                groups.add(group);
+            }
+
+            int cnt = 1;
+            for (List<BotUser> g : groups) {
+                event.respondWith(String.format("Bot Users (%d/%d): %s",
+                        cnt,
+                        groups.size(),
+                        g.stream().map(BotUser::getUsername).collect(joining(", "))));
+                cnt++;
+            }
+
             event.respondWith("USER SHOW <username> to see details");
+        } else {
+            event.respondWith("There are no bot users!");
         }
     }
 
@@ -230,7 +251,7 @@ public class UserCommand implements BotCommand {
      */
     private void removeCommand(List<String> args) throws IllegalArgumentException {
         if (args.isEmpty()) {
-            throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
+            throw new IllegalArgumentException(NOT_ENOUGH_ARGS_STR);
         }
 
         String username = args.get(0);
@@ -242,7 +263,7 @@ public class UserCommand implements BotCommand {
                 botUserDao.delete(botUser);
                 event.respondWith("User removed");
             } else {
-                event.respondWith("User not found");
+                event.respondWith(UNKNOWN_USER_STR);
             }
         } catch (BotUserException e) {
             handleBotUserException(e, "removeCommand", args);
@@ -260,7 +281,7 @@ public class UserCommand implements BotCommand {
      */
     private void removeFlagCommand(List<String> args) throws IllegalArgumentException {
         if (args.size() < 2)
-            throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
+            throw new IllegalArgumentException(NOT_ENOUGH_ARGS_STR);
 
         String username = args.get(0);
         String flag = args.get(1).toUpperCase(Locale.ROOT);
@@ -273,7 +294,7 @@ public class UserCommand implements BotCommand {
                 botUserDao.update(botUser);
                 event.respondWith("Flag removed");
             } else {
-                event.respondWith("User not found");
+                event.respondWith(UNKNOWN_USER_STR);
             }
         } catch (BotUserException e) {
             handleBotUserException(e, "removeFlagCommand", args);
@@ -291,7 +312,7 @@ public class UserCommand implements BotCommand {
      */
     private void removeHostmaskCommand(List<String> args) throws IllegalArgumentException {
         if (args.size() < 2) {
-            throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
+            throw new IllegalArgumentException(NOT_ENOUGH_ARGS_STR);
         }
 
         String username = args.get(0);
@@ -305,7 +326,7 @@ public class UserCommand implements BotCommand {
                 botUserDao.update(botUser);
                 event.respondWith("Hostmask removed");
             } else {
-                event.respondWith("User not found");
+                event.respondWith(UNKNOWN_USER_STR);
             }
         } catch (BotUserException e) {
             handleBotUserException(e, "removeHostmaskCommand", args);
@@ -323,7 +344,7 @@ public class UserCommand implements BotCommand {
      */
     private void showCommand(List<String> args) throws IllegalArgumentException {
         if (args.isEmpty()) {
-            throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
+            throw new IllegalArgumentException(NOT_ENOUGH_ARGS_STR);
         }
 
         String username = args.get(0);
@@ -334,7 +355,7 @@ public class UserCommand implements BotCommand {
                 BotUser botUser = optionalBotUser.get();
                 event.respondWith(botUser.toString());
             } else {
-                event.respondWith("User not found");
+                event.respondWith(UNKNOWN_USER_STR);
             }
         } catch (IllegalArgumentException e) {
             log.error("Error showing user: {}", e.getMessage());
@@ -344,7 +365,7 @@ public class UserCommand implements BotCommand {
 
     private void setLocationCommand(List<String> args) throws IllegalArgumentException {
         if (args.size() < 2) {
-            throw new IllegalArgumentException(NOT_ENOUGH_ARGS);
+            throw new IllegalArgumentException(NOT_ENOUGH_ARGS_STR);
         }
 
         String username = args.get(0);
@@ -358,9 +379,9 @@ public class UserCommand implements BotCommand {
                 botUserDao.update(botUser);
                 event.respondWith(String.format("%s's location set to %s", botUser.getUsername(), botUser.getLocation()));
             } catch (BotUserException e) {
-                String errMsg = "";
+                String errMsg;
                 if (e.getReason() == BotUserException.Reason.UNKNOWN_USER) {
-                    errMsg = "Unknown user";
+                    errMsg = UNKNOWN_USER_STR;
                 } else {
                     errMsg = "Something went wrong updating user";
                 }
@@ -368,7 +389,7 @@ public class UserCommand implements BotCommand {
                 event.respondWith(errMsg);
             }
         } else {
-            event.respondWith("User not found");
+            event.respondWith(UNKNOWN_USER_STR);
         }
     }
 
@@ -382,7 +403,7 @@ public class UserCommand implements BotCommand {
     private void handleBotUserException(BotUserException e, String method, List<String> args) {
         String errMsg;
         errMsg = switch (e.getReason()) {
-            case UNKNOWN_USER -> "User not found";
+            case UNKNOWN_USER -> UNKNOWN_USER_STR;
             case USER_EXISTS -> "User already exists";
         };
         log.error("{}: {}, args: {}", method, errMsg, args);
