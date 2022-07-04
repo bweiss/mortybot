@@ -46,11 +46,13 @@ To install, simply unpack the archive of your choice into the desired directory 
 
 Most configuration of the bot is done via the conf/bot.properties file. You should edit this file to your liking prior to starting the bot. These properties can be modified while the bot is running via the CONFIG command.
 
+Note: You can change the location of the config directory by passing the -Dmortybot.config.dir argument to the JVM when starting the bot (see run.sh or run.bat).
+
 ### Bot Users
 
-Upon starting the bot for the first time, it is highly recommended that you issue a REGISTER command in a private message to the bot. This will register you with your current hostmask and the ADMIN, AOP, and DCC flags.
+After starting the bot for the first time, it is highly recommended that you issue a REGISTER command in a private message to the bot. This will register you with the bot using your current hostmask and admin rights.
 
-Further users can be added by an admin user via the USER ADD command (see HELP USER) or a user can register themselves (with no flags) by issuing a REGISTER command in a public or private message.
+Further users can be added by an admin user via the USER ADD command (see HELP USER) or a user can register themselves by issuing a REGISTER command in a public or private message.
 
 Supported flags:
 
