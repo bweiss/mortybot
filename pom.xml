@@ -60,7 +60,7 @@
     <properties>
         <encoding>UTF-8</encoding>
         <java.version>17</java.version>
-        <fully.qualified.main.class>net.hatemachine.mortybot.MortyBot</fully.qualified.main.class>
+        <fully.qualified.main.class>net.hatemachine.mortybot.Main</fully.qualified.main.class>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -70,7 +70,7 @@
             <name>Sonatype Nexus Snapshots</name>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
             <releases>
-                <enabled>false</enabled>
+                <enabled>true</enabled>
             </releases>
             <snapshots>
                 <enabled>true</enabled>
@@ -269,7 +269,7 @@
                     <replacements>
                         <replacement>
                             <token>public static final String VERSION .+</token>
-                            <value>public static final String VERSION = "${project.version}";</value>
+                            <value>public static final String VERSION = "${project.version}"; // automatically generated; do not change</value>
                         </replacement>
                     </replacements>
                 </configuration>
@@ -407,7 +407,6 @@
                     </dependency>
                 </dependencies>
             </plugin>
-
         </plugins>
     </build>
 </project>
