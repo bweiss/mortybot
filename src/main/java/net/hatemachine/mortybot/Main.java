@@ -67,7 +67,6 @@ public class Main {
                 .setAutoReconnectDelay(new StaticDelay(props.getIntProperty("auto.reconnect.delay", BotDefaults.AUTO_RECONNECT_DELAY)))
                 .setAutoReconnectAttempts(props.getIntProperty("auto.reconnect.attempts", BotDefaults.AUTO_RECONNECT_ATTEMPTS))
                 .setAutoNickChange(props.getBooleanProperty("auto.nick.change", BotDefaults.AUTO_NICK_CHANGE))
-                .addListener(new ExceptionListener())
                 .addListener(new AutoOpListener())
                 .addListener(new CommandListener(props.getStringProperty("bot.command.prefix", BotDefaults.BOT_COMMAND_PREFIX)))
                 .addListener(new DccPartyLineListener())
