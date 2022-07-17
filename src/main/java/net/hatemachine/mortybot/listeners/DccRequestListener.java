@@ -30,31 +30,39 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Listens for DCC CHAT requests from users.
- *
- * The dcc.chat.enabled property must be TRUE and the user must have the DCC BotUser flag or the CHAT request will be rejected.
  */
 public class DccRequestListener extends ListenerAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(DccRequestListener.class);
 
+    /**
+     * Handle incoming DCC CHAT requests from users. The dcc.chat.enabled property must be TRUE and the user must
+     * be a registered bot user with the DCC flag or the request will be rejected.
+     *
+     * @param event the {@link IncomingChatRequestEvent} object containing our event data
+     */
     @Override
-    public void onIncomingChatRequest(IncomingChatRequestEvent event) throws InterruptedException {
+    public void onIncomingChatRequest(IncomingChatRequestEvent event) {
         MortyBot bot = event.getBot();
         BotProperties botProperties = BotProperties.getBotProperties();
         boolean dccEnabled = botProperties.getBooleanProperty("dcc.chat.enabled", BotDefaults.DCC_CHAT_ENABLED);
         User user = (User) Validate.notNull(event.getUser());
-        List<BotUser> botUsers = bot.getBotUserDao().getAll(user.getHostmask());
-        boolean dccFlag = botUsers.stream().anyMatch(u -> u.hasFlag("DCC"));
+        List<BotUser> matchedBotUsers = bot.getBotUserDao().getAll(user.getHostmask());
+        boolean dccFlag = matchedBotUsers.stream().anyMatch(u -> u.hasFlag("DCC"));
 
         if (dccEnabled && dccFlag) {
-            Thread.sleep(1000);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                log.warn("Thread interrupted", e);
+                Thread.currentThread().interrupt();
+            }
+
             log.info("Accepting DCC CHAT request from {}", user.getHostmask());
-            DccManager mgr = DccManager.getManager();
-            mgr.acceptDccChat(event);
+            DccManager.getManager().acceptDccChat(event);
         } else {
             log.info("Rejecting DCC CHAT request from {}", user.getHostmask());
             user.send().ctcpResponse("DCC REJECT CHAT chat");

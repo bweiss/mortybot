@@ -31,6 +31,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+/**
+ * CHAT command
+ * Instructs the bot to initiate a DCC CHAT session with the calling user.
+ */
 public class ChatCommand implements BotCommand {
 
     private static final Logger log = LoggerFactory.getLogger(ChatCommand.class);

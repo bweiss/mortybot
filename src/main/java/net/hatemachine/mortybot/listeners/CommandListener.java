@@ -86,8 +86,8 @@ public class CommandListener extends ExtendedListenerAdapter {
     }
 
     /**
-     * Handle a command from a user. For now this can either be a public command from a channel
-     * or a private message from a user but could be expanded to other sources (e.g. CTCP or DCC).
+     * Handle a command from a user.
+     * This can come from a number of sources including a channel, private message, or DCC chat.
      *
      * @param event the event that contained a command
      * @param source the source of the command, public or private message
@@ -106,9 +106,11 @@ public class CommandListener extends ExtendedListenerAdapter {
                     .newInstance(event, source, args);
 
             log.info("{} command triggered by {}, source: {}, args: {}", commandStr, user.getNick(), source, args);
-            if (source == DCC) {
-                dccManager.dispatchMessage(String.format("*** %s command triggered by %s", commandStr, user.getNick()), true);
-            }
+
+            dccManager.dispatchMessage(String.format("*** %s command triggered by %s",
+                    commandStr,
+                    user.getNick()
+            ), true);
 
             BotCommandProxy.newInstance(botCommand).execute();
 

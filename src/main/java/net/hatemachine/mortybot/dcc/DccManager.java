@@ -35,8 +35,8 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * DCC manager class. Right now this is just responsible for keeping track of DCC CHAT sessions
- * and dispatching messages to the party line.
+ * DCC manager class.
+ * Right now this is just responsible for keeping track of DCC CHAT sessions and dispatching messages to the party line.
  */
 public class DccManager {
 
@@ -50,6 +50,11 @@ public class DccManager {
         this.userChatMap = new HashMap<>();
     }
 
+    /**
+     * Retrieve a singleton instance of our DccManager object.
+     *
+     * @return a {@link DccManager} object
+     */
     public static DccManager getManager() {
         if (manager == null) {
             manager = new DccManager();
@@ -57,6 +62,12 @@ public class DccManager {
         return manager;
     }
 
+    /**
+     * Retrieve a chat session for a user if one exists.
+     *
+     * @param user the {@link User} to retrieve a session for
+     * @return an {@link Optional} containing a {@link ChatSession} if one exists for that user
+     */
     public Optional<ChatSession> getChatSession(User user) {
         Optional<ChatSession> chatSession = Optional.empty();
         if (userChatMap.containsKey(user)) {
@@ -65,36 +76,73 @@ public class DccManager {
         return chatSession;
     }
 
+    /**
+     * Add a chat session for a particular user to our manager.
+     *
+     * @param user the {@link User} that the chat session is with
+     * @param chatSession the {@link ChatSession} object for this user
+     */
     public synchronized void addChatSession(User user, ChatSession chatSession) {
         userChatMap.put(user, chatSession);
     }
 
+    /**
+     * Remove a chat session from our manager.
+     *
+     * @param user the {@link User} that owns the chat session
+     */
     public synchronized void removeChatSession(User user) {
         userChatMap.remove(user);
     }
 
+    /**
+     * Retrieve a list of all our chat sessions.
+     *
+     * @return a {@link List} containing all of our {@link ChatSession} objects
+     */
     public synchronized List<ChatSession> getChatSessions() {
         return new ArrayList<>(userChatMap.values());
     }
 
+    /**
+     * Retrieve a list of only our active chat sessions.
+     *
+     * @return a {@link List} containing {@link ChatSession} objects of our active sessions
+     */
     public synchronized List<ChatSession> getActiveChatSessions() {
         return getChatSessions().stream()
                 .filter(ChatSession::isActive)
                 .toList();
     }
 
+    /**
+     * Start a new chat session with a user.
+     *
+     * @param user the {@link User} to start the chat with
+     */
     public void startDccChat(User user) {
         ChatSession chatSession = new ChatSession(ChatSession.SessionType.SEND, user);
         addChatSession(user, chatSession);
         chatSession.start();
     }
 
+    /**
+     * Accept a new chat session from a user.
+     *
+     * @param event the {@link IncomingChatRequestEvent} event representing the incoming chat request
+     */
     public void acceptDccChat(final IncomingChatRequestEvent event) {
         ChatSession chatSession = new ChatSession(ChatSession.SessionType.RECEIVE, event);
         addChatSession(event.getUser(), chatSession);
         chatSession.start();
     }
 
+    /**
+     * Handle a message from a chat session and dispatch it as an event.
+     *
+     * @param chatSession the {@link ChatSession} object that's initiating the event
+     * @param line a {@link String} containing the message text
+     */
     public void handleChatMessage(ChatSession chatSession, String line) {
         Chat chat = chatSession.getChat();
         User user = chat.getUser();
@@ -102,10 +150,21 @@ public class DccManager {
         Utils.dispatchEvent(bot, new DccChatMessageEvent(bot, chat, user, line));
     }
 
+    /**
+     * Dispatch a message to users on the party line.
+     *
+     * @param message the message text
+     */
     public void dispatchMessage(String message) {
         dispatchMessage(message, false);
     }
 
+    /**
+     * Dispatch a message to users on the party line.
+     *
+     * @param message the message text
+     * @param adminOnly if true, message will only be dispatched to admin users
+     */
     public void dispatchMessage(String message, boolean adminOnly) {
         log.debug("Dispatching message to all party line members: \"{}\"", message);
 
@@ -126,12 +185,8 @@ public class DccManager {
             try {
                 chat.sendLine(message);
             } catch (IOException e) {
-                log.error("Failed to dispatch message to party line", e);
+                log.error("Failed to dispatch message to chat with {}", user.getNick(), e);
             }
         }
-    }
-
-    public Map<User, ChatSession> getUserChatMap() {
-        return userChatMap;
     }
 }

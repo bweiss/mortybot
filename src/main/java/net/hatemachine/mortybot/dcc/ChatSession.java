@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.util.Objects;
 
 import static net.hatemachine.mortybot.dcc.ChatSession.SessionState.*;
 import static net.hatemachine.mortybot.dcc.ChatSession.SessionType.RECEIVE;
@@ -55,8 +56,8 @@ public class ChatSession extends Thread {
     }
 
     public ChatSession(SessionType sessionType, Object targetObj) {
-        this.sessionType = sessionType;
-        this.targetObj = targetObj;
+        this.sessionType = Objects.requireNonNull(sessionType, "sessionType must not be null");
+        this.targetObj = Objects.requireNonNull(targetObj, "targetObj must not be null");
         this.sessionState = WAITING;
     }
 
