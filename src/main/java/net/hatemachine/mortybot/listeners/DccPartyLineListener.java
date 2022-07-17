@@ -102,9 +102,11 @@ public class DccPartyLineListener extends ExtendedListenerAdapter {
         User recipient = event.getRecipient();
 
         if (user != null && recipient != null && recipient.getNick().equals(bot.getNick())) {
-            dccManager.dispatchMessage(String.format("*** I have been kicked from %s by %s!",
-                    event.getChannel(),
-                    user.getNick()
+            dccManager.dispatchMessage(String.format("*** %s has been kicked from %s by %s (%s)",
+                    bot.getNick(),
+                    event.getChannel().getName(),
+                    user.getNick(),
+                    event.getReason()
             ), true);
         }
     }
