@@ -29,7 +29,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Objects;
 
+/**
+ * Used whenever a message is sent to a DCC CHAT session.
+ */
 public class DccChatMessageEvent extends Event implements GenericMessageEvent {
 
     private static final Logger log = LoggerFactory.getLogger(DccChatMessageEvent.class);
@@ -45,11 +49,21 @@ public class DccChatMessageEvent extends Event implements GenericMessageEvent {
         this.message = message;
     }
 
+    /**
+     * Respond with a message over DCC in <code>user: message</code> format.
+     *
+     * @param response the response to send
+     */
     @Override
     public void respond(String response) {
-        respondWith(response);
+        respondWith(getUser().getNick() + ": " + response);
     }
 
+    /**
+     * Respond with a message over DCC.
+     *
+     * @param fullLine the line to send in response
+     */
     @Override
     public void respondWith(String fullLine) {
         try {
@@ -59,9 +73,14 @@ public class DccChatMessageEvent extends Event implements GenericMessageEvent {
         }
     }
 
+    /**
+     * Respond to the user directly over private message.
+     *
+     * @param response the response to send
+     */
     @Override
-    public void respondPrivateMessage(String message) {
-        respond(message);
+    public void respondPrivateMessage(String response) {
+        getUser().send().message(response);
     }
 
     public ImmutableMap<String, String> getV3Tags() {
@@ -85,5 +104,19 @@ public class DccChatMessageEvent extends Event implements GenericMessageEvent {
     @Override
     public String getMessage() {
         return message;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        DccChatMessageEvent that = (DccChatMessageEvent) o;
+        return chat.equals(that.chat) && user.equals(that.user) && message.equals(that.message);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), chat, user, message);
     }
 }
