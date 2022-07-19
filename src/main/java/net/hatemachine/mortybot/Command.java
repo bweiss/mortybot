@@ -17,33 +17,23 @@
  */
 package net.hatemachine.mortybot;
 
-import net.hatemachine.mortybot.commands.BottleCommand;
-import net.hatemachine.mortybot.commands.ChatCommand;
-import net.hatemachine.mortybot.commands.ConfigCommand;
-import net.hatemachine.mortybot.commands.DictionaryCommand;
-import net.hatemachine.mortybot.commands.GoogleCommand;
-import net.hatemachine.mortybot.commands.HelpCommand;
-import net.hatemachine.mortybot.commands.HostCommand;
-import net.hatemachine.mortybot.commands.ImdbCommand;
-import net.hatemachine.mortybot.commands.GeoIpCommand;
-import net.hatemachine.mortybot.commands.JoinCommand;
-import net.hatemachine.mortybot.commands.MessageCommand;
-import net.hatemachine.mortybot.commands.OpCommand;
-import net.hatemachine.mortybot.commands.PartCommand;
-import net.hatemachine.mortybot.commands.QuitCommand;
-import net.hatemachine.mortybot.commands.RegisterCommand;
-import net.hatemachine.mortybot.commands.RtCommand;
-import net.hatemachine.mortybot.commands.StockCommand;
-import net.hatemachine.mortybot.commands.TestCommand;
-import net.hatemachine.mortybot.commands.UrbCommand;
-import net.hatemachine.mortybot.commands.UserCommand;
-import net.hatemachine.mortybot.commands.WeatherCommand;
-import net.hatemachine.mortybot.commands.WhoCommand;
-import net.hatemachine.mortybot.commands.WordleCommand;
-import net.hatemachine.mortybot.commands.WotdCommand;
-import net.hatemachine.mortybot.commands.YearCommand;
+import net.hatemachine.mortybot.commands.*;
 
 public enum Command {
+
+    BAN(BanKickCommand.class, new String[] {
+            "Bans a user from a channel",
+            "Usage: BAN <nick|hostmask>",
+            "Usage: BAN <nick|hostmask> <channel>",
+            "You must specify the channel if command is not from a public source"
+    }),
+
+    BANKICK(BanKickCommand.class, new String[] {
+            "Bans and kicks a user from a channel",
+            "Usage: BANKICK <nick> [reason]",
+            "Usage: BANKICK <nick> <channel> [reason]",
+            "You must specify the channel if command is not from a public source"
+    }),
 
     BOTTLE(BottleCommand.class, new String[] {
             "Searches Bottle Blue Book for bottles",
@@ -77,7 +67,7 @@ public enum Command {
 
     HELP(HelpCommand.class, new String[] {
             "Shows help and usage information for bot commands",
-            "Usage: HELP [topic]"
+            "Usage: HELP [command]"
     }),
 
     HOST(HostCommand.class, new String[] {
@@ -93,6 +83,20 @@ public enum Command {
     JOIN(JoinCommand.class, new String[] {
             "Makes the bot join a channel",
             "Usage: JOIN <channel> [key]"
+    }),
+
+    KICK(BanKickCommand.class, new String[] {
+            "Kicks a user from a channel",
+            "Usage: KICK <user> [reason]",
+            "Usage: KICK <user> <channel> [reason]",
+            "You must specify the channel if command is not from a public source"
+    }),
+
+    KICKBAN(BanKickCommand.class, new String[] {
+            "Kicks and bans a user from a channel",
+            "Usage: KICKBAN <user> [reason]",
+            "Usage: KICKBAN <user> <channel> [reason]",
+            "You must specify the channel if command is not from a public source"
     }),
 
     MSG(MessageCommand.class, new String[] {

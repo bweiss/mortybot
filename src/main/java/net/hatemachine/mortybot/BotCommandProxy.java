@@ -44,12 +44,16 @@ public class BotCommandProxy implements InvocationHandler {
     }
 
     public static BotCommand newInstance(BotCommand cmd) {
-        return (BotCommand)java.lang.reflect.Proxy.newProxyInstance(cmd.getClass().getClassLoader(), cmd
-                .getClass().getInterfaces(), new BotCommandProxy(cmd));
+        return (BotCommand) java.lang.reflect.Proxy.newProxyInstance(
+                cmd.getClass().getClassLoader(),
+                cmd.getClass().getInterfaces(),
+                new BotCommandProxy(cmd)
+        );
     }
 
     @Override
-    public Object invoke(Object proxy, Method m, Object[] args) throws IllegalAccessException, InvocationTargetException {
+    public Object invoke(Object proxy, Method m, Object[] args)
+            throws IllegalAccessException, InvocationTargetException, BotCommandException {
         Object result;
         BotProperties props = BotProperties.getBotProperties();
         List<String> enabled = Arrays.asList(props.getStringProperty("commands.enabled").split(","));

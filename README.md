@@ -61,7 +61,7 @@ Supported flags:
 | ADMIN  | Marks the user as an admin of the bot, allowing access to restricted commands     |
 | AOP    | Automatically grant operator status (+o) when this user joins one of our channels |
 | DCC    | Allows the user to establish a DCC CHAT connection with the bot                   |
-| IGNORE | Ignore commands and links from this user (typically used to ignore other bots)    |
+| IGNORE | Ignore everything from this user (good for assholes or other bots)                |
 
 ### Features Requiring API Keys
 
@@ -93,11 +93,15 @@ To get a list of commands and basic usage information, issue the HELP command in
 For example:
 
 > &lt;rick&gt; .help<br/>
-> &lt;morty&gt; Commands: BOTTLE, CHAT, CONFIG, DICT, GEOIP, GOO, HELP, HOST, IMDB, JOIN, MSG, OP, PART, QUIT, REGISTER, RT, STOCK, URB, USER, WHO, WORDLE, WOTD, WTR, YEAR<br/>
+> &lt;morty&gt; Commands: BAN, BANKICK, BOTTLE, CHAT, CONFIG, DICT, GEOIP, GOO, HELP, HOST, IMDB, JOIN, KICK, KICKBAN, MSG, OP, PART, QUIT, REGISTER, RT, STOCK, URB, USER, WHO, WORDLE, WOTD, WTR, YEAR<br/>
 > &lt;morty&gt; Type .HELP &lt;command&gt; to get more information about a command<br/>
+> &lt;rick&gt; .help help<br/>
+> &lt;morty&gt; Shows help and usage information for bot commands<br/>
+> &lt;morty&gt; Usage: HELP &#91;command&#93;<br/>
 > &lt;rick&gt; .help wtr<br/>
-> &lt;morty&gt; Shows the weather for an area<br/>
-> &lt;morty&gt; Usage: WTR &lt;query&gt;<br/>
+> &lt;morty&gt; Shows the weather for a location<br/>
+> &lt;morty&gt; Usage: WTR &#91;-d&#93; &#91;location&#93;<br/>
+> &lt;morty&gt; If the -d option is present the bot will attempt to save your default location (requires being registered with the bot)
 
 ## License
 
