@@ -107,9 +107,11 @@ public class CommandListener extends ExtendedListenerAdapter {
 
             log.info("{} command triggered by {}, source: {}, args: {}", commandStr, user.getNick(), source, args);
 
-            dccManager.dispatchMessage(String.format("*** %s command triggered by %s",
+            dccManager.dispatchMessage(String.format("*** %s command triggered by %s (%s): %s",
                     commandStr,
-                    user.getNick()
+                    user.getNick(),
+                    source == PUBLIC ? ((MessageEvent) event).getChannel().getName() : source.toString(),
+                    String.join(" ", args)
             ), true);
 
             BotCommandProxy.newInstance(botCommand).execute();
