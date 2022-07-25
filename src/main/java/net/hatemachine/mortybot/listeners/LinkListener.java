@@ -45,7 +45,7 @@ import java.util.regex.Pattern;
 
 public class LinkListener extends ListenerAdapter {
 
-    private static final Pattern URL_PATTERN = Pattern.compile("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&\\/\\/=]*)");
+    private static final Pattern URL_PATTERN = Pattern.compile("https?:\\/\\/([.]|\\S+)");
     private static final Pattern TWEET_PATTERN = Pattern.compile("https?:\\/\\/(www\\.|mobile\\.)?twitter.com\\/\\w+\\/status\\/(\\d+)");
 
     private static final Logger log = LoggerFactory.getLogger(LinkListener.class);
@@ -94,7 +94,7 @@ public class LinkListener extends ListenerAdapter {
         }
 
         // Parse the message looking for links
-        List<String> links = parseMessage(event.getMessage());
+        List<String> links = parseLine(event.getMessage());
 
         for (int i = 0; i < links.size() && i < maxLinks; i++) {
             String link = links.get(i);
@@ -169,19 +169,21 @@ public class LinkListener extends ListenerAdapter {
      * Parses a string looking for URLs and returns them as a list.
      * Valid URLs are determined by the URL_PATTERN constant.
      *
-     * @param s string that may or may not contain links
-     * @return a list of link strings
+     * @param line the line to parse that may contain links
+     * @return a list of strings containing links
      */
-    private List<String> parseMessage(final String s) {
-        log.debug("Parsing message for links: {}", s);
-        Matcher m = URL_PATTERN.matcher(s);
+    private List<String> parseLine(final String line) {
         List<String> links = new ArrayList<>();
+        Matcher m = URL_PATTERN.matcher(line);
+
+        log.debug("Parsing line for links: {}", line);
 
         while (m.find()) {
             links.add(m.group(0));
         }
 
         log.debug("Found {} links: {}", links.size(), links);
+
         return links;
     }
 

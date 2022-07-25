@@ -93,8 +93,13 @@ public class Validate {
     }
 
     public static String notNullOrEmpty(String s) {
-        if (s == null || s.trim().isEmpty())
-            throw new IllegalArgumentException("String is null or empty");
+        return notNullOrEmpty(s, "String is null or empty");
+    }
+
+    public static String notNullOrEmpty(String s, String message) {
+        if (s == null || s.trim().isEmpty()) {
+            throw new IllegalArgumentException(message);
+        }
         return s;
     }
 
