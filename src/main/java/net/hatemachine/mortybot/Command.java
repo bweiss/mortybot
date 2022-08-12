@@ -120,12 +120,12 @@ public enum Command {
     }),
 
     REGISTER(RegisterCommand.class, new String[] {
-            "Registers yourself with the bot",
+            "Registers yourself with the bot using your current hostname",
             "Usage: REGISTER [name]"
     }),
 
     RT(RtCommand.class, new String[] {
-            "Searches Rotten Tomatoes for movie titles",
+            "Searches Rotten Tomatoes for movie ratings",
             "Usage: RT [-l] <query>"
     }),
 

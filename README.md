@@ -95,9 +95,9 @@ For example:
 > &lt;rick&gt; .help<br/>
 > &lt;morty&gt; Commands: BAN, BANKICK, BOTTLE, CHAT, CONFIG, DICT, GEOIP, GOO, HELP, HOST, IMDB, JOIN, KICK, KICKBAN, MSG, OP, PART, QUIT, REGISTER, RT, STOCK, URB, USER, WHO, WORDLE, WOTD, WTR, YEAR<br/>
 > &lt;morty&gt; Type .HELP &lt;command&gt; to get more information about a command<br/>
-> &lt;rick&gt; .help help<br/>
-> &lt;morty&gt; Shows help and usage information for bot commands<br/>
-> &lt;morty&gt; Usage: HELP &#91;command&#93;<br/>
+> &lt;rick&gt; .help register<br/>
+> &lt;morty&gt; Registers yourself with the bot using your current hostname<br/>
+> &lt;morty&gt; Usage: REGISTER &#91;name&#93;<br/>
 > &lt;rick&gt; .help wtr<br/>
 > &lt;morty&gt; Shows the weather for a location<br/>
 > &lt;morty&gt; Usage: WTR &#91;-d&#93; &#91;location&#93;<br/>
