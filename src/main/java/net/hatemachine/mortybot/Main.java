@@ -22,7 +22,10 @@ import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.Range;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
+import net.hatemachine.mortybot.dao.ManagedChannelDao;
+import net.hatemachine.mortybot.dao.ManagedChannelDaoImpl;
 import net.hatemachine.mortybot.listeners.*;
+import net.hatemachine.mortybot.model.ManagedChannel;
 import org.pircbotx.Configuration;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.delay.StaticDelay;
@@ -38,6 +41,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Main class responsible for configuring and starting the bot.
@@ -72,20 +76,16 @@ public class Main {
                 .addListener(new DccPartyLineListener())
                 .addListener(new DccRequestListener())
                 .addListener(new LinkListener())
-                .addListener(new RejoinListener())
+                .addListener(new ManagedChannelListener())
                 .addListener(new WordleListener());
 
+        // SSL
         if (props.getBooleanProperty("irc.ssl", BotDefaults.IRC_SSL)) {
             config.setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates());
         }
 
-        // Add our auto join channels if specified in the properties
-        String channels = props.getStringProperty("auto.join.channels");
-        if (channels != null && !channels.trim().isEmpty()) {
-            config.addAutoJoinChannels(Arrays.asList(props.getStringProperty("auto.join.channels").split(" ")));
-        }
-
         // DCC settings
+
         // prop: dcc.ports
         String dccPortsStr = props.getStringProperty("dcc.ports");
         List<Integer> dccPorts = new ArrayList<>();
