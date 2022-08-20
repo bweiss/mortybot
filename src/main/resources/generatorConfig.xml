@@ -11,5 +11,7 @@
         <javaClientGenerator targetPackage="net.hatemachine.mortybot.mapper" targetProject="src/main/java"/>
 
         <table tableName="bot_users" domainObjectName="BotUser" />
+        <table tableName="managed_channels" domainObjectName="ManagedChannel" />
+        <table tableName="managed_channel_users" domainObjectName="ManagedChannelUser" />
     </context>
 </generatorConfiguration>

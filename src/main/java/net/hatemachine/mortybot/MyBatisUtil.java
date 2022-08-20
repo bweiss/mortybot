@@ -19,6 +19,9 @@ package net.hatemachine.mortybot;
 
 import net.hatemachine.mortybot.config.BotProperties;
 import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.migration.JavaMigrationLoader;
+import org.apache.ibatis.migration.JdbcConnectionProvider;
+import org.apache.ibatis.migration.operations.UpOperation;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.slf4j.Logger;
@@ -26,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Properties;
 
 public class MyBatisUtil {
 
@@ -35,12 +37,19 @@ public class MyBatisUtil {
     private static SqlSessionFactory sqlSessionFactory;
 
     static {
-        Properties props = BotProperties.getBotProperties().getAll();
-        String resource = "mybatis-config.xml";
-        try (InputStream is = Resources.getResourceAsStream(resource)) {
-            sqlSessionFactory = new SqlSessionFactoryBuilder().build(is, props);
-        } catch (IOException e) {
-            log.error("Failed to create SQL session factory, resource: {}", resource, e);
+        BotProperties props = BotProperties.getBotProperties();
+        String configFile = "mybatis-config.xml";
+
+        // perform any pending database migration operations
+        new UpOperation().operate(
+                new JdbcConnectionProvider(props.getStringProperty("db.driver"), props.getStringProperty("db.url"), null, null),
+                new JavaMigrationLoader("net.hatemachine.mortybot.migration"), null, null
+        );
+
+        try (InputStream is = Resources.getResourceAsStream(configFile)) {
+            sqlSessionFactory = new SqlSessionFactoryBuilder().build(is, props.getAll());
+        } catch (IOException ex) {
+            log.error("Failed to create SQL session factory", ex);
         }
     }
 

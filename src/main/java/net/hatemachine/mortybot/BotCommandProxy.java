@@ -18,6 +18,7 @@
 package net.hatemachine.mortybot;
 
 import net.hatemachine.mortybot.config.BotProperties;
+import net.hatemachine.mortybot.dao.BotUserDao;
 import net.hatemachine.mortybot.exception.BotCommandException;
 import net.hatemachine.mortybot.model.BotUser;
 import org.pircbotx.User;

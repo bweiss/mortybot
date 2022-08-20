@@ -15,15 +15,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.hatemachine.mortybot;
+package net.hatemachine.mortybot.dao;
 
-import net.hatemachine.mortybot.config.BotProperties;
+import net.hatemachine.mortybot.MyBatisUtil;
 import net.hatemachine.mortybot.exception.BotUserException;
 import net.hatemachine.mortybot.mapper.BotUserMapper;
 import net.hatemachine.mortybot.model.BotUser;
-import org.apache.ibatis.migration.JavaMigrationLoader;
-import org.apache.ibatis.migration.JdbcConnectionProvider;
-import org.apache.ibatis.migration.operations.UpOperation;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.dynamic.sql.select.CountDSLCompleter;
@@ -34,21 +31,13 @@ import java.util.Optional;
 
 import static net.hatemachine.mortybot.exception.BotUserException.Reason.UNKNOWN_USER;
 import static net.hatemachine.mortybot.exception.BotUserException.Reason.USER_EXISTS;
-import static net.hatemachine.mortybot.mapper.BotUserDynamicSqlSupport.*;
+import static net.hatemachine.mortybot.mapper.BotUserDynamicSqlSupport.botUserId;
+import static net.hatemachine.mortybot.mapper.BotUserDynamicSqlSupport.username;
 import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 
 public class BotUserDaoImpl implements BotUserDao {
 
     private static final SqlSessionFactory sqlSessionFactory = MyBatisUtil.getSqlSessionFactory();
-
-    static {
-        // perform any pending database migration operations
-        BotProperties props = BotProperties.getBotProperties();
-
-        new UpOperation().operate(
-                new JdbcConnectionProvider(props.getStringProperty("db.driver"), props.getStringProperty("db.url"), null, null),
-                new JavaMigrationLoader("net.hatemachine.mortybot.migration"), null, null);
-    }
 
     /**
      * Get a bot user by their id.
@@ -90,7 +79,7 @@ public class BotUserDaoImpl implements BotUserDao {
      * Add a new user to the bot.
      *
      * @param botUser the bot user to be added
-     * @throws BotUserException if any error occurs
+     * @throws BotUserException if the user already exists
      */
     @Override
     public synchronized int add(final BotUser botUser) throws BotUserException {
@@ -112,7 +101,7 @@ public class BotUserDaoImpl implements BotUserDao {
      * Update an existing bot user.
      *
      * @param botUser the bot user to be updated
-     * @throws BotUserException if any error occurs
+     * @throws BotUserException if the user does not exist
      */
     @Override
     public synchronized int update(final BotUser botUser) throws BotUserException {
@@ -134,7 +123,7 @@ public class BotUserDaoImpl implements BotUserDao {
      * Delete a bot user.
      *
      * @param botUser the bot user to be deleted
-     * @throws BotUserException if any error occurs
+     * @throws BotUserException if the user does not exist
      */
     @Override
     public synchronized int delete(final BotUser botUser) throws BotUserException {

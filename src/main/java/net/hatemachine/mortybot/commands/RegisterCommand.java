@@ -20,7 +20,7 @@ package net.hatemachine.mortybot.commands;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.model.BotUser;
-import net.hatemachine.mortybot.BotUserDao;
+import net.hatemachine.mortybot.dao.BotUserDao;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.exception.BotUserException;

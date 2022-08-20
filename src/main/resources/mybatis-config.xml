@@ -35,5 +35,7 @@
 
     <mappers>
         <mapper class="net.hatemachine.mortybot.mapper.BotUserMapper" />
+        <mapper class="net.hatemachine.mortybot.mapper.ManagedChannelMapper" />
+        <mapper class="net.hatemachine.mortybot.mapper.ManagedChannelUserMapper" />
     </mappers>
 </configuration>

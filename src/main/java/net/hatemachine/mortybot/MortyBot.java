@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot;
 
+import net.hatemachine.mortybot.dao.*;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 
@@ -33,14 +34,26 @@ public class MortyBot extends PircBotX {
     public static final String VERSION = "0.9.0-SNAPSHOT"; // automatically generated; do not change
 
     private final BotUserDao botUserDao;
+    private final ManagedChannelDao managedChannelDao;
+    private final ManagedChannelUserDao managedChannelUserDao;
 
     MortyBot(Configuration config) {
         super(config);
         this.botUserDao = new BotUserDaoImpl();
+        this.managedChannelDao = new ManagedChannelDaoImpl();
+        this.managedChannelUserDao = new ManagedChannelUserDaoImpl();
     }
 
     public BotUserDao getBotUserDao() {
         return botUserDao;
+    }
+
+    public ManagedChannelDao getManagedChannelDao() {
+        return managedChannelDao;
+    }
+
+    public ManagedChannelUserDao getManagedChannelUserDao() {
+        return managedChannelUserDao;
     }
 
     @Override
