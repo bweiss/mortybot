@@ -18,43 +18,33 @@
 package net.hatemachine.mortybot.mapper;
 
 import java.sql.JDBCType;
-import javax.annotation.Generated;
-import org.mybatis.dynamic.sql.AliasableSqlTable;
+import java.util.List;
+import net.hatemachine.mortybot.custom.entity.ManagedChannelUserFlag;
 import org.mybatis.dynamic.sql.SqlColumn;
+import org.mybatis.dynamic.sql.SqlTable;
 
 public final class ManagedChannelUserDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.248175-04:00", comments="Source Table: managed_channel_users")
     public static final ManagedChannelUser managedChannelUser = new ManagedChannelUser();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.248233-04:00", comments="Source field: managed_channel_users.managed_channel_user_id")
-    public static final SqlColumn<Integer> managedChannelUserId = managedChannelUser.managedChannelUserId;
+    public static final SqlColumn<Integer> id = managedChannelUser.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.248258-04:00", comments="Source field: managed_channel_users.managed_channel_id")
     public static final SqlColumn<Integer> managedChannelId = managedChannelUser.managedChannelId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.248282-04:00", comments="Source field: managed_channel_users.bot_user_id")
     public static final SqlColumn<Integer> botUserId = managedChannelUser.botUserId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.248304-04:00", comments="Source field: managed_channel_users.auto_op_flag")
-    public static final SqlColumn<Integer> autoOpFlag = managedChannelUser.autoOpFlag;
+    public static final SqlColumn<List<ManagedChannelUserFlag>> managedChannelUserFlags = managedChannelUser.managedChannelUserFlags;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.248323-04:00", comments="Source field: managed_channel_users.auto_voice_flag")
-    public static final SqlColumn<Integer> autoVoiceFlag = managedChannelUser.autoVoiceFlag;
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.248202-04:00", comments="Source Table: managed_channel_users")
-    public static final class ManagedChannelUser extends AliasableSqlTable<ManagedChannelUser> {
-        public final SqlColumn<Integer> managedChannelUserId = column("managed_channel_user_id", JDBCType.INTEGER);
+    public static final class ManagedChannelUser extends SqlTable {
+        public final SqlColumn<Integer> id = column("id", JDBCType.INTEGER);
 
         public final SqlColumn<Integer> managedChannelId = column("managed_channel_id", JDBCType.INTEGER);
 
         public final SqlColumn<Integer> botUserId = column("bot_user_id", JDBCType.INTEGER);
 
-        public final SqlColumn<Integer> autoOpFlag = column("auto_op_flag", JDBCType.INTEGER);
-
-        public final SqlColumn<Integer> autoVoiceFlag = column("auto_voice_flag", JDBCType.INTEGER);
+        public final SqlColumn<List<ManagedChannelUserFlag>> managedChannelUserFlags = column("managed_channel_user_flags", JDBCType.VARCHAR, "net.hatemachine.mortybot.custom.handler.ManagedChannelUserFlagListHandler");
 
         public ManagedChannelUser() {
-            super("managed_channel_users", ManagedChannelUser::new);
+            super("managed_channel_user");
         }
     }
 }

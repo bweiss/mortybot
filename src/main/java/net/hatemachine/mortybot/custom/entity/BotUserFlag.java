@@ -15,28 +15,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.hatemachine.mortybot.model;
+package net.hatemachine.mortybot.custom.entity;
 
-import java.io.Serializable;
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import net.hatemachine.mortybot.custom.entity.ManagedChannelFlag;
-
-@Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class ManagedChannel implements Serializable {
-    private Integer id;
-
-    private String name;
-
-    private List<ManagedChannelFlag> managedChannelFlags;
-
-    private List<ManagedChannelUser> managedChannelUsers;
-
-    private static final long serialVersionUID = 1L;
+public enum BotUserFlag {
+    ADMIN,
+    DCC,
+    IGNORE
 }

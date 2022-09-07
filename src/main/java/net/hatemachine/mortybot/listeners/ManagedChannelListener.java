@@ -18,6 +18,7 @@
 package net.hatemachine.mortybot.listeners;
 
 import net.hatemachine.mortybot.MortyBot;
+import net.hatemachine.mortybot.custom.entity.ManagedChannelFlag;
 import net.hatemachine.mortybot.dao.ManagedChannelDao;
 import net.hatemachine.mortybot.model.ManagedChannel;
 import org.pircbotx.User;
@@ -29,7 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Optional;
+
+import static net.hatemachine.mortybot.util.ManagedChannelHelper.getAutoJoinChannels;
 
 public class ManagedChannelListener extends ListenerAdapter {
 
@@ -42,7 +44,15 @@ public class ManagedChannelListener extends ListenerAdapter {
      */
     @Override
     public void onConnect(ConnectEvent event) {
-        joinAllChannels(event.getBot());
+        new Thread(() -> {
+            try {
+                Thread.sleep(1000);
+                joinAllAutoJoinChannels(event.getBot());
+            } catch (InterruptedException e) {
+                log.warn("Thread interrupted", e);
+                Thread.currentThread().interrupt();
+            }
+        }).start();
     }
 
     /**
@@ -54,19 +64,19 @@ public class ManagedChannelListener extends ListenerAdapter {
     public void onKick(final KickEvent event) {
         MortyBot bot = event.getBot();
         User recipient = event.getRecipient();
-        ManagedChannelDao mcDao = bot.getManagedChannelDao();
-        Optional<ManagedChannel> optManagedChannel = mcDao.getByName(event.getChannel().getName());
+        ManagedChannelDao managedChannelDao = new ManagedChannelDao();
+        List<ManagedChannel> managedChannels = managedChannelDao.getWithName(event.getChannel().getName());
 
-        if (optManagedChannel.isPresent() && recipient != null && recipient.getNick().equals(bot.getNick())) {
-            ManagedChannel managedChannel = optManagedChannel.get();
+        if (!managedChannels.isEmpty() && recipient != null && recipient.getNick().equals(bot.getNick())) {
+            ManagedChannel managedChannel = managedChannelDao.get(0);
 
-            if (managedChannel.getAutoJoinFlag() == 1) {
+            if (managedChannel.getManagedChannelFlags().contains(ManagedChannelFlag.AUTO_JOIN)) {
                 log.info("Bot was kicked from {}, re-joining...", event.getChannel().getName());
 
                 new Thread(() -> {
                     try {
                         Thread.sleep(1000);
-                        bot.sendIRC().joinChannel(event.getChannel().getName());
+                        bot.sendIRC().joinChannel(managedChannel.getName());
                     } catch (InterruptedException e) {
                         log.warn("Thread interrupted", e);
                         Thread.currentThread().interrupt();
@@ -83,21 +93,7 @@ public class ManagedChannelListener extends ListenerAdapter {
      */
     @Override
     public void onServerPing(final ServerPingEvent event) {
-        joinAllChannels(event.getBot());
-    }
-
-    /**
-     * Retrieve a list of channels that have the auto-join flag.
-     *
-     * @param bot the bot object
-     * @return a {@link List} of channel names
-     */
-    private List<String> getAutoJoinChannels(MortyBot bot) {
-        ManagedChannelDao mcDao = bot.getManagedChannelDao();
-        return mcDao.getAll().stream()
-                .filter(c -> c.getAutoJoinFlag() == 1)
-                .map(ManagedChannel::getName)
-                .toList();
+        joinAllAutoJoinChannels(event.getBot());
     }
 
     /**
@@ -105,11 +101,11 @@ public class ManagedChannelListener extends ListenerAdapter {
      *
      * @param bot the bot object
      */
-    private void joinAllChannels(MortyBot bot) {
-        for (String chan : getAutoJoinChannels(bot)) {
-            if (!bot.getUserChannelDao().containsChannel(chan)) {
-                log.info("Auto-joining channel {}", chan);
-                bot.sendIRC().joinChannel(chan);
+    private void joinAllAutoJoinChannels(MortyBot bot) {
+        for (ManagedChannel chan : getAutoJoinChannels()) {
+            if (!bot.getUserChannelDao().containsChannel(chan.getName())) {
+                log.info("Auto-joining channel {}", chan.getName());
+                bot.sendIRC().joinChannel(chan.getName());
             }
         }
     }

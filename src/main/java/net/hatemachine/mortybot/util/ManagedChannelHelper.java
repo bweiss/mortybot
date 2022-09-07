@@ -15,28 +15,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.hatemachine.mortybot.model;
+package net.hatemachine.mortybot.util;
 
-import java.io.Serializable;
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import net.hatemachine.mortybot.custom.entity.ManagedChannelFlag;
+import net.hatemachine.mortybot.dao.ManagedChannelDao;
+import net.hatemachine.mortybot.model.ManagedChannel;
 
-@Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class ManagedChannel implements Serializable {
-    private Integer id;
+import java.util.List;
 
-    private String name;
+public class ManagedChannelHelper {
 
-    private List<ManagedChannelFlag> managedChannelFlags;
+    public ManagedChannelHelper() {
+        throw new IllegalStateException("Utility class");
+    }
 
-    private List<ManagedChannelUser> managedChannelUsers;
-
-    private static final long serialVersionUID = 1L;
+    /**
+     * Retrieves a list of channels that have the auto-join flag.
+     *
+     * @return a list of managed channels that have the AUTO_JOIN flag
+     */
+    public static List<ManagedChannel> getAutoJoinChannels() {
+        ManagedChannelDao managedChannelDao = new ManagedChannelDao();
+        return managedChannelDao.getAll().stream()
+                .filter(c -> c.getManagedChannelFlags().contains(ManagedChannelFlag.AUTO_JOIN))
+                .toList();
+    }
 }

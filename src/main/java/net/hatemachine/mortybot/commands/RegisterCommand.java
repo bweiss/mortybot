@@ -18,13 +18,13 @@
 package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.config.BotProperties;
-import net.hatemachine.mortybot.model.BotUser;
-import net.hatemachine.mortybot.dao.BotUserDao;
-import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
-import net.hatemachine.mortybot.exception.BotUserException;
+import net.hatemachine.mortybot.config.BotProperties;
+import net.hatemachine.mortybot.custom.entity.BotUserFlag;
+import net.hatemachine.mortybot.dao.BotUserDao;
 import net.hatemachine.mortybot.listeners.CommandListener;
+import net.hatemachine.mortybot.model.BotUser;
+import net.hatemachine.mortybot.util.BotUserHelper;
 import net.hatemachine.mortybot.util.IrcUtils;
 import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.User;
@@ -32,6 +32,7 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,6 +40,8 @@ import java.util.stream.Collectors;
  * Registers yourself with the bot.
  * If there are no existing bot users this will grant admin rights.
  * If no hostmask is specified it will generate one for you via the <code>IrcUtils.maskAddress()</code> method.
+ *
+ * @see IrcUtils
  */
 public class RegisterCommand implements BotCommand {
 
@@ -56,47 +59,41 @@ public class RegisterCommand implements BotCommand {
 
     @Override
     public void execute() {
-        MortyBot bot = event.getBot();
         User user = event.getUser();
-        BotUserDao dao = bot.getBotUserDao();
+        BotUserDao botUserDao = new BotUserDao();
         BotProperties props = BotProperties.getBotProperties();
         String userName = args.isEmpty() ? Validate.botUserName(user.getNick()) : Validate.botUserName(args.get(0));
-        String maskedAddress = IrcUtils.maskAddress(user.getHostmask(), props.getIntProperty("register.mask.type", BotDefaults.REGISTER_MASK_TYPE));
+        String maskedAddress = IrcUtils.maskAddress(Validate.hostmask(user.getHostmask()),
+                props.getIntProperty("register.mask.type", BotDefaults.REGISTER_MASK_TYPE));
         String normalFlags = props.getStringProperty("register.normal.flags", BotDefaults.REGISTER_NORMAL_FLAGS);
         String ownerFlags = props.getStringProperty("register.owner.flags", BotDefaults.REGISTER_OWNER_FLAGS);
-        String userFlags = dao.count() > 0 ? normalFlags : ownerFlags;
-        List<BotUser> matchingBotUsers = dao.getAll(user.getHostmask());
+        String userFlags = botUserDao.count() > 0 ? normalFlags : ownerFlags;
+        List<BotUserFlag> flagList = new ArrayList<>();
+        List<BotUser> matchingBotUsers = BotUserHelper.findByHostmask(user.getHostmask());
+
+        for (String s : userFlags.split(",")) {
+            flagList.add(Enum.valueOf(BotUserFlag.class, s));
+        }
 
         // first check to see if the user matches a hostmask for an existing bot user
         if (!matchingBotUsers.isEmpty()) {
-            String usernames = matchingBotUsers.stream()
-                    .map(BotUser::getUsername)
+            String userNames = matchingBotUsers.stream()
+                    .map(BotUser::getName)
                     .collect(Collectors.joining(", "));
 
-            log.warn("Hostmask {} matches existing bot user(s): {}", user.getHostmask(), usernames);
+            log.warn("Hostmask {} matches existing bot user(s): {}", user.getHostmask(), userNames);
             event.respondWith("You are already registered!");
             return;
-        }
+        } else {
+            // if no matches found, attempt to register them
+            BotUser botUser = new BotUser();
+            botUser.setName(userName);
+            botUser.setBotUserHostmasks(List.of(maskedAddress));
+            botUser.setBotUserFlags(flagList);
+            botUserDao.create(botUser);
 
-        // if no matches found, attempt to register them
-        try {
-            dao.add(new BotUser(Validate.botUserName(userName), Validate.hostmask(maskedAddress), Validate.botUserFlags(userFlags)));
             event.respondWith(String.format("Registered %s with hostmask %s and flags [%s]",
-                    userName, maskedAddress, userFlags));
-
-        } catch (BotUserException e) {
-            log.error("Failed to add bot user: {} {} {} {}",
-                    userName, maskedAddress, e.getReason(), e.getMessage());
-
-            if (e.getReason() == BotUserException.Reason.USER_EXISTS) {
-                event.respondWith("A user with that name already exists, try another");
-            } else {
-                event.respondWith("Error registering user");
-            }
-
-        } catch (IllegalArgumentException e) {
-            log.warn("Invalid argument: {}", e.getMessage());
-            event.respondWith(e.getMessage());
+                    userName, maskedAddress, flagList.stream().map(BotUserFlag::name).collect(Collectors.joining(","))));
         }
     }
 

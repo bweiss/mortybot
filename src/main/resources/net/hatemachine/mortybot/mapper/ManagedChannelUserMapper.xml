@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.hatemachine.mortybot.mapper.ManagedChannelUserMapper">
+  <resultMap id="JoinManagedChannelUserResult" type="net.hatemachine.mortybot.model.ManagedChannelUser">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="managed_channel_id" jdbcType="INTEGER" property="managedChannelId" />
+    <result column="bot_user_id" jdbcType="INTEGER" property="botUserId" />
+    <result column="managed_channel_user_flags" jdbcType="VARCHAR" property="managedChannelUserFlags" typeHandler="net.hatemachine.mortybot.custom.handler.ManagedChannelUserFlagListHandler" />
+    <association javaType="net.hatemachine.mortybot.model.ManagedChannel" property="managedChannel">
+      <id column="managed_channel_id" jdbcType="INTEGER" property="id" />
+      <result column="managed_channel_name" jdbcType="VARCHAR" property="name" />
+      <result column="managed_channel_managed_channel_flags" jdbcType="VARCHAR" property="managedChannelFlags" typeHandler="net.hatemachine.mortybot.custom.handler.ManagedChannelFlagListHandler" />
+    </association>
+    <association javaType="net.hatemachine.mortybot.model.BotUser" property="botUser">
+      <id column="bot_user_id" jdbcType="INTEGER" property="id" />
+      <result column="bot_user_name" jdbcType="VARCHAR" property="name" />
+      <result column="bot_user_bot_user_hostmasks" jdbcType="VARCHAR" property="botUserHostmasks" typeHandler="net.hatemachine.mortybot.custom.handler.StringListHandler" />
+      <result column="bot_user_bot_user_flags" jdbcType="VARCHAR" property="botUserFlags" typeHandler="net.hatemachine.mortybot.custom.handler.BotUserFlagListHandler" />
+      <result column="bot_user_location" jdbcType="VARCHAR" property="location" />
+    </association>
+  </resultMap>
+</mapper>

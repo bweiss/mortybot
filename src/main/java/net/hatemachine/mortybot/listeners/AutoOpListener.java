@@ -17,10 +17,16 @@
  */
 package net.hatemachine.mortybot.listeners;
 
+import net.hatemachine.mortybot.custom.entity.ManagedChannelUserFlag;
+import net.hatemachine.mortybot.dao.ManagedChannelDao;
+import net.hatemachine.mortybot.dao.ManagedChannelUserDao;
 import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
+import net.hatemachine.mortybot.model.ManagedChannel;
+import net.hatemachine.mortybot.model.ManagedChannelUser;
+import net.hatemachine.mortybot.util.BotUserHelper;
 import org.pircbotx.Channel;
 import org.pircbotx.UserHostmask;
 import org.pircbotx.hooks.ListenerAdapter;
@@ -68,38 +74,52 @@ public class AutoOpListener extends ListenerAdapter {
      *
      * @param event the join event
      */
-    private synchronized void handleJoin(final JoinEvent event) {
-        final MortyBot bot = event.getBot();
-        final Channel channel = event.getChannel();
-        final UserHostmask hostmask = event.getUserHostmask();
-        final String nick = hostmask.getNick();
-        final List<BotUser> botUsers = bot.getBotUserDao().getAll(hostmask.getHostmask());
-        boolean aopFlag = botUsers.stream().anyMatch(u -> u.hasFlag("AOP"));
+    private void handleJoin(final JoinEvent event) {
+        Channel channel = event.getChannel();
+        UserHostmask uh = event.getUserHostmask();
+        String nick = uh.getNick();
+        var managedChannelDao = new ManagedChannelDao();
+        var managedChannelUserDao = new ManagedChannelUserDao();
+        List<BotUser> botUsers = BotUserHelper.findByHostmask(uh.getHostmask());
+        List<ManagedChannel> managedChannels = managedChannelDao.getWithName(channel.getName());
 
-        if (aopFlag) {
-            log.debug("Adding {} to auto-op queue for {}", nick, channel.getName());
+        // check that we have a matching bot user and that this is a managed channel
+        if (!botUsers.isEmpty() && !managedChannels.isEmpty()) {
+            ManagedChannel managedChannel = managedChannels.get(0);
+            List<ManagedChannelUser> managedChannelUsers = managedChannelUserDao.getWithManagedChannelIdAndBotUserId(managedChannel.getId(),
+                    botUsers.get(0).getId());
 
-            if (pending.containsKey(channel.getName())) {
-                Queue<String> queue = pending.get(channel.getName());
-                if (!queue.contains(nick)) {
-                    queue.add(nick);
-                }
-            } else {
-                Queue<String> queue = new LinkedList<>();
-                queue.add(nick);
-                pending.put(channel.getName(), queue);
+            // check if this bot user is a member of this managed channel
+            if (!managedChannelUsers.isEmpty()) {
+                ManagedChannelUser managedChannelUser = managedChannelUsers.get(0);
 
-                new Thread(() -> {
-                    try {
-                        int delay = BotProperties.getBotProperties()
-                                .getIntProperty("aop.delay", BotDefaults.AUTO_OP_DELAY);
-                        Thread.sleep(delay);
-                        processQueue(event, channel);
-                    } catch (InterruptedException e) {
-                        log.warn("Thread interrupted", e);
-                        Thread.currentThread().interrupt();
+                // does this user have the AUTO_OP flag on this channel?
+                if (managedChannelUser.getManagedChannelUserFlags().contains(ManagedChannelUserFlag.AUTO_OP)) {
+                    log.debug("Adding {} to auto-op queue for {}", nick, channel.getName());
+
+                    if (pending.containsKey(channel.getName())) {
+                        Queue<String> queue = pending.get(channel.getName());
+                        if (!queue.contains(nick)) {
+                            queue.add(nick);
+                        }
+                    } else {
+                        Queue<String> queue = new LinkedList<>();
+                        queue.add(nick);
+                        pending.put(channel.getName(), queue);
+
+                        new Thread(() -> {
+                            try {
+                                int delay = BotProperties.getBotProperties()
+                                        .getIntProperty("aop.delay", BotDefaults.AUTO_OP_DELAY);
+                                Thread.sleep(delay);
+                                processQueue(event, channel);
+                            } catch (InterruptedException e) {
+                                log.warn("Thread interrupted", e);
+                                Thread.currentThread().interrupt();
+                            }
+                        }).start();
                     }
-                }).start();
+                }
             }
         }
     }

@@ -17,71 +17,30 @@
  */
 package net.hatemachine.mortybot.model;
 
-import javax.annotation.Generated;
+import java.io.Serializable;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import net.hatemachine.mortybot.custom.entity.ManagedChannelUserFlag;
 
-public class ManagedChannelUser {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247859-04:00", comments="Source field: managed_channel_users.managed_channel_user_id")
-    private Integer managedChannelUserId;
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class ManagedChannelUser implements Serializable {
+    private Integer id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247929-04:00", comments="Source field: managed_channel_users.managed_channel_id")
     private Integer managedChannelId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247982-04:00", comments="Source field: managed_channel_users.bot_user_id")
     private Integer botUserId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.248052-04:00", comments="Source field: managed_channel_users.auto_op_flag")
-    private Integer autoOpFlag;
+    private List<ManagedChannelUserFlag> managedChannelUserFlags;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.248097-04:00", comments="Source field: managed_channel_users.auto_voice_flag")
-    private Integer autoVoiceFlag;
+    private ManagedChannel managedChannel;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247885-04:00", comments="Source field: managed_channel_users.managed_channel_user_id")
-    public Integer getManagedChannelUserId() {
-        return managedChannelUserId;
-    }
+    private BotUser botUser;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.24791-04:00", comments="Source field: managed_channel_users.managed_channel_user_id")
-    public void setManagedChannelUserId(Integer managedChannelUserId) {
-        this.managedChannelUserId = managedChannelUserId;
-    }
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247946-04:00", comments="Source field: managed_channel_users.managed_channel_id")
-    public Integer getManagedChannelId() {
-        return managedChannelId;
-    }
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247963-04:00", comments="Source field: managed_channel_users.managed_channel_id")
-    public void setManagedChannelId(Integer managedChannelId) {
-        this.managedChannelId = managedChannelId;
-    }
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.24802-04:00", comments="Source field: managed_channel_users.bot_user_id")
-    public Integer getBotUserId() {
-        return botUserId;
-    }
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.248035-04:00", comments="Source field: managed_channel_users.bot_user_id")
-    public void setBotUserId(Integer botUserId) {
-        this.botUserId = botUserId;
-    }
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.248067-04:00", comments="Source field: managed_channel_users.auto_op_flag")
-    public Integer getAutoOpFlag() {
-        return autoOpFlag;
-    }
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.248083-04:00", comments="Source field: managed_channel_users.auto_op_flag")
-    public void setAutoOpFlag(Integer autoOpFlag) {
-        this.autoOpFlag = autoOpFlag;
-    }
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.248112-04:00", comments="Source field: managed_channel_users.auto_voice_flag")
-    public Integer getAutoVoiceFlag() {
-        return autoVoiceFlag;
-    }
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.248127-04:00", comments="Source field: managed_channel_users.auto_voice_flag")
-    public void setAutoVoiceFlag(Integer autoVoiceFlag) {
-        this.autoVoiceFlag = autoVoiceFlag;
-    }
+    private static final long serialVersionUID = 1L;
 }

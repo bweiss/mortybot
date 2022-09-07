@@ -26,6 +26,7 @@ import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.exception.BotUserException;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.model.BotUser;
+import net.hatemachine.mortybot.util.BotUserHelper;
 import org.pircbotx.User;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
@@ -39,6 +40,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 
 public class WeatherCommand implements BotCommand {
@@ -57,10 +59,10 @@ public class WeatherCommand implements BotCommand {
         this.event = event;
         this.source = source;
         this.args = args;
-        MortyBot bot = event.getBot();
+
         User user = event.getUser();
-        BotUserDao botUserDao = bot.getBotUserDao();
-        List<BotUser> matchingBotUsers = botUserDao.getAll(user.getHostmask());
+        List<BotUser> matchingBotUsers = BotUserHelper.findByHostmask(user.getHostmask());
+
         if (!matchingBotUsers.isEmpty()) {
             botUser = matchingBotUsers.get(0);
         }
@@ -154,20 +156,12 @@ public class WeatherCommand implements BotCommand {
 
     private void setDefaultLocation(String loc) {
         try {
-            MortyBot bot = event.getBot();
-            BotUserDao botUserDao = bot.getBotUserDao();
+            BotUserDao botUserDao = new BotUserDao();
             botUser.setLocation(loc);
             botUserDao.update(botUser);
             event.respondWith("Set default location to: " + loc);
-        } catch (BotUserException e) {
-            if (e.getReason() == BotUserException.Reason.UNKNOWN_USER) {
-                String errMsg = "Unknown user";
-                log.error("{}: {}", errMsg, botUser);
-                event.respondWith(errMsg);
-            } else {
-                log.error("Failed to update bot user: {}", botUser, e);
-                event.respondWith("Something went wrong. Failed to set default location.");
-            }
+        } catch (Exception ex) {
+            log.error("Exception encountered", ex);
         }
     }
 }

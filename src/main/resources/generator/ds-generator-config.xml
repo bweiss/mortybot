@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorPlusConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator plus Configuration //EN"
+        "https://document-1303021898.cos.ap-shanghai.myqcloud.com/mybatis-ds-generator-config_1_0.dtd">
+
+<generatorPlusConfiguration>
+
+    <joinConfig targetPackage="net.hatemachine.mortybot.mapper" targetProject="src/main/resources">
+        <joinEntry leftTable="managed_channel">
+            <joinTarget rightTable="managed_channel_user" property="managedChannelUsers" leftTableColumn="id" rightTableColumn="managed_channel_id" joinType="MORE"/>
+        </joinEntry>
+        <joinEntry leftTable="managed_channel_user">
+            <joinTarget rightTable="managed_channel" property="managedChannel" leftTableColumn="managed_channel_id" rightTableColumn="id" joinType="ONE"/>
+            <joinTarget rightTable="bot_user" property="botUser" leftTableColumn="bot_user_id" rightTableColumn="id" joinType="ONE"/>
+        </joinEntry>
+        <joinEntry leftTable="bot_user">
+            <joinTarget rightTable="managed_channel_user" property="managedChannelUsers" leftTableColumn="id" rightTableColumn="managed_channel_id" joinType="MORE"/>
+        </joinEntry>
+    </joinConfig>
+    
+    <customTypeConfig>
+        <customType columnName="bot_user_flags" javaType="java.util.List" typeHandler="net.hatemachine.mortybot.custom.handler.BotUserFlagListHandler">
+            <genericType javaType="net.hatemachine.mortybot.custom.entity.BotUserFlag"/>
+        </customType>
+        <customType columnName="bot_user_hostmasks" javaType="java.util.List" typeHandler="net.hatemachine.mortybot.custom.handler.StringListHandler">
+            <genericType javaType="String"/>
+        </customType>
+        <customType columnName="managed_channel_flags" javaType="java.util.List" typeHandler="net.hatemachine.mortybot.custom.handler.ManagedChannelFlagListHandler">
+            <genericType javaType="net.hatemachine.mortybot.custom.entity.ManagedChannelFlag"/>
+        </customType>
+        <customType columnName="managed_channel_user_flags" javaType="java.util.List" typeHandler="net.hatemachine.mortybot.custom.handler.ManagedChannelUserFlagListHandler">
+            <genericType javaType="net.hatemachine.mortybot.custom.entity.ManagedChannelUserFlag"/>
+        </customType>
+    </customTypeConfig>
+</generatorPlusConfiguration>

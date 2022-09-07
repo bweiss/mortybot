@@ -17,11 +17,14 @@
  */
 package net.hatemachine.mortybot.listeners;
 
+import net.hatemachine.mortybot.custom.entity.BotUserFlag;
+import net.hatemachine.mortybot.dao.BotUserDao;
 import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.dcc.DccManager;
+import net.hatemachine.mortybot.util.BotUserHelper;
 import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.User;
 import org.pircbotx.hooks.ListenerAdapter;
@@ -50,8 +53,8 @@ public class DccRequestListener extends ListenerAdapter {
         BotProperties botProperties = BotProperties.getBotProperties();
         boolean dccEnabled = botProperties.getBooleanProperty("dcc.chat.enabled", BotDefaults.DCC_CHAT_ENABLED);
         User user = (User) Validate.notNull(event.getUser());
-        List<BotUser> matchedBotUsers = bot.getBotUserDao().getAll(user.getHostmask());
-        boolean dccFlag = matchedBotUsers.stream().anyMatch(u -> u.hasFlag("DCC"));
+        List<BotUser> matchedBotUsers = BotUserHelper.findByHostmask(user.getHostmask());
+        boolean dccFlag = matchedBotUsers.stream().anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.DCC));
 
         if (dccEnabled && dccFlag) {
             try {

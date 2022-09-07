@@ -17,32 +17,43 @@
  */
 package net.hatemachine.mortybot.migration;
 
-import java.math.BigDecimal;
 import org.apache.ibatis.migration.MigrationScript;
 
-public class V001_CreateChangelog implements MigrationScript {
+import java.math.BigDecimal;
+
+public class V004_CreateManagedChannelUser implements MigrationScript {
+
     public BigDecimal getId() {
-        return BigDecimal.valueOf(1L);
+        return BigDecimal.valueOf(4L);
     }
 
     public String getDescription() {
-        return "Create changelog table";
+        return "Create managed_channel_user table";
     }
 
     public String getUpScript() {
         return """
-                create table changelog
+                create table managed_channel_user
                 (
-                    id          integer not null
-                        constraint changelog_pk
+                    id                 integer not null
+                        constraint managed_channel_user_pk
                             primary key autoincrement,
-                    applied_at  text    not null,
-                    description text    not null
+                    managed_channel_id         integer not null,
+                    bot_user_id                integer not null,
+                    managed_channel_user_flags text default null
                 );
+                
+                create index managed_channel_user_bot_user_id_index
+                    on managed_channel_user (bot_user_id);
+                
+                create index managed_channel_user_managed_channel_id_index
+                    on managed_channel_user (managed_channel_id);
                 """;
     }
 
     public String getDownScript() {
-        return "drop table changelog;";
+        return """
+               drop table managed_channel_user;
+               """;
     }
 }

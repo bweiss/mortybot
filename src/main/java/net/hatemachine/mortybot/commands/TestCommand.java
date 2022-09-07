@@ -18,10 +18,19 @@
 package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
+import net.hatemachine.mortybot.custom.entity.ManagedChannelFlag;
+import net.hatemachine.mortybot.dao.BotUserDao;
+import net.hatemachine.mortybot.dao.ManagedChannelDao;
+import net.hatemachine.mortybot.dao.ManagedChannelUserDao;
 import net.hatemachine.mortybot.listeners.CommandListener;
+import net.hatemachine.mortybot.model.ManagedChannel;
+import net.hatemachine.mortybot.model.ManagedChannelUser;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;
+
+import static net.hatemachine.mortybot.custom.entity.ManagedChannelUserFlag.AUTO_OP;
+import static net.hatemachine.mortybot.custom.entity.ManagedChannelUserFlag.AUTO_VOICE;
 
 public class TestCommand implements BotCommand {
 
@@ -37,7 +46,22 @@ public class TestCommand implements BotCommand {
 
     @Override
     public void execute() {
-        event.respondWith("It worked! args: " + args);
+        var botUserDao = new BotUserDao();
+        var managedChannelDao = new ManagedChannelDao();
+        var managedChannelUserDao = new ManagedChannelUserDao();
+
+        var managedChannel = new ManagedChannel();
+        managedChannel.setName("#drunkards");
+        managedChannel.setManagedChannelFlags(List.of(ManagedChannelFlag.AUTO_JOIN, ManagedChannelFlag.SHORTEN_LINKS));
+        managedChannelDao.create(managedChannel);
+
+        var managedChannelUser = new ManagedChannelUser();
+        managedChannelUser.setBotUserId(botUserDao.getWithName("brian").getId());
+        managedChannelUser.setManagedChannelId(managedChannelDao.getWithName("#drunkards").get(0).getId());
+        managedChannelUser.setManagedChannelUserFlags(List.of(AUTO_OP, AUTO_VOICE));
+        managedChannelUserDao.create(managedChannelUser);
+
+        event.respondWith("Test completed");
     }
 
     @Override

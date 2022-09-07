@@ -18,12 +18,13 @@
 package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.model.BotUser;
-import net.hatemachine.mortybot.dao.BotUserDao;
-import net.hatemachine.mortybot.config.BotProperties;
-import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.MortyBot;
-import net.hatemachine.mortybot.exception.BotUserException;
+import net.hatemachine.mortybot.config.BotProperties;
+import net.hatemachine.mortybot.custom.entity.BotUserFlag;
+import net.hatemachine.mortybot.dao.BotUserDao;
+import net.hatemachine.mortybot.listeners.CommandListener;
+import net.hatemachine.mortybot.model.BotUser;
+import net.hatemachine.mortybot.util.BotUserHelper;
 import net.hatemachine.mortybot.util.IrcUtils;
 import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.User;
@@ -31,14 +32,17 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
 
 import static java.util.stream.Collectors.joining;
 import static net.hatemachine.mortybot.config.BotDefaults.USER_ADD_MASK_TYPE;
 
 /**
- * USER command that allows you to view and manipulate bot users.
- *
+ * USER command that allows you to view and manipulate bot users.<br/>
+ * <br/>
  * Supported subcommands: LIST, SHOW, ADD, REMOVE, ADDHOSTMASK, REMOVEHOSTMASK, ADDFLAG, REMOVEFLAG
  */
 public class UserCommand implements BotCommand {
@@ -59,11 +63,11 @@ public class UserCommand implements BotCommand {
         this.event = event;
         this.source = source;
         this.args = args;
-        this.botUserDao = ((MortyBot)event.getBot()).getBotUserDao();
+        this.botUserDao = new BotUserDao();
     }
 
     @Override
-    public void execute() throws IllegalArgumentException {
+    public void execute() {
         if (args.isEmpty()) {
             throw new IllegalArgumentException(NOT_ENOUGH_ARGS_STR);
         }
@@ -84,30 +88,30 @@ public class UserCommand implements BotCommand {
                 case "SHOW" -> showCommand(newArgs);
                 default -> log.info("Unknown USER command {} from {}", command, event.getUser().getNick());
             }
-        } catch (IllegalArgumentException e) {
-            log.error("{}: {}, args: {}", command, e.getMessage(), newArgs);
+        } catch (Exception ex) {
+            log.error("Exception encountered: {}", ex.getMessage(), ex);
         }
     }
 
     /**
-     * Add a user to the bot.
+     * Adds a user to the bot.
      *
-     * @param args {@link List} of arguments. Should contain name at minimum and an optional hostmask (may contain wildcards).
-     * @throws IllegalArgumentException if there are not enough arguments
+     * @param args remaining arguments to the subcommand (index 0: username, index 1: optional hostmask)
      */
-    private void addCommand(List<String> args) throws IllegalArgumentException {
+    private void addCommand(List<String> args) {
         if (args.isEmpty()) {
-            throw new IllegalArgumentException(NOT_ENOUGH_ARGS_STR);
+            event.respondWith(NOT_ENOUGH_ARGS_STR);
+            return;
         }
 
         MortyBot bot = event.getBot();
-        String name = args.get(0);
+        String username = Validate.botUserName(args.get(0));
         String hostmask = "";
-        String flags = "";
+        List<BotUserFlag> flags = new ArrayList<>();
 
         // if no hostmask provided, see if there is a known user with that nick and attempt to pull their hostmask
         if (args.size() == 1) {
-            User user = bot.getUserChannelDao().getUser(name);
+            User user = bot.getUserChannelDao().getUser(username);
 
             if (user != null) {
                 try {
@@ -115,110 +119,97 @@ public class UserCommand implements BotCommand {
                     hostmask = IrcUtils.maskAddress(user.getHostmask(),
                             BotProperties.getBotProperties().getIntProperty("user.add.mask.type", USER_ADD_MASK_TYPE));
                 } catch (IllegalArgumentException e) {
-                    event.respondWith(String.format("Could not determine hostmask for %s. Try specifying manually.", name));
+                    event.respondWith(String.format("Could not determine hostmask for %s. Try specifying manually.", username));
                     return;
                 }
             }
         } else {
-            hostmask = args.get(1);
+            hostmask = Validate.hostmask(args.get(1));
         }
 
         if (args.size() > 2) {
-            flags = args.get(2);
+            flags = BotUserHelper.buildFlagList(args.get(2));
         }
 
-        List<BotUser> matchedUsers = botUserDao.getAll(hostmask);
+        List<BotUser> matchingUsers = BotUserHelper.findByHostmask(hostmask);
 
-        if (!matchedUsers.isEmpty()) {
-            event.respondWith("A user with a matching hostmask already exists");
+        if (!matchingUsers.isEmpty()) {
+            event.respondWith("Another user already matches that hostmask");
+        } else if (botUserDao.getWithName(username) != null) {
+            event.respondWith("Another user already has that name");
         } else {
-            try {
-                BotUser botUser = new BotUser(Validate.botUserName(name), Validate.hostmask(hostmask), Validate.botUserFlags(flags));
-                botUserDao.add(botUser);
-                event.respondWith("User added");
-
-            } catch (BotUserException e) {
-                handleBotUserException(e, "addCommand", args);
-
-            } catch (IllegalArgumentException e) {
-                log.error("Error adding user: {}", e.getMessage());
-                event.respondWith(e.getMessage());
-            }
+            BotUser botUser = new BotUser();
+            botUser.setName(username);
+            botUser.setBotUserHostmasks(List.of(hostmask));
+            botUser.setBotUserFlags(flags);
+            botUserDao.create(botUser);
+            event.respondWith("User added");
         }
     }
 
     /**
-     * Add a flag to a bot user.
+     * Adds flags to a bot user.
      *
-     * @param args the name of the bot user and the flag you want to add
-     * @throws IllegalArgumentException if there are not enough arguments
+     * @param args remaining arguments to the subcommand (index 0: username, index 1: comma-delimited list
+     *             of flags)
      */
-    private void addFlagCommand(List<String> args) throws IllegalArgumentException {
+    private void addFlagCommand(List<String> args) {
         if (args.size() < 2) {
-            throw new IllegalArgumentException(NOT_ENOUGH_ARGS_STR);
+            event.respondWith(NOT_ENOUGH_ARGS_STR);
+            return;
         }
 
-        String username = args.get(0);
-        String flag = Validate.botUserFlags(args.get(1));
+        String username = Validate.botUserName(args.get(0));
+        List<BotUserFlag> flags = BotUserHelper.buildFlagList(args.get(1));
+        BotUser botUser = botUserDao.getWithName(username);
 
-        try {
-            Optional<BotUser> optionalBotUser = botUserDao.getByUsername(username);
-
-            if (optionalBotUser.isPresent()) {
-                BotUser botUser = optionalBotUser.get();
-                botUser.addFlag(flag);
-                botUserDao.update(botUser);
-                event.respondWith("Flag(s) added");
-            } else {
-                event.respondWith(UNKNOWN_USER_STR);
-            }
-
-        } catch (BotUserException e) {
-            handleBotUserException(e, "addFlagCommand", args);
+        if (botUser == null) {
+            event.respondWith(UNKNOWN_USER_STR);
+        } else {
+            botUser.setBotUserFlags(flags);
+            botUserDao.update(botUser);
+            event.respondWith("Flags: " + botUser.getBotUserFlags());
         }
     }
 
     /**
-     * Add a hostmask to a bot user.
+     * Adds a hostmask to a bot user.
      *
-     * @param args the name of the user and hostmask to add in the form of "name nick!user@host" (may contain wildcards)
-     * @throws IllegalArgumentException if there are not enough arguments
+     * @param args remaining arguments to the subcommand (index 0: username, index 1: hostmask)
      */
-    private void addHostmaskCommand(List<String> args) throws IllegalArgumentException {
+    private void addHostmaskCommand(List<String> args) {
         if (args.size() < 2) {
-            throw new IllegalArgumentException(NOT_ENOUGH_ARGS_STR);
+            event.respondWith(NOT_ENOUGH_ARGS_STR);
+            return;
         }
 
-        String username = args.get(0);
-        String hostmask = args.get(1);
+        String username = Validate.botUserName(args.get(0));
+        String hostmask = Validate.hostmask(args.get(1));
+        BotUser botUser = botUserDao.getWithName(username);
+        List<BotUser> matchingUsers = BotUserHelper.findByHostmask(hostmask);
 
-        try {
-            Optional<BotUser> optionalBotUser = botUserDao.getByUsername(username);
-            if (optionalBotUser.isPresent()) {
-                BotUser botUser = optionalBotUser.get();
-                botUser.addHostmask(Validate.hostmask(hostmask));
-                botUserDao.update(botUser);
-                event.respondWith("Hostmask added");
-            } else {
-                event.respondWith(UNKNOWN_USER_STR);
-            }
-        } catch (BotUserException e) {
-            handleBotUserException(e, "addHostmaskCommand", args);
-        } catch (IllegalArgumentException e) {
-            log.error("Error adding hostmask: {}", e.getMessage());
-            event.respondWith(e.getMessage());
+        if (botUser == null) {
+            event.respondWith(UNKNOWN_USER_STR);
+        } else if (!matchingUsers.isEmpty()) {
+            event.respondWith("There is already a user with a matching hostmask");
+        } else {
+            List<String> hostmasks = botUser.getBotUserHostmasks();
+            hostmasks.add(hostmask);
+            botUser.setBotUserHostmasks(hostmasks);
+            botUserDao.update(botUser);
+            event.respondWith("Hostmask added");
         }
     }
 
     /**
-     * List all bot users.
+     * Lists all bot users.
      */
     private void listCommand() {
-        List<BotUser> users = botUserDao.getAll();
+        List<BotUser> botUsers = botUserDao.getAll();
 
-        if (!users.isEmpty()) {
+        if (!botUsers.isEmpty()) {
             List<List<BotUser>> groups = new ArrayList<>();
-            Deque<BotUser> userDeque = new ArrayDeque<>(users);
+            Deque<BotUser> userDeque = new ArrayDeque<>(botUsers);
 
             while (!userDeque.isEmpty()) {
                 List<BotUser> group = new ArrayList<>();
@@ -233,7 +224,7 @@ public class UserCommand implements BotCommand {
                 event.respondWith(String.format("Bot Users (%d/%d): %s",
                         cnt,
                         groups.size(),
-                        g.stream().map(BotUser::getUsername).collect(joining(", "))));
+                        g.stream().map(BotUser::getName).collect(joining(", "))));
                 cnt++;
             }
 
@@ -244,170 +235,129 @@ public class UserCommand implements BotCommand {
     }
 
     /**
-     * Remove a user from the bot.
+     * Removes a user from the bot.
      *
-     * @param args the name of the user you want to remove
-     * @throws IllegalArgumentException if there are too few arguments
+     * @param args remaining arguments to the subcommand (index 0: username)
      */
-    private void removeCommand(List<String> args) throws IllegalArgumentException {
+    private void removeCommand(List<String> args) {
         if (args.isEmpty()) {
-            throw new IllegalArgumentException(NOT_ENOUGH_ARGS_STR);
+            event.respondWith(NOT_ENOUGH_ARGS_STR);
+            return;
         }
 
-        String username = args.get(0);
+        String username = Validate.botUserName(args.get(0));
+        BotUser botUser = botUserDao.getWithName(username);
 
-        try {
-            Optional<BotUser> optionalBotUser = botUserDao.getByUsername(username);
-            if (optionalBotUser.isPresent()) {
-                BotUser botUser = optionalBotUser.get();
-                botUserDao.delete(botUser);
-                event.respondWith("User removed");
-            } else {
-                event.respondWith(UNKNOWN_USER_STR);
-            }
-        } catch (BotUserException e) {
-            handleBotUserException(e, "removeCommand", args);
-        } catch (IllegalArgumentException e) {
-            log.error("Error removing user: {}", e.getMessage());
-            event.respondWith(e.getMessage());
-        }
-    }
-
-    /**
-     * Remove a flag from a bot user.
-     *
-     * @param args the name of the bot user and the flag that you want to remove
-     * @throws IllegalArgumentException if there is an issue removing the flag
-     */
-    private void removeFlagCommand(List<String> args) throws IllegalArgumentException {
-        if (args.size() < 2)
-            throw new IllegalArgumentException(NOT_ENOUGH_ARGS_STR);
-
-        String username = args.get(0);
-        String flag = args.get(1).toUpperCase(Locale.ROOT);
-
-        try {
-            Optional<BotUser> optionalBotUser = botUserDao.getByUsername(username);
-            if (optionalBotUser.isPresent()) {
-                BotUser botUser = optionalBotUser.get();
-                botUser.removeFlag(flag);
-                botUserDao.update(botUser);
-                event.respondWith("Flag removed");
-            } else {
-                event.respondWith(UNKNOWN_USER_STR);
-            }
-        } catch (BotUserException e) {
-            handleBotUserException(e, "removeFlagCommand", args);
-        } catch (IllegalArgumentException e) {
-            log.error("Error removing flag: {}", e.getMessage());
-            event.respondWith(e.getMessage());
-        }
-    }
-
-    /**
-     * Remove a hostmask from a user.
-     *
-     * @param args the name of the user and the hostmask you want to remove
-     * @throws IllegalArgumentException if there are too few arguments
-     */
-    private void removeHostmaskCommand(List<String> args) throws IllegalArgumentException {
-        if (args.size() < 2) {
-            throw new IllegalArgumentException(NOT_ENOUGH_ARGS_STR);
-        }
-
-        String username = args.get(0);
-        String hostmask = args.get(1);
-
-        try {
-            Optional<BotUser> optionalBotUser = botUserDao.getByUsername(username);
-            if (optionalBotUser.isPresent()) {
-                BotUser botUser = optionalBotUser.get();
-                botUser.removeHostmask(hostmask);
-                botUserDao.update(botUser);
-                event.respondWith("Hostmask removed");
-            } else {
-                event.respondWith(UNKNOWN_USER_STR);
-            }
-        } catch (BotUserException e) {
-            handleBotUserException(e, "removeHostmaskCommand", args);
-        } catch (IllegalArgumentException e) {
-            log.error("Error removing hostmask: {}", e.getMessage());
-            event.respondWith(e.getMessage());
-        }
-    }
-
-    /**
-     * Show the details of a bot user.
-     *
-     * @param args the name of the user you want to show
-     * @throws IllegalArgumentException if there are too few arguments
-     */
-    private void showCommand(List<String> args) throws IllegalArgumentException {
-        if (args.isEmpty()) {
-            throw new IllegalArgumentException(NOT_ENOUGH_ARGS_STR);
-        }
-
-        String username = args.get(0);
-
-        try {
-            Optional<BotUser> optionalBotUser = botUserDao.getByUsername(username);
-            if (optionalBotUser.isPresent()) {
-                BotUser botUser = optionalBotUser.get();
-                event.respondWith(botUser.toString());
-            } else {
-                event.respondWith(UNKNOWN_USER_STR);
-            }
-        } catch (IllegalArgumentException e) {
-            log.error("Error showing user: {}", e.getMessage());
-            event.respondWith(e.getMessage());
-        }
-    }
-
-    private void setLocationCommand(List<String> args) throws IllegalArgumentException {
-        if (args.size() < 2) {
-            throw new IllegalArgumentException(NOT_ENOUGH_ARGS_STR);
-        }
-
-        String username = args.get(0);
-        Optional<BotUser> optionalBotUser = botUserDao.getByUsername(username);
-
-        if (optionalBotUser.isPresent()) {
-            BotUser botUser = optionalBotUser.get();
-            botUser.setLocation(String.join(" ", args.subList(1, args.size())));
-
-            try {
-                botUserDao.update(botUser);
-                event.respondWith(String.format("%s's location set to %s", botUser.getUsername(), botUser.getLocation()));
-            } catch (BotUserException e) {
-                String errMsg;
-                if (e.getReason() == BotUserException.Reason.UNKNOWN_USER) {
-                    errMsg = UNKNOWN_USER_STR;
-                } else {
-                    errMsg = "Something went wrong updating user";
-                }
-                log.error(errMsg, e);
-                event.respondWith(errMsg);
-            }
-        } else {
+        if (botUser == null) {
             event.respondWith(UNKNOWN_USER_STR);
+        } else {
+            botUserDao.delete(botUser.getId());
+            event.respondWith("User removed");
         }
     }
 
     /**
-     * Helper method to handle BotUserException and respond appropriately.
+     * Removes a flag from a bot user.
      *
-     * @param e the BotUserException object
-     * @param method the name of the method that ultimately triggered the exception
-     * @param args the arguments passed to the method that triggered the exception
+     * @param args remaining arguments to the subcommand (index 0: username, index 1: the flag)
      */
-    private void handleBotUserException(BotUserException e, String method, List<String> args) {
-        String errMsg;
-        errMsg = switch (e.getReason()) {
-            case UNKNOWN_USER -> UNKNOWN_USER_STR;
-            case USER_EXISTS -> "User already exists";
-        };
-        log.error("{}: {}, args: {}", method, errMsg, args);
-        event.respondWith(errMsg);
+    private void removeFlagCommand(List<String> args) {
+        if (args.size() < 2) {
+            event.respondWith(NOT_ENOUGH_ARGS_STR);
+            return;
+        }
+
+        String username = Validate.botUserName(args.get(0));
+        String flagStr = args.get(1);
+        BotUser botUser = botUserDao.getWithName(username);
+
+        if (botUser == null) {
+            event.respondWith(UNKNOWN_USER_STR);
+        } else {
+            List<BotUserFlag> flags = botUser.getBotUserFlags();
+            for (String s : flagStr.split(",")) {
+                BotUserFlag flag = Enum.valueOf(BotUserFlag.class, s.toUpperCase());
+                flags.remove(flag);
+            }
+            botUser.setBotUserFlags(flags);
+            botUserDao.update(botUser);
+            event.respondWith("Flags: " + botUser.getBotUserFlags());
+        }
+
+    }
+
+    /**
+     * Removes a hostmask from a user.
+     *
+     * @param args remaining arguments to the subcommand (index 0: username, index 1: hostmask)
+     */
+    private void removeHostmaskCommand(List<String> args) {
+        if (args.size() < 2) {
+            event.respondWith(NOT_ENOUGH_ARGS_STR);
+            return;
+        }
+
+        String username = Validate.botUserName(args.get(0));
+        String hostmask = args.get(1);
+        BotUser botUser = botUserDao.getWithName(username);
+
+        if (botUser == null) {
+            event.respondWith(UNKNOWN_USER_STR);
+        } else if (!botUser.getBotUserHostmasks().contains(hostmask)) {
+            event.respondWith("No such hostmask");
+        } else {
+            List<String> hostmasks = botUser.getBotUserHostmasks();
+            hostmasks.remove(hostmask);
+            botUser.setBotUserHostmasks(hostmasks);
+            botUserDao.update(botUser);
+            event.respondWith("Hostmask removed");
+        }
+    }
+
+    /**
+     * Shows the details of a bot user.
+     *
+     * @param args remaining arguments to the subcommand (index 0: username)
+     */
+    private void showCommand(List<String> args) {
+        if (args.isEmpty()) {
+            event.respondWith(NOT_ENOUGH_ARGS_STR);
+            return;
+        }
+
+        String username = Validate.botUserName(args.get(0));
+        BotUser botUser = botUserDao.getWithName(username);
+
+        if (botUser == null) {
+            event.respondWith(UNKNOWN_USER_STR);
+        } else {
+            event.respondWith(botUser.toString());
+        }
+    }
+
+    /**
+     * Sets a default location for a user (used by the WEATHER command).
+     *
+     * @param args remaining arguments to the subcommand (index 0: username, index 1: location)
+     * @see WeatherCommand
+     */
+    private void setLocationCommand(List<String> args) {
+        if (args.size() < 2) {
+            event.respondWith(NOT_ENOUGH_ARGS_STR);
+            return;
+        }
+
+        String username = Validate.botUserName(args.get(0));
+        String location = String.join(" ", args.subList(1, args.size()));
+        BotUser botUser = botUserDao.getWithName(username);
+
+        if (botUser == null) {
+            event.respondWith(UNKNOWN_USER_STR);
+        } else {
+            botUser.setLocation(location);
+            botUserDao.update(botUser);
+            event.respondWith(String.format("Set %s's location to %s", botUser.getName(), botUser.getLocation()));
+        }
     }
 
     @Override

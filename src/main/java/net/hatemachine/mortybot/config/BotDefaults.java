@@ -72,7 +72,7 @@ public class BotDefaults {
     // RegisterCommand
     public static final int     REGISTER_MASK_TYPE = 3;
     public static final String  REGISTER_NORMAL_FLAGS = "DCC";
-    public static final String  REGISTER_OWNER_FLAGS = "ADMIN,AOP,DCC";
+    public static final String  REGISTER_OWNER_FLAGS = "ADMIN,DCC";
 
     // RtCommand
     public static final int     RT_MAX_RESULTS = 4;

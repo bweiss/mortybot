@@ -17,32 +17,37 @@
  */
 package net.hatemachine.mortybot.migration;
 
-import java.math.BigDecimal;
 import org.apache.ibatis.migration.MigrationScript;
 
-public class V001_CreateChangelog implements MigrationScript {
+import java.math.BigDecimal;
+
+public class V002_CreateBotUser implements MigrationScript {
     public BigDecimal getId() {
-        return BigDecimal.valueOf(1L);
+        return BigDecimal.valueOf(2L);
     }
 
     public String getDescription() {
-        return "Create changelog table";
+        return "Create bot_user table";
     }
 
     public String getUpScript() {
         return """
-                create table changelog
+                create table bot_user
                 (
-                    id          integer not null
-                        constraint changelog_pk
+                    id        integer not null
+                        constraint bot_user_pk
                             primary key autoincrement,
-                    applied_at  text    not null,
-                    description text    not null
+                    name      text    not null
+                        constraint bot_user_pk
+                            unique,
+                    bot_user_hostmasks text default null,
+                    bot_user_flags     text default null,
+                    location           text default null
                 );
                 """;
     }
 
     public String getDownScript() {
-        return "drop table changelog;";
+        return "drop table bot_users;";
     }
 }

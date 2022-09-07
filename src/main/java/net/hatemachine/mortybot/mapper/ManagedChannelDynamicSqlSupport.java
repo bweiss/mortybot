@@ -18,43 +18,29 @@
 package net.hatemachine.mortybot.mapper;
 
 import java.sql.JDBCType;
-import javax.annotation.Generated;
-import org.mybatis.dynamic.sql.AliasableSqlTable;
+import java.util.List;
+import net.hatemachine.mortybot.custom.entity.ManagedChannelFlag;
 import org.mybatis.dynamic.sql.SqlColumn;
+import org.mybatis.dynamic.sql.SqlTable;
 
 public final class ManagedChannelDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.246893-04:00", comments="Source Table: managed_channels")
     public static final ManagedChannel managedChannel = new ManagedChannel();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.246965-04:00", comments="Source field: managed_channels.managed_channel_id")
-    public static final SqlColumn<Integer> managedChannelId = managedChannel.managedChannelId;
+    public static final SqlColumn<Integer> id = managedChannel.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.246999-04:00", comments="Source field: managed_channels.name")
     public static final SqlColumn<String> name = managedChannel.name;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247024-04:00", comments="Source field: managed_channels.auto_join_flag")
-    public static final SqlColumn<Integer> autoJoinFlag = managedChannel.autoJoinFlag;
+    public static final SqlColumn<List<ManagedChannelFlag>> managedChannelFlags = managedChannel.managedChannelFlags;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247052-04:00", comments="Source field: managed_channels.modes")
-    public static final SqlColumn<String> modes = managedChannel.modes;
+    public static final class ManagedChannel extends SqlTable {
+        public final SqlColumn<Integer> id = column("id", JDBCType.INTEGER);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247073-04:00", comments="Source field: managed_channels.enforce_modes_flag")
-    public static final SqlColumn<Integer> enforceModesFlag = managedChannel.enforceModesFlag;
+        public final SqlColumn<String> name = column("\"name\"", JDBCType.VARCHAR);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.246928-04:00", comments="Source Table: managed_channels")
-    public static final class ManagedChannel extends AliasableSqlTable<ManagedChannel> {
-        public final SqlColumn<Integer> managedChannelId = column("managed_channel_id", JDBCType.INTEGER);
-
-        public final SqlColumn<String> name = column("name", JDBCType.VARCHAR);
-
-        public final SqlColumn<Integer> autoJoinFlag = column("auto_join_flag", JDBCType.INTEGER);
-
-        public final SqlColumn<String> modes = column("modes", JDBCType.VARCHAR);
-
-        public final SqlColumn<Integer> enforceModesFlag = column("enforce_modes_flag", JDBCType.INTEGER);
+        public final SqlColumn<List<ManagedChannelFlag>> managedChannelFlags = column("managed_channel_flags", JDBCType.VARCHAR, "net.hatemachine.mortybot.custom.handler.ManagedChannelFlagListHandler");
 
         public ManagedChannel() {
-            super("managed_channels", ManagedChannel::new);
+            super("managed_channel");
         }
     }
 }

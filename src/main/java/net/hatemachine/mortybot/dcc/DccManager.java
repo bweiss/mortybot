@@ -175,8 +175,10 @@ public class DccManager {
             // if adminOnly flag is set, skip over users that do not have the ADMIN flag
             if (adminOnly) {
                 MortyBot bot = user.getBot();
-                List<BotUser> botUsers = bot.getBotUserDao().getAll(user.getHostmask());
-                boolean adminFlag = botUsers.stream().anyMatch(u -> u.hasFlag("ADMIN"));
+                // FIXME
+//                List<BotUser> botUsers = bot.getBotUserDao().getAll(user.getHostmask());
+//                boolean adminFlag = botUsers.stream().anyMatch(u -> u.hasFlag("ADMIN"));
+                boolean adminFlag = false;
                 if (!adminFlag) {
                     continue;
                 }

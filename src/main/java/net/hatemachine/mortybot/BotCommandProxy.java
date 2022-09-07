@@ -18,9 +18,10 @@
 package net.hatemachine.mortybot;
 
 import net.hatemachine.mortybot.config.BotProperties;
-import net.hatemachine.mortybot.dao.BotUserDao;
+import net.hatemachine.mortybot.custom.entity.BotUserFlag;
 import net.hatemachine.mortybot.exception.BotCommandException;
 import net.hatemachine.mortybot.model.BotUser;
+import net.hatemachine.mortybot.util.BotUserHelper;
 import org.pircbotx.User;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
@@ -33,8 +34,14 @@ import java.util.List;
 import static net.hatemachine.mortybot.exception.BotCommandException.Reason.*;
 
 /**
- * This class is used by the CommandListener to perform some checks on received commands prior to execution.
- * It is responsible for checking whether the command is enabled and whether the user is authorized to use that command.
+ * This class is used by the CommandListener to perform some checks on received commands prior to execution.<br/>
+ * <br/>
+ * It is responsible for checking if:<br/>
+ * - the command is enabled.<br/>
+ * - the command is restricted and, if so, whether the user is authorized to execute it.<br/>
+ * - the user is being ignored by the bot.<br/>
+ *
+ * @see net.hatemachine.mortybot.listeners.CommandListener
  */
 public class BotCommandProxy implements InvocationHandler {
 
@@ -52,6 +59,29 @@ public class BotCommandProxy implements InvocationHandler {
         );
     }
 
+    /**
+     * Executes a bot command after verification of the user and command is performed.
+     *
+     * @param proxy the proxy instance that the method was invoked on
+     *
+     * @param m the {@code Method} instance corresponding to the interface method
+     *          invoked on the proxy instance.  The declaring class of the {@code Method}
+     *          object will be the interface that the method was declared in, which
+     *          may be a superinterface of the proxy interface that the proxy class
+     *          inherits the method through.
+     *
+     * @param args an array of objects containing the values of the
+     *             arguments passed in the method invocation on the proxy instance
+     *             or {@code null} if interface method takes no arguments.
+     *             Arguments of primitive types are wrapped in instances of the
+     *             appropriate primitive wrapper class, such as
+     *             {@code java.lang.Integer} or {@code java.lang.Boolean}.
+     *
+     * @return
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     * @throws BotCommandException
+     */
     @Override
     public Object invoke(Object proxy, Method m, Object[] args)
             throws IllegalAccessException, InvocationTargetException, BotCommandException {
@@ -60,18 +90,16 @@ public class BotCommandProxy implements InvocationHandler {
         List<String> enabled = Arrays.asList(props.getStringProperty("commands.enabled").split(","));
         List<String> adminOnly = Arrays.asList(props.getStringProperty("commands.restricted").split(","));
         GenericMessageEvent event = command.getEvent();
-        MortyBot bot = event.getBot();
         User user = event.getUser();
-        BotUserDao botUserDao = bot.getBotUserDao();
-        List<BotUser> botUsers = botUserDao.getAll(user.getHostmask());
-        boolean ignoredUser = botUsers.stream().anyMatch(u -> u.hasFlag("IGNORE"));
-        boolean adminUser = botUsers.stream().anyMatch(u -> u.hasFlag("ADMIN"));
+        List<BotUser> botUsers = BotUserHelper.findByHostmask(user.getHostmask());
+        boolean ignoredFlag = botUsers.stream().anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.IGNORE));
+        boolean adminFlag = botUsers.stream().anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.ADMIN));
 
-        if (ignoredUser) {
+        if (ignoredFlag) {
             throw new BotCommandException(USER_IGNORED, user.toString());
         } else if (!enabled.contains(command.getName())) {
             throw new BotCommandException(COMMAND_NOT_ENABLED, command.getName());
-        } else if (adminOnly.contains(command.getName()) && !adminUser) {
+        } else if (adminOnly.contains(command.getName()) && !adminFlag) {
             throw new BotCommandException(USER_UNAUTHORIZED, command.getName() + " " + user);
         } else {
             result = m.invoke(command, args);

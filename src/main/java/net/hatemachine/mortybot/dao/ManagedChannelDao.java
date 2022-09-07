@@ -17,70 +17,109 @@
  */
 package net.hatemachine.mortybot.dao;
 
-import net.hatemachine.mortybot.exception.ManagedChannelException;
+import com.catyee.generator.utils.MyBatis3CustomUtils;
+import net.hatemachine.mortybot.custom.mapper.ManagedChannelCustomMapper;
+import net.hatemachine.mortybot.mapper.ManagedChannelDynamicSqlSupport;
+import net.hatemachine.mortybot.mapper.ManagedChannelMapper;
 import net.hatemachine.mortybot.model.ManagedChannel;
+import net.hatemachine.mortybot.util.MyBatisUtil;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
 
 import java.util.List;
-import java.util.Optional;
 
-/**
- * <p>Data access object interface for {@link ManagedChannel} objects.</p>
- * <br />
- * <p>It is recommended that all implementations of this interface's methods be synchronized.</p>
- */
-public interface ManagedChannelDao {
+import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 
-    /**
-     * Get a managed channel by its id.
-     *
-     * @param id the id of the managed channel you want to retrieve
-     * @return an {@link Optional} containing a {@link ManagedChannel} if one exists with that id
-     */
-    Optional<ManagedChannel> get(Integer id);
+public class ManagedChannelDao {
 
-    /**
-     * Get a managed channel by its name.
-     *
-     * @param channelName the name of the managed channel you want to retrieve
-     * @return an {@link Optional} containing a {@link ManagedChannel} if one exists with that name
-     */
-    Optional<ManagedChannel> getByName(String channelName);
+    private final SqlSessionFactory sqlSessionFactory;
 
-    /**
-     * Add a new managed channel.
-     *
-     * @param managedChannel the managed channel to be added
-     * @throws ManagedChannelException if managed channel already exists
-     */
-    int add(ManagedChannel managedChannel) throws ManagedChannelException;
+    public ManagedChannelDao() {
+        this.sqlSessionFactory = MyBatisUtil.getSqlSessionFactory();
+    }
 
-    /**
-     * Update an existing managed channel.
-     *
-     * @param managedChannel the managed channel to be updated
-     * @throws ManagedChannelException if managed channel does not exist
-     */
-    int update(ManagedChannel managedChannel) throws ManagedChannelException;
+    public ManagedChannel create(ManagedChannel managedChannel) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            ManagedChannelMapper mapper = session.getMapper(ManagedChannelMapper.class);
+            mapper.insert(managedChannel);
+            session.commit();
+            return managedChannel;
+        }
+    }
 
-    /**
-     * Delete a managed channel.
-     *
-     * @param managedChannel the managed channel to be deleted
-     * @throws ManagedChannelException if managed channel does not exist
-     */
-    int delete(ManagedChannel managedChannel) throws ManagedChannelException;
+    public List<ManagedChannel> batchCreate(List<ManagedChannel> ManagedChannels) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            ManagedChannelMapper mapper = session.getMapper(ManagedChannelMapper.class);
+            mapper.insertMultiple(ManagedChannels);
+            session.commit();
+            return ManagedChannels;
+        }
+    }
 
-    /**
-     * Retrieve all managed channels.
-     *
-     * @return list of all managed channels.
-     */
-    List<ManagedChannel> getAll();
+    public boolean createIfNotExist(ManagedChannel ManagedChannel) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            ManagedChannelCustomMapper mapper = session.getMapper(ManagedChannelCustomMapper.class);
+            int count = mapper.ignoreInsert(ManagedChannel);
+            session.commit();
+            return count > 0;
+        }
+    }
 
-    /**
-     * Get a total count of all managed channels.
-     *
-     * @return number of total managed channels
-     */
-    long count();
+    public int batchCreateIfNotExist(List<ManagedChannel> ManagedChannels) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            ManagedChannelCustomMapper mapper = session.getMapper(ManagedChannelCustomMapper.class);
+            session.commit();
+            return mapper.ignoreInsertMultiple(ManagedChannels);
+        }
+    }
+
+    public ManagedChannel update(ManagedChannel managedChannel) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            ManagedChannelMapper mapper = session.getMapper(ManagedChannelMapper.class);
+            mapper.updateByPrimaryKey(managedChannel);
+            session.commit();
+            return managedChannel;
+        }
+    }
+
+    public void delete(int id) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            ManagedChannelMapper mapper = session.getMapper(ManagedChannelMapper.class);
+            mapper.deleteByPrimaryKey(id);
+            session.commit();
+        }
+    }
+
+    public void deleteWithName(String name) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            ManagedChannelMapper mapper = session.getMapper(ManagedChannelMapper.class);
+            mapper.delete(c -> c.where(ManagedChannelDynamicSqlSupport.name, isEqualTo(name)));
+            session.commit();
+        }
+    }
+
+    public ManagedChannel get(Integer id) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            ManagedChannelMapper mapper = session.getMapper(ManagedChannelMapper.class);
+            return mapper.selectByPrimaryKey(id).orElse(null);
+        }
+    }
+
+    public List<ManagedChannel> getWithName(String name) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            ManagedChannelMapper mapper = session.getMapper(ManagedChannelMapper.class);
+            return mapper.select(c -> c.where(ManagedChannelDynamicSqlSupport.name, isEqualTo(name)));
+        }
+    }
+
+    public List<ManagedChannel> getAll() {
+        return getAll(null, null);
+    }
+
+    public List<ManagedChannel> getAll(Long limit, Long offset) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            ManagedChannelMapper mapper = session.getMapper(ManagedChannelMapper.class);
+            return mapper.select(c -> MyBatis3CustomUtils.buildLimitOffset(c, limit, offset));
+        }
+    }
 }

@@ -18,169 +18,207 @@
 package net.hatemachine.mortybot.mapper;
 
 import static net.hatemachine.mortybot.mapper.BotUserDynamicSqlSupport.*;
-import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
+import static net.hatemachine.mortybot.mapper.ManagedChannelUserDynamicSqlSupport.managedChannelUser;
+import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
+import com.catyee.generator.entity.JoinDetail;
+import com.catyee.generator.utils.MyBatis3CustomUtils;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Generated;
+import net.hatemachine.mortybot.custom.handler.BotUserFlagListHandler;
+import net.hatemachine.mortybot.custom.handler.StringListHandler;
 import net.hatemachine.mortybot.model.BotUser;
+import org.apache.ibatis.annotations.DeleteProvider;
+import org.apache.ibatis.annotations.Insert;
+import org.apache.ibatis.annotations.InsertProvider;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Options;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Result;
 import org.apache.ibatis.annotations.ResultMap;
 import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.SelectProvider;
+import org.apache.ibatis.annotations.UpdateProvider;
 import org.apache.ibatis.type.JdbcType;
 import org.mybatis.dynamic.sql.BasicColumn;
+import org.mybatis.dynamic.sql.SqlTable;
 import org.mybatis.dynamic.sql.delete.DeleteDSLCompleter;
+import org.mybatis.dynamic.sql.delete.render.DeleteStatementProvider;
+import org.mybatis.dynamic.sql.insert.render.InsertStatementProvider;
+import org.mybatis.dynamic.sql.insert.render.MultiRowInsertStatementProvider;
 import org.mybatis.dynamic.sql.select.CountDSLCompleter;
 import org.mybatis.dynamic.sql.select.SelectDSLCompleter;
 import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
 import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.mybatis.dynamic.sql.update.UpdateDSLCompleter;
 import org.mybatis.dynamic.sql.update.UpdateModel;
+import org.mybatis.dynamic.sql.update.render.UpdateStatementProvider;
 import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
-import org.mybatis.dynamic.sql.util.mybatis3.CommonCountMapper;
-import org.mybatis.dynamic.sql.util.mybatis3.CommonDeleteMapper;
-import org.mybatis.dynamic.sql.util.mybatis3.CommonInsertMapper;
-import org.mybatis.dynamic.sql.util.mybatis3.CommonUpdateMapper;
 import org.mybatis.dynamic.sql.util.mybatis3.MyBatis3Utils;
 
 @Mapper
-public interface BotUserMapper extends CommonCountMapper, CommonDeleteMapper, CommonInsertMapper<BotUser>, CommonUpdateMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6250905-04:00", comments="Source Table: bot_users")
-    BasicColumn[] selectList = BasicColumn.columnList(botUserId, username, hostmasks, flags, location);
+public interface BotUserMapper {
+    BasicColumn[] selectList = BasicColumn.columnList(id, name, botUserHostmasks, botUserFlags, location);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6155288-04:00", comments="Source Table: bot_users")
+    BasicColumn[] leftJoinSelectList = BasicColumn.columnList(id, name, botUserHostmasks, botUserFlags, location,
+		(managedChannelUser.id).as("managed_channel_user_id"), 
+		(managedChannelUser.managedChannelId).as("managed_channel_user_managed_channel_id"), 
+		(managedChannelUser.botUserId).as("managed_channel_user_bot_user_id"), 
+		(managedChannelUser.managedChannelUserFlags).as("managed_channel_user_managed_channel_user_flags"));
+
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
-    @Results(id="BotUserResult", value = {
-        @Result(column="bot_user_id", property="botUserId", jdbcType=JdbcType.INTEGER, id=true),
-        @Result(column="username", property="username", jdbcType=JdbcType.VARCHAR),
-        @Result(column="hostmasks", property="hostmasks", jdbcType=JdbcType.VARCHAR),
-        @Result(column="flags", property="flags", jdbcType=JdbcType.VARCHAR),
-        @Result(column="location", property="location", jdbcType=JdbcType.VARCHAR)
-    })
-    List<BotUser> selectMany(SelectStatementProvider selectStatement);
+    long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6180813-04:00", comments="Source Table: bot_users")
+    @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
+    int delete(DeleteStatementProvider deleteStatement);
+
+    @InsertProvider(type=SqlProviderAdapter.class, method="insert")
+    @Options(useGeneratedKeys=true,keyProperty="record.id")
+    int insert(InsertStatementProvider<BotUser> insertStatement);
+
+    @Insert({
+        "${insertStatement}"
+    })
+    @Options(useGeneratedKeys=true,keyProperty="records.id")
+    int insertMultiple(@Param("insertStatement") String insertStatement, @Param("records") List<BotUser> records);
+
+    default int insertMultiple(MultiRowInsertStatementProvider<BotUser> multipleInsertStatement) {
+        return insertMultiple(multipleInsertStatement.getInsertStatement(), multipleInsertStatement.getRecords());
+    }
+
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ResultMap("BotUserResult")
     Optional<BotUser> selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6180813-04:00", comments="Source Table: bot_users")
+    @SelectProvider(type=SqlProviderAdapter.class, method="select")
+    @Results(id="BotUserResult", value = {
+        @Result(column="id", property="id", jdbcType=JdbcType.INTEGER, id=true),
+        @Result(column="name", property="name", jdbcType=JdbcType.VARCHAR),
+        @Result(column="bot_user_hostmasks", property="botUserHostmasks", typeHandler=StringListHandler.class, jdbcType=JdbcType.VARCHAR),
+        @Result(column="bot_user_flags", property="botUserFlags", typeHandler=BotUserFlagListHandler.class, jdbcType=JdbcType.VARCHAR),
+        @Result(column="location", property="location", jdbcType=JdbcType.VARCHAR)
+    })
+    List<BotUser> selectMany(SelectStatementProvider selectStatement);
+
+    @UpdateProvider(type=SqlProviderAdapter.class, method="update")
+    int update(UpdateStatementProvider updateStatement);
+
     default long count(CountDSLCompleter completer) {
         return MyBatis3Utils.countFrom(this::count, botUser, completer);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.61909-04:00", comments="Source Table: bot_users")
     default int delete(DeleteDSLCompleter completer) {
         return MyBatis3Utils.deleteFrom(this::delete, botUser, completer);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.61909-04:00", comments="Source Table: bot_users")
-    default int deleteByPrimaryKey(Integer botUserId_) {
+    default int deleteByPrimaryKey(Integer id_) {
         return delete(c -> 
-            c.where(botUserId, isEqualTo(botUserId_))
+            c.where(id, isEqualTo(id_))
         );
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6200909-04:00", comments="Source Table: bot_users")
-    default int insert(BotUser row) {
-        return MyBatis3Utils.insert(this::insert, row, botUser, c ->
-            c.map(botUserId).toProperty("botUserId")
-            .map(username).toProperty("username")
-            .map(hostmasks).toProperty("hostmasks")
-            .map(flags).toProperty("flags")
+    default int insert(BotUser record) {
+        return MyBatis3Utils.insert(this::insert, record, botUser, c ->
+            c.map(name).toProperty("name")
+            .map(botUserHostmasks).toProperty("botUserHostmasks")
+            .map(botUserFlags).toProperty("botUserFlags")
             .map(location).toProperty("location")
         );
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6220907-04:00", comments="Source Table: bot_users")
     default int insertMultiple(Collection<BotUser> records) {
         return MyBatis3Utils.insertMultiple(this::insertMultiple, records, botUser, c ->
-            c.map(botUserId).toProperty("botUserId")
-            .map(username).toProperty("username")
-            .map(hostmasks).toProperty("hostmasks")
-            .map(flags).toProperty("flags")
+            c.map(name).toProperty("name")
+            .map(botUserHostmasks).toProperty("botUserHostmasks")
+            .map(botUserFlags).toProperty("botUserFlags")
             .map(location).toProperty("location")
         );
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6230901-04:00", comments="Source Table: bot_users")
-    default int insertSelective(BotUser row) {
-        return MyBatis3Utils.insert(this::insert, row, botUser, c ->
-            c.map(botUserId).toPropertyWhenPresent("botUserId", row::getBotUserId)
-            .map(username).toPropertyWhenPresent("username", row::getUsername)
-            .map(hostmasks).toPropertyWhenPresent("hostmasks", row::getHostmasks)
-            .map(flags).toPropertyWhenPresent("flags", row::getFlags)
-            .map(location).toPropertyWhenPresent("location", row::getLocation)
+    default int insertSelective(BotUser record) {
+        return MyBatis3Utils.insert(this::insert, record, botUser, c ->
+            c.map(name).toPropertyWhenPresent("name", record::getName)
+            .map(botUserHostmasks).toPropertyWhenPresent("botUserHostmasks", record::getBotUserHostmasks)
+            .map(botUserFlags).toPropertyWhenPresent("botUserFlags", record::getBotUserFlags)
+            .map(location).toPropertyWhenPresent("location", record::getLocation)
         );
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6260899-04:00", comments="Source Table: bot_users")
     default Optional<BotUser> selectOne(SelectDSLCompleter completer) {
         return MyBatis3Utils.selectOne(this::selectOne, selectList, botUser, completer);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6260899-04:00", comments="Source Table: bot_users")
     default List<BotUser> select(SelectDSLCompleter completer) {
         return MyBatis3Utils.selectList(this::selectMany, selectList, botUser, completer);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.62709-04:00", comments="Source Table: bot_users")
     default List<BotUser> selectDistinct(SelectDSLCompleter completer) {
         return MyBatis3Utils.selectDistinct(this::selectMany, selectList, botUser, completer);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.62709-04:00", comments="Source Table: bot_users")
-    default Optional<BotUser> selectByPrimaryKey(Integer botUserId_) {
+    default Optional<BotUser> selectByPrimaryKey(Integer id_) {
         return selectOne(c ->
-            c.where(botUserId, isEqualTo(botUserId_))
+            c.where(id, isEqualTo(id_))
         );
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.62709-04:00", comments="Source Table: bot_users")
     default int update(UpdateDSLCompleter completer) {
         return MyBatis3Utils.update(this::update, botUser, completer);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6280897-04:00", comments="Source Table: bot_users")
-    static UpdateDSL<UpdateModel> updateAllColumns(BotUser row, UpdateDSL<UpdateModel> dsl) {
-        return dsl.set(botUserId).equalTo(row::getBotUserId)
-                .set(username).equalTo(row::getUsername)
-                .set(hostmasks).equalTo(row::getHostmasks)
-                .set(flags).equalTo(row::getFlags)
-                .set(location).equalTo(row::getLocation);
+    static UpdateDSL<UpdateModel> updateAllColumns(BotUser record, UpdateDSL<UpdateModel> dsl) {
+        return dsl.set(name).equalTo(record::getName)
+                .set(botUserHostmasks).equalTo(record::getBotUserHostmasks)
+                .set(botUserFlags).equalTo(record::getBotUserFlags)
+                .set(location).equalTo(record::getLocation);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.62909-04:00", comments="Source Table: bot_users")
-    static UpdateDSL<UpdateModel> updateSelectiveColumns(BotUser row, UpdateDSL<UpdateModel> dsl) {
-        return dsl.set(botUserId).equalToWhenPresent(row::getBotUserId)
-                .set(username).equalToWhenPresent(row::getUsername)
-                .set(hostmasks).equalToWhenPresent(row::getHostmasks)
-                .set(flags).equalToWhenPresent(row::getFlags)
-                .set(location).equalToWhenPresent(row::getLocation);
+    static UpdateDSL<UpdateModel> updateSelectiveColumns(BotUser record, UpdateDSL<UpdateModel> dsl) {
+        return dsl.set(name).equalToWhenPresent(record::getName)
+                .set(botUserHostmasks).equalToWhenPresent(record::getBotUserHostmasks)
+                .set(botUserFlags).equalToWhenPresent(record::getBotUserFlags)
+                .set(location).equalToWhenPresent(record::getLocation);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.62909-04:00", comments="Source Table: bot_users")
-    default int updateByPrimaryKey(BotUser row) {
+    default int updateByPrimaryKey(BotUser record) {
         return update(c ->
-            c.set(username).equalTo(row::getUsername)
-            .set(hostmasks).equalTo(row::getHostmasks)
-            .set(flags).equalTo(row::getFlags)
-            .set(location).equalTo(row::getLocation)
-            .where(botUserId, isEqualTo(row::getBotUserId))
+            c.set(name).equalTo(record::getName)
+            .set(botUserHostmasks).equalTo(record::getBotUserHostmasks)
+            .set(botUserFlags).equalTo(record::getBotUserFlags)
+            .set(location).equalTo(record::getLocation)
+            .where(id, isEqualTo(record::getId))
         );
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-06-26T17:54:26.6300898-04:00", comments="Source Table: bot_users")
-    default int updateByPrimaryKeySelective(BotUser row) {
+    default int updateByPrimaryKeySelective(BotUser record) {
         return update(c ->
-            c.set(username).equalToWhenPresent(row::getUsername)
-            .set(hostmasks).equalToWhenPresent(row::getHostmasks)
-            .set(flags).equalToWhenPresent(row::getFlags)
-            .set(location).equalToWhenPresent(row::getLocation)
-            .where(botUserId, isEqualTo(row::getBotUserId))
+            c.set(name).equalToWhenPresent(record::getName)
+            .set(botUserHostmasks).equalToWhenPresent(record::getBotUserHostmasks)
+            .set(botUserFlags).equalToWhenPresent(record::getBotUserFlags)
+            .set(location).equalToWhenPresent(record::getLocation)
+            .where(id, isEqualTo(record::getId))
         );
+    }
+
+    @SelectProvider(type=SqlProviderAdapter.class, method="select")
+    @ResultMap("JoinBotUserResult")
+    Optional<BotUser> leftJoinSelectOne(SelectStatementProvider selectStatement);
+
+    @SelectProvider(type=SqlProviderAdapter.class, method="select")
+    @ResultMap("JoinBotUserResult")
+    List<BotUser> leftJoinSelectMany(SelectStatementProvider selectStatement);
+
+    default List<BotUser> leftJoinSelect(SelectDSLCompleter completer) {
+        List<JoinDetail> joinDetails = new ArrayList<>();
+        joinDetails.add(JoinDetail.of(id, managedChannelUser, managedChannelUser.managedChannelId));
+        return MyBatis3CustomUtils.leftJoinSelectList(this::leftJoinSelectMany, leftJoinSelectList, botUser, joinDetails , completer);
+    }
+
+    default Optional<BotUser> leftJoinSelectOne(SelectDSLCompleter completer) {
+        List<JoinDetail> joinDetails = new ArrayList<>();
+        joinDetails.add(JoinDetail.of(id, managedChannelUser, managedChannelUser.managedChannelId));
+        return MyBatis3CustomUtils.leftJoinSelectOne(this::leftJoinSelectOne, leftJoinSelectList, botUser, joinDetails , completer);
     }
 }

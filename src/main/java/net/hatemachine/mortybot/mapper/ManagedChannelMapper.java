@@ -18,169 +18,190 @@
 package net.hatemachine.mortybot.mapper;
 
 import static net.hatemachine.mortybot.mapper.ManagedChannelDynamicSqlSupport.*;
-import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
+import static net.hatemachine.mortybot.mapper.ManagedChannelUserDynamicSqlSupport.managedChannelUser;
+import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
+import com.catyee.generator.entity.JoinDetail;
+import com.catyee.generator.utils.MyBatis3CustomUtils;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Generated;
+import net.hatemachine.mortybot.custom.handler.ManagedChannelFlagListHandler;
 import net.hatemachine.mortybot.model.ManagedChannel;
+import org.apache.ibatis.annotations.DeleteProvider;
+import org.apache.ibatis.annotations.Insert;
+import org.apache.ibatis.annotations.InsertProvider;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Options;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Result;
 import org.apache.ibatis.annotations.ResultMap;
 import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.SelectProvider;
+import org.apache.ibatis.annotations.UpdateProvider;
 import org.apache.ibatis.type.JdbcType;
 import org.mybatis.dynamic.sql.BasicColumn;
+import org.mybatis.dynamic.sql.SqlTable;
 import org.mybatis.dynamic.sql.delete.DeleteDSLCompleter;
+import org.mybatis.dynamic.sql.delete.render.DeleteStatementProvider;
+import org.mybatis.dynamic.sql.insert.render.InsertStatementProvider;
+import org.mybatis.dynamic.sql.insert.render.MultiRowInsertStatementProvider;
 import org.mybatis.dynamic.sql.select.CountDSLCompleter;
 import org.mybatis.dynamic.sql.select.SelectDSLCompleter;
 import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
 import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.mybatis.dynamic.sql.update.UpdateDSLCompleter;
 import org.mybatis.dynamic.sql.update.UpdateModel;
+import org.mybatis.dynamic.sql.update.render.UpdateStatementProvider;
 import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
-import org.mybatis.dynamic.sql.util.mybatis3.CommonCountMapper;
-import org.mybatis.dynamic.sql.util.mybatis3.CommonDeleteMapper;
-import org.mybatis.dynamic.sql.util.mybatis3.CommonInsertMapper;
-import org.mybatis.dynamic.sql.util.mybatis3.CommonUpdateMapper;
 import org.mybatis.dynamic.sql.util.mybatis3.MyBatis3Utils;
 
 @Mapper
-public interface ManagedChannelMapper extends CommonCountMapper, CommonDeleteMapper, CommonInsertMapper<ManagedChannel>, CommonUpdateMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247447-04:00", comments="Source Table: managed_channels")
-    BasicColumn[] selectList = BasicColumn.columnList(managedChannelId, name, autoJoinFlag, modes, enforceModesFlag);
+public interface ManagedChannelMapper {
+    BasicColumn[] selectList = BasicColumn.columnList(id, name, managedChannelFlags);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247099-04:00", comments="Source Table: managed_channels")
+    BasicColumn[] leftJoinSelectList = BasicColumn.columnList(id, name, managedChannelFlags,
+		(managedChannelUser.id).as("managed_channel_user_id"), 
+		(managedChannelUser.managedChannelId).as("managed_channel_user_managed_channel_id"), 
+		(managedChannelUser.botUserId).as("managed_channel_user_bot_user_id"), 
+		(managedChannelUser.managedChannelUserFlags).as("managed_channel_user_managed_channel_user_flags"));
+
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
-    @Results(id="ManagedChannelResult", value = {
-        @Result(column="managed_channel_id", property="managedChannelId", jdbcType=JdbcType.INTEGER, id=true),
-        @Result(column="name", property="name", jdbcType=JdbcType.VARCHAR),
-        @Result(column="auto_join_flag", property="autoJoinFlag", jdbcType=JdbcType.INTEGER),
-        @Result(column="modes", property="modes", jdbcType=JdbcType.VARCHAR),
-        @Result(column="enforce_modes_flag", property="enforceModesFlag", jdbcType=JdbcType.INTEGER)
-    })
-    List<ManagedChannel> selectMany(SelectStatementProvider selectStatement);
+    long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247154-04:00", comments="Source Table: managed_channels")
+    @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
+    int delete(DeleteStatementProvider deleteStatement);
+
+    @InsertProvider(type=SqlProviderAdapter.class, method="insert")
+    @Options(useGeneratedKeys=true,keyProperty="record.id")
+    int insert(InsertStatementProvider<ManagedChannel> insertStatement);
+
+    @Insert({
+        "${insertStatement}"
+    })
+    @Options(useGeneratedKeys=true,keyProperty="records.id")
+    int insertMultiple(@Param("insertStatement") String insertStatement, @Param("records") List<ManagedChannel> records);
+
+    default int insertMultiple(MultiRowInsertStatementProvider<ManagedChannel> multipleInsertStatement) {
+        return insertMultiple(multipleInsertStatement.getInsertStatement(), multipleInsertStatement.getRecords());
+    }
+
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ResultMap("ManagedChannelResult")
     Optional<ManagedChannel> selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247189-04:00", comments="Source Table: managed_channels")
+    @SelectProvider(type=SqlProviderAdapter.class, method="select")
+    @Results(id="ManagedChannelResult", value = {
+        @Result(column="id", property="id", jdbcType=JdbcType.INTEGER, id=true),
+        @Result(column="name", property="name", jdbcType=JdbcType.VARCHAR),
+        @Result(column="managed_channel_flags", property="managedChannelFlags", typeHandler=ManagedChannelFlagListHandler.class, jdbcType=JdbcType.VARCHAR)
+    })
+    List<ManagedChannel> selectMany(SelectStatementProvider selectStatement);
+
+    @UpdateProvider(type=SqlProviderAdapter.class, method="update")
+    int update(UpdateStatementProvider updateStatement);
+
     default long count(CountDSLCompleter completer) {
         return MyBatis3Utils.countFrom(this::count, managedChannel, completer);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247215-04:00", comments="Source Table: managed_channels")
     default int delete(DeleteDSLCompleter completer) {
         return MyBatis3Utils.deleteFrom(this::delete, managedChannel, completer);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247237-04:00", comments="Source Table: managed_channels")
-    default int deleteByPrimaryKey(Integer managedChannelId_) {
+    default int deleteByPrimaryKey(Integer id_) {
         return delete(c -> 
-            c.where(managedChannelId, isEqualTo(managedChannelId_))
+            c.where(id, isEqualTo(id_))
         );
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.24726-04:00", comments="Source Table: managed_channels")
-    default int insert(ManagedChannel row) {
-        return MyBatis3Utils.insert(this::insert, row, managedChannel, c ->
-            c.map(managedChannelId).toProperty("managedChannelId")
-            .map(name).toProperty("name")
-            .map(autoJoinFlag).toProperty("autoJoinFlag")
-            .map(modes).toProperty("modes")
-            .map(enforceModesFlag).toProperty("enforceModesFlag")
+    default int insert(ManagedChannel record) {
+        return MyBatis3Utils.insert(this::insert, record, managedChannel, c ->
+            c.map(name).toProperty("name")
+            .map(managedChannelFlags).toProperty("managedChannelFlags")
         );
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247313-04:00", comments="Source Table: managed_channels")
     default int insertMultiple(Collection<ManagedChannel> records) {
         return MyBatis3Utils.insertMultiple(this::insertMultiple, records, managedChannel, c ->
-            c.map(managedChannelId).toProperty("managedChannelId")
-            .map(name).toProperty("name")
-            .map(autoJoinFlag).toProperty("autoJoinFlag")
-            .map(modes).toProperty("modes")
-            .map(enforceModesFlag).toProperty("enforceModesFlag")
+            c.map(name).toProperty("name")
+            .map(managedChannelFlags).toProperty("managedChannelFlags")
         );
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.24737-04:00", comments="Source Table: managed_channels")
-    default int insertSelective(ManagedChannel row) {
-        return MyBatis3Utils.insert(this::insert, row, managedChannel, c ->
-            c.map(managedChannelId).toPropertyWhenPresent("managedChannelId", row::getManagedChannelId)
-            .map(name).toPropertyWhenPresent("name", row::getName)
-            .map(autoJoinFlag).toPropertyWhenPresent("autoJoinFlag", row::getAutoJoinFlag)
-            .map(modes).toPropertyWhenPresent("modes", row::getModes)
-            .map(enforceModesFlag).toPropertyWhenPresent("enforceModesFlag", row::getEnforceModesFlag)
+    default int insertSelective(ManagedChannel record) {
+        return MyBatis3Utils.insert(this::insert, record, managedChannel, c ->
+            c.map(name).toPropertyWhenPresent("name", record::getName)
+            .map(managedChannelFlags).toPropertyWhenPresent("managedChannelFlags", record::getManagedChannelFlags)
         );
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247475-04:00", comments="Source Table: managed_channels")
     default Optional<ManagedChannel> selectOne(SelectDSLCompleter completer) {
         return MyBatis3Utils.selectOne(this::selectOne, selectList, managedChannel, completer);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247504-04:00", comments="Source Table: managed_channels")
     default List<ManagedChannel> select(SelectDSLCompleter completer) {
         return MyBatis3Utils.selectList(this::selectMany, selectList, managedChannel, completer);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247532-04:00", comments="Source Table: managed_channels")
     default List<ManagedChannel> selectDistinct(SelectDSLCompleter completer) {
         return MyBatis3Utils.selectDistinct(this::selectMany, selectList, managedChannel, completer);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247557-04:00", comments="Source Table: managed_channels")
-    default Optional<ManagedChannel> selectByPrimaryKey(Integer managedChannelId_) {
+    default Optional<ManagedChannel> selectByPrimaryKey(Integer id_) {
         return selectOne(c ->
-            c.where(managedChannelId, isEqualTo(managedChannelId_))
+            c.where(id, isEqualTo(id_))
         );
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247584-04:00", comments="Source Table: managed_channels")
     default int update(UpdateDSLCompleter completer) {
         return MyBatis3Utils.update(this::update, managedChannel, completer);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247615-04:00", comments="Source Table: managed_channels")
-    static UpdateDSL<UpdateModel> updateAllColumns(ManagedChannel row, UpdateDSL<UpdateModel> dsl) {
-        return dsl.set(managedChannelId).equalTo(row::getManagedChannelId)
-                .set(name).equalTo(row::getName)
-                .set(autoJoinFlag).equalTo(row::getAutoJoinFlag)
-                .set(modes).equalTo(row::getModes)
-                .set(enforceModesFlag).equalTo(row::getEnforceModesFlag);
+    static UpdateDSL<UpdateModel> updateAllColumns(ManagedChannel record, UpdateDSL<UpdateModel> dsl) {
+        return dsl.set(name).equalTo(record::getName)
+                .set(managedChannelFlags).equalTo(record::getManagedChannelFlags);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247664-04:00", comments="Source Table: managed_channels")
-    static UpdateDSL<UpdateModel> updateSelectiveColumns(ManagedChannel row, UpdateDSL<UpdateModel> dsl) {
-        return dsl.set(managedChannelId).equalToWhenPresent(row::getManagedChannelId)
-                .set(name).equalToWhenPresent(row::getName)
-                .set(autoJoinFlag).equalToWhenPresent(row::getAutoJoinFlag)
-                .set(modes).equalToWhenPresent(row::getModes)
-                .set(enforceModesFlag).equalToWhenPresent(row::getEnforceModesFlag);
+    static UpdateDSL<UpdateModel> updateSelectiveColumns(ManagedChannel record, UpdateDSL<UpdateModel> dsl) {
+        return dsl.set(name).equalToWhenPresent(record::getName)
+                .set(managedChannelFlags).equalToWhenPresent(record::getManagedChannelFlags);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247722-04:00", comments="Source Table: managed_channels")
-    default int updateByPrimaryKey(ManagedChannel row) {
+    default int updateByPrimaryKey(ManagedChannel record) {
         return update(c ->
-            c.set(name).equalTo(row::getName)
-            .set(autoJoinFlag).equalTo(row::getAutoJoinFlag)
-            .set(modes).equalTo(row::getModes)
-            .set(enforceModesFlag).equalTo(row::getEnforceModesFlag)
-            .where(managedChannelId, isEqualTo(row::getManagedChannelId))
+            c.set(name).equalTo(record::getName)
+            .set(managedChannelFlags).equalTo(record::getManagedChannelFlags)
+            .where(id, isEqualTo(record::getId))
         );
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-11T21:21:29.247777-04:00", comments="Source Table: managed_channels")
-    default int updateByPrimaryKeySelective(ManagedChannel row) {
+    default int updateByPrimaryKeySelective(ManagedChannel record) {
         return update(c ->
-            c.set(name).equalToWhenPresent(row::getName)
-            .set(autoJoinFlag).equalToWhenPresent(row::getAutoJoinFlag)
-            .set(modes).equalToWhenPresent(row::getModes)
-            .set(enforceModesFlag).equalToWhenPresent(row::getEnforceModesFlag)
-            .where(managedChannelId, isEqualTo(row::getManagedChannelId))
+            c.set(name).equalToWhenPresent(record::getName)
+            .set(managedChannelFlags).equalToWhenPresent(record::getManagedChannelFlags)
+            .where(id, isEqualTo(record::getId))
         );
+    }
+
+    @SelectProvider(type=SqlProviderAdapter.class, method="select")
+    @ResultMap("JoinManagedChannelResult")
+    Optional<ManagedChannel> leftJoinSelectOne(SelectStatementProvider selectStatement);
+
+    @SelectProvider(type=SqlProviderAdapter.class, method="select")
+    @ResultMap("JoinManagedChannelResult")
+    List<ManagedChannel> leftJoinSelectMany(SelectStatementProvider selectStatement);
+
+    default List<ManagedChannel> leftJoinSelect(SelectDSLCompleter completer) {
+        List<JoinDetail> joinDetails = new ArrayList<>();
+        joinDetails.add(JoinDetail.of(id, managedChannelUser, managedChannelUser.managedChannelId));
+        return MyBatis3CustomUtils.leftJoinSelectList(this::leftJoinSelectMany, leftJoinSelectList, managedChannel, joinDetails , completer);
+    }
+
+    default Optional<ManagedChannel> leftJoinSelectOne(SelectDSLCompleter completer) {
+        List<JoinDetail> joinDetails = new ArrayList<>();
+        joinDetails.add(JoinDetail.of(id, managedChannelUser, managedChannelUser.managedChannelId));
+        return MyBatis3CustomUtils.leftJoinSelectOne(this::leftJoinSelectOne, leftJoinSelectList, managedChannel, joinDetails , completer);
     }
 }

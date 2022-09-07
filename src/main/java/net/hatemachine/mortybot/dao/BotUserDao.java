@@ -17,65 +17,116 @@
  */
 package net.hatemachine.mortybot.dao;
 
-import net.hatemachine.mortybot.exception.BotUserException;
+import com.catyee.generator.utils.MyBatis3CustomUtils;
+import net.hatemachine.mortybot.custom.mapper.BotUserCustomMapper;
+import net.hatemachine.mortybot.mapper.BotUserDynamicSqlSupport;
+import net.hatemachine.mortybot.mapper.BotUserMapper;
 import net.hatemachine.mortybot.model.BotUser;
+import net.hatemachine.mortybot.util.MyBatisUtil;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
 
 import java.util.List;
-import java.util.Optional;
 
-public interface BotUserDao {
+import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 
-    /**
-     * Get a bot user by their id.
-     *
-     * @param id the id of the bot user you want to retrieve
-     * @return an {@link Optional} containing a {@link BotUser} if one exists with that id
-     */
-    Optional<BotUser> get(Integer id);
+public class BotUserDao {
 
-    /**
-     * Get a bot user by their username.
-     *
-     * @param uname the username of the bot user you want to retrieve
-     * @return an {@link Optional} containing a {@link BotUser} if one exists with that username
-     */
-    Optional<BotUser> getByUsername(String uname);
+    private final SqlSessionFactory sqlSessionFactory;
 
-    /**
-     * @param botUser the bot user to be added
-     * @throws BotUserException if any error occurs
-     */
-    int add(BotUser botUser) throws BotUserException;
+    public BotUserDao() {
+        this.sqlSessionFactory = MyBatisUtil.getSqlSessionFactory();
+    }
 
-    /**
-     * @param botUser the bot user to be updated
-     * @throws BotUserException if any error occurs
-     */
-    int update(BotUser botUser) throws BotUserException;
+    public BotUser create(BotUser botUser) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            BotUserMapper mapper = session.getMapper(BotUserMapper.class);
+            mapper.insert(botUser);
+            session.commit();
+            return botUser;
+        }
+    }
 
-    /**
-     * @param botUser the bot user to be deleted
-     * @throws BotUserException if any error occurs
-     */
-    int delete(BotUser botUser) throws BotUserException;
+    public List<BotUser> batchCreate(List<BotUser> BotUsers) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            BotUserMapper mapper = session.getMapper(BotUserMapper.class);
+            mapper.insertMultiple(BotUsers);
+            session.commit();
+            return BotUsers;
+        }
+    }
 
-    /**
-     * @return list of all bot users.
-     */
-    List<BotUser> getAll();
+    public boolean createIfNotExist(BotUser BotUser) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            BotUserCustomMapper mapper = session.getMapper(BotUserCustomMapper.class);
+            int count = mapper.ignoreInsert(BotUser);
+            session.commit();
+            return count > 0;
+        }
+    }
 
-    /**
-     * Get all the bot users that match a particular hostmask.
-     *
-     * @param hostmask the user's hostmask
-     * @return list of bot users with matching hostmasks
-     */
-    List<BotUser> getAll(String hostmask);
+    public int batchCreateIfNotExist(List<BotUser> BotUsers) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            BotUserCustomMapper mapper = session.getMapper(BotUserCustomMapper.class);
+            session.commit();
+            return mapper.ignoreInsertMultiple(BotUsers);
+        }
+    }
 
-    /**
-     * Get a total count of all bot users.
-     *
-     * @return number of total bot users
-     */
-    long count();
+    public BotUser update(BotUser botUser) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            BotUserMapper mapper = session.getMapper(BotUserMapper.class);
+            mapper.updateByPrimaryKey(botUser);
+            session.commit();
+            return botUser;
+        }
+    }
+
+    public void delete(int id) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            BotUserMapper mapper = session.getMapper(BotUserMapper.class);
+            mapper.deleteByPrimaryKey(id);
+            session.commit();
+        }
+    }
+
+    public void deleteWithName(String name) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            BotUserMapper mapper = session.getMapper(BotUserMapper.class);
+            mapper.delete(c -> c.where(BotUserDynamicSqlSupport.name, isEqualTo(name)));
+            session.commit();
+        }
+    }
+
+    public BotUser get(Integer id) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            BotUserMapper mapper = session.getMapper(BotUserMapper.class);
+            return mapper.selectByPrimaryKey(id).orElse(null);
+        }
+    }
+
+    public BotUser getWithName(String name) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            BotUserMapper mapper = session.getMapper(BotUserMapper.class);
+            return mapper.selectOne(c -> c.where(BotUserDynamicSqlSupport.name, isEqualTo(name))).orElse(null);
+        }
+    }
+
+    public List<BotUser> getAll() {
+        return getAll(null, null);
+    }
+
+    public List<BotUser> getAll(Long limit, Long offset) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            BotUserMapper mapper = session.getMapper(BotUserMapper.class);
+            return mapper.select(c -> MyBatis3CustomUtils.buildLimitOffset(c, limit, offset));
+        }
+    }
+
+    public Long count() {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            BotUserMapper mapper = session.getMapper(BotUserMapper.class);
+            return mapper.count(c -> c);
+        }
+    }
 }

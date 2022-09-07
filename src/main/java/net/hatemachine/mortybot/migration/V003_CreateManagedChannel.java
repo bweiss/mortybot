@@ -21,37 +21,34 @@ import org.apache.ibatis.migration.MigrationScript;
 
 import java.math.BigDecimal;
 
-public class V002_CreateBotUsers implements MigrationScript {
+public class V003_CreateManagedChannel implements MigrationScript {
+
     public BigDecimal getId() {
-        return BigDecimal.valueOf(2L);
+        return BigDecimal.valueOf(3L);
     }
 
     public String getDescription() {
-        return "Create bot_users table";
+        return "Create managed_channel table";
     }
 
     public String getUpScript() {
         return """
-                create table bot_users
+                create table managed_channel
                 (
-                    bot_user_id integer not null
-                        constraint bot_users_pk
+                    id    integer not null
+                        constraint managed_channel_pk
                             primary key autoincrement,
-                    username    text    not null,
-                    hostmasks   text,
-                    flags       text,
-                    location    text
+                    name  text    not null
+                        constraint managed_channel_pk
+                            unique,
+                    managed_channel_flags text default null
                 );
-                                
-                create unique index bot_users_bot_user_id_uindex
-                    on bot_users (bot_user_id);
-                                
-                create unique index bot_users_username_uindex
-                    on bot_users (username);
                 """;
     }
 
     public String getDownScript() {
-        return "drop table bot_users;";
+        return """
+               drop table managed_channel;
+               """;
     }
 }

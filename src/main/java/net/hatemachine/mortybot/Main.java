@@ -22,10 +22,7 @@ import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.Range;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
-import net.hatemachine.mortybot.dao.ManagedChannelDao;
-import net.hatemachine.mortybot.dao.ManagedChannelDaoImpl;
 import net.hatemachine.mortybot.listeners.*;
-import net.hatemachine.mortybot.model.ManagedChannel;
 import org.pircbotx.Configuration;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.delay.StaticDelay;
@@ -37,11 +34,9 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * Main class responsible for configuring and starting the bot.

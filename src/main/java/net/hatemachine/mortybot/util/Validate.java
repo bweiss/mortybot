@@ -22,10 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.text.NumberFormat;
 import java.text.ParsePosition;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class Validate {
 
@@ -143,38 +140,5 @@ public class Validate {
         if (!isZipCode(s))
             throw new IllegalArgumentException("Invalid zip code");
         return s;
-    }
-
-    /**
-     * Validate a comma-delimited list of bot user flags (e.g. "ADMIN,DCC"),
-     * returning only those that are valid.
-     *
-     * @param s comma-delimited string of bot user flags
-     * @return {@link String} of validated bot user flags delimited by commas
-     */
-    public static String botUserFlags(String s) {
-        Set<BotUserFlag> flags = new HashSet<>();
-
-        for (String flag : s.split(",")) {
-            try {
-                flags.add(Enum.valueOf(BotUserFlag.class, flag.toUpperCase()));
-            } catch (IllegalArgumentException e) {
-                log.debug("Invalid flag: {}", flag);
-            }
-        }
-
-        if (flags.size() == 1) {
-            return flags.stream()
-                    .map(BotUserFlag::toString)
-                    .collect(Collectors.joining());
-
-        } else if (flags.size() > 1) {
-            return flags.stream()
-                    .map(String::valueOf)
-                    .collect(Collectors.joining(","));
-
-        } else {
-            return "";
-        }
     }
 }

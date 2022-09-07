@@ -62,6 +62,8 @@
         <java.version>17</java.version>
         <fully.qualified.main.class>net.hatemachine.mortybot.Main</fully.qualified.main.class>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <generator.config>${basedir}/src/main/resources//generator/mybatis-generator-config.xml</generator.config>
+        <mybatis.ds.generator.config>${basedir}/src/main/resources/generator/ds-generator-config.xml</mybatis.ds.generator.config>
     </properties>
 
     <repositories>
@@ -185,9 +187,24 @@
         </dependency>
 
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.24</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.36.0.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.catyee.mybatis</groupId>
+            <artifactId>ds-generator-core</artifactId>
+            <version>1.2.0</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/ds-generator-core-1.2.0.jar</systemPath>
         </dependency>
     </dependencies>
 
@@ -379,25 +396,35 @@
             <plugin>
                 <groupId>org.mybatis.generator</groupId>
                 <artifactId>mybatis-generator-maven-plugin</artifactId>
-                <version>1.4.1</version>
-                <executions>
-                    <execution>
-                        <id>Generate MyBatis Artifacts</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <version>1.4.0</version>
                 <configuration>
+                    <verbose>true</verbose>
+                    <overwrite>true</overwrite>
+                    <configurationFile>${generator.config}</configurationFile>
+                    <outputDirectory>${basedir}/src/main/java</outputDirectory>
+                    <includeCompileDependencies>true</includeCompileDependencies>
+                    <includeAllDependencies>true</includeAllDependencies>
                     <jdbcDriver>org.sqlite.JDBC</jdbcDriver>
                     <jdbcURL>jdbc:sqlite:mortybot.db</jdbcURL>
-                    <overwrite>false</overwrite>
                 </configuration>
                 <dependencies>
+                    <dependency>
+                        <groupId>com.catyee.mybatis</groupId>
+                        <artifactId>ds-generator-core</artifactId>
+                        <version>1.2.0</version>
+                        <scope>system</scope>
+                        <systemPath>${basedir}/lib/ds-generator-core-1.2.0.jar</systemPath>
+                    </dependency>
                     <dependency>
                         <groupId>org.xerial</groupId>
                         <artifactId>sqlite-jdbc</artifactId>
                         <version>3.36.0.3</version>
+                    </dependency>
+                    <!-- Adding this avoids an exception when executing the mybatis-generator:generate task -->
+                    <dependency>
+                        <groupId>org.apache.commons</groupId>
+                        <artifactId>commons-lang3</artifactId>
+                        <version>3.12.0</version>
                     </dependency>
                 </dependencies>
             </plugin>

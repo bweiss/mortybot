@@ -20,11 +20,14 @@ package net.hatemachine.mortybot.listeners;
 import io.github.redouane59.twitter.TwitterClient;
 import io.github.redouane59.twitter.dto.tweet.Tweet;
 import io.github.redouane59.twitter.signature.TwitterCredentials;
+import net.hatemachine.mortybot.custom.entity.BotUserFlag;
+import net.hatemachine.mortybot.dao.BotUserDao;
 import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.bitly.Bitly;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
+import net.hatemachine.mortybot.util.BotUserHelper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.pircbotx.Colors;
@@ -85,8 +88,8 @@ public class LinkListener extends ListenerAdapter {
             return;
         }
 
-        List<BotUser> botUsers = bot.getBotUserDao().getAll(user.getHostmask());
-        boolean ignoreUser = botUsers.stream().anyMatch(u -> u.hasFlag("IGNORE"));
+        List<BotUser> botUsers = BotUserHelper.findByHostmask(user.getHostmask());
+        boolean ignoreUser = botUsers.stream().anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.IGNORE));
 
         if (ignoreUser) {
             log.info("User {} has IGNORE flag, ignoring message...", user.getNick());
