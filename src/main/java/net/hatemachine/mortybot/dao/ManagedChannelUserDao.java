@@ -17,7 +17,6 @@
  */
 package net.hatemachine.mortybot.dao;
 
-import com.catyee.generator.utils.MyBatis3CustomUtils;
 import net.hatemachine.mortybot.custom.mapper.ManagedChannelUserCustomMapper;
 import net.hatemachine.mortybot.mapper.ManagedChannelUserDynamicSqlSupport;
 import net.hatemachine.mortybot.mapper.ManagedChannelUserMapper;
@@ -27,6 +26,7 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 
@@ -38,7 +38,7 @@ public class ManagedChannelUserDao {
         this.sqlSessionFactory = MyBatisUtil.getSqlSessionFactory();
     }
 
-    public ManagedChannelUser create(ManagedChannelUser managedChannelUser) {
+    public synchronized ManagedChannelUser create(ManagedChannelUser managedChannelUser) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelUserMapper mapper = session.getMapper(ManagedChannelUserMapper.class);
             mapper.insert(managedChannelUser);
@@ -47,7 +47,7 @@ public class ManagedChannelUserDao {
         }
     }
 
-    public List<ManagedChannelUser> batchCreate(List<ManagedChannelUser> ManagedChannelUsers) {
+    public synchronized List<ManagedChannelUser> batchCreate(List<ManagedChannelUser> ManagedChannelUsers) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelUserMapper mapper = session.getMapper(ManagedChannelUserMapper.class);
             mapper.insertMultiple(ManagedChannelUsers);
@@ -56,7 +56,7 @@ public class ManagedChannelUserDao {
         }
     }
 
-    public boolean createIfNotExist(ManagedChannelUser ManagedChannelUser) {
+    public synchronized boolean createIfNotExist(ManagedChannelUser ManagedChannelUser) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelUserCustomMapper mapper = session.getMapper(ManagedChannelUserCustomMapper.class);
             int count = mapper.ignoreInsert(ManagedChannelUser);
@@ -65,7 +65,7 @@ public class ManagedChannelUserDao {
         }
     }
 
-    public int batchCreateIfNotExist(List<ManagedChannelUser> ManagedChannelUsers) {
+    public synchronized int batchCreateIfNotExist(List<ManagedChannelUser> ManagedChannelUsers) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelUserCustomMapper mapper = session.getMapper(ManagedChannelUserCustomMapper.class);
             session.commit();
@@ -73,7 +73,7 @@ public class ManagedChannelUserDao {
         }
     }
 
-    public ManagedChannelUser update(ManagedChannelUser managedChannelUser) {
+    public synchronized ManagedChannelUser update(ManagedChannelUser managedChannelUser) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelUserMapper mapper = session.getMapper(ManagedChannelUserMapper.class);
             mapper.updateByPrimaryKey(managedChannelUser);
@@ -82,7 +82,7 @@ public class ManagedChannelUserDao {
         }
     }
 
-    public void delete(int id) {
+    public synchronized void delete(int id) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelUserMapper mapper = session.getMapper(ManagedChannelUserMapper.class);
             mapper.deleteByPrimaryKey(id);
@@ -90,36 +90,32 @@ public class ManagedChannelUserDao {
         }
     }
 
-    public ManagedChannelUser get(Integer id) {
+    public synchronized Optional<ManagedChannelUser> get(Integer id) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelUserMapper mapper = session.getMapper(ManagedChannelUserMapper.class);
-            return mapper.selectByPrimaryKey(id).orElse(null);
+            return mapper.leftJoinSelectOne(c -> c.where(ManagedChannelUserDynamicSqlSupport.id, isEqualTo(id)));
         }
     }
 
-    public List<ManagedChannelUser> getWithManagedChannelId(Integer managedChannelId) {
+    public synchronized List<ManagedChannelUser> getWithManagedChannelId(Integer managedChannelId) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelUserMapper mapper = session.getMapper(ManagedChannelUserMapper.class);
             return mapper.leftJoinSelect(c -> c.where(ManagedChannelUserDynamicSqlSupport.managedChannelId, isEqualTo(managedChannelId)));
         }
     }
 
-    public List<ManagedChannelUser> getWithManagedChannelIdAndBotUserId(Integer managedChannelId, Integer botUserId) {
+    public synchronized Optional<ManagedChannelUser> getWithManagedChannelIdAndBotUserId(Integer managedChannelId, Integer botUserId) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelUserMapper mapper = session.getMapper(ManagedChannelUserMapper.class);
-            return mapper.leftJoinSelect(c -> c.where(ManagedChannelUserDynamicSqlSupport.managedChannelId, isEqualTo(managedChannelId))
+            return mapper.leftJoinSelectOne(c -> c.where(ManagedChannelUserDynamicSqlSupport.managedChannelId, isEqualTo(managedChannelId))
                     .and(ManagedChannelUserDynamicSqlSupport.botUserId, isEqualTo(botUserId)));
         }
     }
 
-    public List<ManagedChannelUser> getAll() {
-        return getAll(null, null);
-    }
-
-    public List<ManagedChannelUser> getAll(Long limit, Long offset) {
+    public synchronized List<ManagedChannelUser> getAll() {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelUserMapper mapper = session.getMapper(ManagedChannelUserMapper.class);
-            return mapper.select(c -> MyBatis3CustomUtils.buildLimitOffset(c, limit, offset));
+            return mapper.leftJoinSelect(c -> c);
         }
     }
 }

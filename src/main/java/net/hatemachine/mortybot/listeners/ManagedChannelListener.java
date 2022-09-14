@@ -29,7 +29,7 @@ import org.pircbotx.hooks.events.ServerPingEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.util.Optional;
 
 import static net.hatemachine.mortybot.util.ManagedChannelHelper.getAutoJoinChannels;
 
@@ -65,12 +65,14 @@ public class ManagedChannelListener extends ListenerAdapter {
         MortyBot bot = event.getBot();
         User recipient = event.getRecipient();
         ManagedChannelDao managedChannelDao = new ManagedChannelDao();
-        List<ManagedChannel> managedChannels = managedChannelDao.getWithName(event.getChannel().getName());
+        Optional<ManagedChannel> optionalManagedChannel = managedChannelDao.getWithName(event.getChannel().getName());
 
-        if (!managedChannels.isEmpty() && recipient != null && recipient.getNick().equals(bot.getNick())) {
-            ManagedChannel managedChannel = managedChannelDao.get(0);
+        if (optionalManagedChannel.isPresent()) {
+            ManagedChannel managedChannel = optionalManagedChannel.get();
 
-            if (managedChannel.getManagedChannelFlags().contains(ManagedChannelFlag.AUTO_JOIN)) {
+            if (recipient != null && recipient.getNick().equals(bot.getNick()) &&
+                    managedChannel.getManagedChannelFlags().contains(ManagedChannelFlag.AUTO_JOIN)) {
+
                 log.info("Bot was kicked from {}, re-joining...", event.getChannel().getName());
 
                 new Thread(() -> {

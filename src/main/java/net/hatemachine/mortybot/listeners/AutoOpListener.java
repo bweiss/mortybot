@@ -35,12 +35,7 @@ import org.pircbotx.hooks.events.NickChangeEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 
 public class AutoOpListener extends ListenerAdapter {
 
@@ -68,7 +63,7 @@ public class AutoOpListener extends ListenerAdapter {
     }
 
     /**
-     * Handle a join event to a channel that the bot is on. This will check to see if the user's hostmask
+     * Handles a join event to a channel that the bot is on. This will check to see if the user's hostmask
      * matches that of a bot user that has the AOP flag. If a match is found it will add that user to the
      * pending op queue for that channel and spin up a separate thread to process any modes for that channel.
      *
@@ -78,20 +73,20 @@ public class AutoOpListener extends ListenerAdapter {
         Channel channel = event.getChannel();
         UserHostmask uh = event.getUserHostmask();
         String nick = uh.getNick();
-        var managedChannelDao = new ManagedChannelDao();
-        var managedChannelUserDao = new ManagedChannelUserDao();
+        var mcDao = new ManagedChannelDao();
+        var mcuDao = new ManagedChannelUserDao();
         List<BotUser> botUsers = BotUserHelper.findByHostmask(uh.getHostmask());
-        List<ManagedChannel> managedChannels = managedChannelDao.getWithName(channel.getName());
+        Optional<ManagedChannel> optionalManagedChannel = mcDao.getWithName(channel.getName());
 
         // check that we have a matching bot user and that this is a managed channel
-        if (!botUsers.isEmpty() && !managedChannels.isEmpty()) {
-            ManagedChannel managedChannel = managedChannels.get(0);
-            List<ManagedChannelUser> managedChannelUsers = managedChannelUserDao.getWithManagedChannelIdAndBotUserId(managedChannel.getId(),
+        if (!botUsers.isEmpty() && optionalManagedChannel.isPresent()) {
+            ManagedChannel managedChannel = optionalManagedChannel.get();
+            Optional<ManagedChannelUser> optionalManagedChannelUser = mcuDao.getWithManagedChannelIdAndBotUserId(managedChannel.getId(),
                     botUsers.get(0).getId());
 
             // check if this bot user is a member of this managed channel
-            if (!managedChannelUsers.isEmpty()) {
-                ManagedChannelUser managedChannelUser = managedChannelUsers.get(0);
+            if (optionalManagedChannelUser.isPresent()) {
+                ManagedChannelUser managedChannelUser = optionalManagedChannelUser.get();
 
                 // does this user have the AUTO_OP flag on this channel?
                 if (managedChannelUser.getManagedChannelUserFlags().contains(ManagedChannelUserFlag.AUTO_OP)) {

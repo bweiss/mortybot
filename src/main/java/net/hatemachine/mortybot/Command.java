@@ -40,6 +40,12 @@ public enum Command {
             "Usage: BOTTLE <query>"
     }),
 
+    CHANNEL(ChannelCommand.class, new String[] {
+            "Manages the bot's channels",
+            "Usage: CHANNEL <subcommand> [args]",
+            "Subcommands: ADD, REMOVE, LIST, SHOW"
+    }),
+
     CHAT(ChatCommand.class, new String[] {
             "Tells the bot to initiate a DCC chat request with you or [nick] if specified",
             "Usage: CHAT [nick]"

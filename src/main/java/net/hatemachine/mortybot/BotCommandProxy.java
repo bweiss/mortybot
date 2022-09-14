@@ -77,7 +77,7 @@ public class BotCommandProxy implements InvocationHandler {
      *             appropriate primitive wrapper class, such as
      *             {@code java.lang.Integer} or {@code java.lang.Boolean}.
      *
-     * @return
+     * @return the result of dispatching the method
      * @throws IllegalAccessException
      * @throws InvocationTargetException
      * @throws BotCommandException

@@ -17,7 +17,6 @@
  */
 package net.hatemachine.mortybot.dao;
 
-import com.catyee.generator.utils.MyBatis3CustomUtils;
 import net.hatemachine.mortybot.custom.mapper.BotUserCustomMapper;
 import net.hatemachine.mortybot.mapper.BotUserDynamicSqlSupport;
 import net.hatemachine.mortybot.mapper.BotUserMapper;
@@ -27,6 +26,7 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 
@@ -38,7 +38,7 @@ public class BotUserDao {
         this.sqlSessionFactory = MyBatisUtil.getSqlSessionFactory();
     }
 
-    public BotUser create(BotUser botUser) {
+    public synchronized BotUser create(BotUser botUser) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             BotUserMapper mapper = session.getMapper(BotUserMapper.class);
             mapper.insert(botUser);
@@ -47,16 +47,16 @@ public class BotUserDao {
         }
     }
 
-    public List<BotUser> batchCreate(List<BotUser> BotUsers) {
+    public synchronized List<BotUser> batchCreate(List<BotUser> botUsers) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             BotUserMapper mapper = session.getMapper(BotUserMapper.class);
-            mapper.insertMultiple(BotUsers);
+            mapper.insertMultiple(botUsers);
             session.commit();
-            return BotUsers;
+            return botUsers;
         }
     }
 
-    public boolean createIfNotExist(BotUser BotUser) {
+    public synchronized boolean createIfNotExist(BotUser BotUser) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             BotUserCustomMapper mapper = session.getMapper(BotUserCustomMapper.class);
             int count = mapper.ignoreInsert(BotUser);
@@ -65,7 +65,7 @@ public class BotUserDao {
         }
     }
 
-    public int batchCreateIfNotExist(List<BotUser> BotUsers) {
+    public synchronized int batchCreateIfNotExist(List<BotUser> BotUsers) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             BotUserCustomMapper mapper = session.getMapper(BotUserCustomMapper.class);
             session.commit();
@@ -73,7 +73,7 @@ public class BotUserDao {
         }
     }
 
-    public BotUser update(BotUser botUser) {
+    public synchronized BotUser update(BotUser botUser) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             BotUserMapper mapper = session.getMapper(BotUserMapper.class);
             mapper.updateByPrimaryKey(botUser);
@@ -82,7 +82,7 @@ public class BotUserDao {
         }
     }
 
-    public void delete(int id) {
+    public synchronized void delete(int id) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             BotUserMapper mapper = session.getMapper(BotUserMapper.class);
             mapper.deleteByPrimaryKey(id);
@@ -90,7 +90,7 @@ public class BotUserDao {
         }
     }
 
-    public void deleteWithName(String name) {
+    public synchronized void deleteWithName(String name) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             BotUserMapper mapper = session.getMapper(BotUserMapper.class);
             mapper.delete(c -> c.where(BotUserDynamicSqlSupport.name, isEqualTo(name)));
@@ -98,32 +98,28 @@ public class BotUserDao {
         }
     }
 
-    public BotUser get(Integer id) {
+    public synchronized Optional<BotUser> get(Integer id) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             BotUserMapper mapper = session.getMapper(BotUserMapper.class);
-            return mapper.selectByPrimaryKey(id).orElse(null);
+            return mapper.leftJoinSelectOne(c -> c.where(BotUserDynamicSqlSupport.id, isEqualTo(id)));
         }
     }
 
-    public BotUser getWithName(String name) {
+    public synchronized Optional<BotUser> getWithName(String name) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             BotUserMapper mapper = session.getMapper(BotUserMapper.class);
-            return mapper.selectOne(c -> c.where(BotUserDynamicSqlSupport.name, isEqualTo(name))).orElse(null);
+            return mapper.leftJoinSelectOne(c -> c.where(BotUserDynamicSqlSupport.name, isEqualTo(name)));
         }
     }
 
-    public List<BotUser> getAll() {
-        return getAll(null, null);
-    }
-
-    public List<BotUser> getAll(Long limit, Long offset) {
+    public synchronized List<BotUser> getAll() {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             BotUserMapper mapper = session.getMapper(BotUserMapper.class);
-            return mapper.select(c -> MyBatis3CustomUtils.buildLimitOffset(c, limit, offset));
+            return mapper.leftJoinSelect(c -> c);
         }
     }
 
-    public Long count() {
+    public synchronized Long count() {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             BotUserMapper mapper = session.getMapper(BotUserMapper.class);
             return mapper.count(c -> c);

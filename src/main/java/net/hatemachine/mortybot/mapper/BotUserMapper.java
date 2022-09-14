@@ -212,13 +212,13 @@ public interface BotUserMapper {
 
     default List<BotUser> leftJoinSelect(SelectDSLCompleter completer) {
         List<JoinDetail> joinDetails = new ArrayList<>();
-        joinDetails.add(JoinDetail.of(id, managedChannelUser, managedChannelUser.managedChannelId));
+        joinDetails.add(JoinDetail.of(id, managedChannelUser, managedChannelUser.botUserId));
         return MyBatis3CustomUtils.leftJoinSelectList(this::leftJoinSelectMany, leftJoinSelectList, botUser, joinDetails , completer);
     }
 
     default Optional<BotUser> leftJoinSelectOne(SelectDSLCompleter completer) {
         List<JoinDetail> joinDetails = new ArrayList<>();
-        joinDetails.add(JoinDetail.of(id, managedChannelUser, managedChannelUser.managedChannelId));
+        joinDetails.add(JoinDetail.of(id, managedChannelUser, managedChannelUser.botUserId));
         return MyBatis3CustomUtils.leftJoinSelectOne(this::leftJoinSelectOne, leftJoinSelectList, botUser, joinDetails , completer);
     }
 }

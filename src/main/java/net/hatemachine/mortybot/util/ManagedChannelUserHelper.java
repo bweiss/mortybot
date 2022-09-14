@@ -18,48 +18,46 @@
 package net.hatemachine.mortybot.util;
 
 import net.hatemachine.mortybot.custom.entity.BotUserFlag;
-import net.hatemachine.mortybot.custom.entity.ManagedChannelFlag;
-import net.hatemachine.mortybot.dao.ManagedChannelDao;
-import net.hatemachine.mortybot.model.ManagedChannel;
+import net.hatemachine.mortybot.custom.entity.ManagedChannelUserFlag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ManagedChannelHelper {
+public class ManagedChannelUserHelper {
 
     private static final Logger log = LoggerFactory.getLogger(ManagedChannelHelper.class);
 
-    public ManagedChannelHelper() {
+    public ManagedChannelUserHelper() {
         throw new IllegalStateException("Utility class");
     }
 
     /**
-     * Parses a comma-delimited list of managed channel flags into a list, removing any duplicate or invalid flags.
+     * Parses a comma-delimited list of managed channel user flags into a list, removing any duplicate or invalid flags.
      *
      * @param flags a comma-delimited string representing one or more flags
-     * @return a list of managed channel flags
+     * @return a list of managed channel user flags
      * @see BotUserFlag
      */
-    public static List<ManagedChannelFlag> parseFlags(String flags) {
+    public static List<ManagedChannelUserFlag> parseFlags(String flags) {
         return parseFlags(new ArrayList<>(), flags);
     }
 
     /**
-     * Parses a comma-delimited list of managed channel flags into a list, removing any duplicate or invalid flags.
+     * Parses a comma-delimited list of managed channel user flags into a list, removing any duplicate or invalid flags.
      *
-     * @param flagList a list of managed channel flags that will be used as a starting list
+     * @param flagList a list of managed channel user flags that will be used as a starting list
      * @param flags a comma-delimited string representing one or more flags
-     * @return a list of managed channel flags
+     * @return a list of managed channel user flags
      * @see BotUserFlag
      */
-    public static List<ManagedChannelFlag> parseFlags(List<ManagedChannelFlag> flagList, String flags) {
+    public static List<ManagedChannelUserFlag> parseFlags(List<ManagedChannelUserFlag> flagList, String flags) {
         for (String s : flags.split(",")) {
             String flagStr = s.trim().toUpperCase();
 
             try {
-                ManagedChannelFlag flag = Enum.valueOf(ManagedChannelFlag.class, flagStr);
+                ManagedChannelUserFlag flag = Enum.valueOf(ManagedChannelUserFlag.class, flagStr);
 
                 if (!flagList.contains(flag)) {
                     flagList.add(flag);
@@ -71,19 +69,5 @@ public class ManagedChannelHelper {
         }
 
         return flagList;
-    }
-
-    /**
-     * Retrieves a list of channels that have the auto-join flag.
-     *
-     * @return a list of managed channels that have the AUTO_JOIN flag
-     */
-    public static List<ManagedChannel> getAutoJoinChannels() {
-        ManagedChannelDao managedChannelDao = new ManagedChannelDao();
-        return managedChannelDao.getAll().stream()
-                .filter(c -> {
-                    var flags = c.getManagedChannelFlags();
-                    return (flags != null && flags.contains(ManagedChannelFlag.AUTO_JOIN));
-                }).toList();
     }
 }

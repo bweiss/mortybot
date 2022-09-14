@@ -6,15 +6,15 @@
 <generatorPlusConfiguration>
 
     <joinConfig targetPackage="net.hatemachine.mortybot.mapper" targetProject="src/main/resources">
+        <joinEntry leftTable="bot_user">
+            <joinTarget rightTable="managed_channel_user" property="managedChannelUsers" leftTableColumn="id" rightTableColumn="bot_user_id" joinType="MORE"/>
+        </joinEntry>
         <joinEntry leftTable="managed_channel">
             <joinTarget rightTable="managed_channel_user" property="managedChannelUsers" leftTableColumn="id" rightTableColumn="managed_channel_id" joinType="MORE"/>
         </joinEntry>
         <joinEntry leftTable="managed_channel_user">
             <joinTarget rightTable="managed_channel" property="managedChannel" leftTableColumn="managed_channel_id" rightTableColumn="id" joinType="ONE"/>
             <joinTarget rightTable="bot_user" property="botUser" leftTableColumn="bot_user_id" rightTableColumn="id" joinType="ONE"/>
-        </joinEntry>
-        <joinEntry leftTable="bot_user">
-            <joinTarget rightTable="managed_channel_user" property="managedChannelUsers" leftTableColumn="id" rightTableColumn="managed_channel_id" joinType="MORE"/>
         </joinEntry>
     </joinConfig>
     
