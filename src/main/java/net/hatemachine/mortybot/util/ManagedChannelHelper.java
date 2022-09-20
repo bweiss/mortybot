@@ -17,15 +17,20 @@
  */
 package net.hatemachine.mortybot.util;
 
-import net.hatemachine.mortybot.custom.entity.BotUserFlag;
 import net.hatemachine.mortybot.custom.entity.ManagedChannelFlag;
+import net.hatemachine.mortybot.custom.entity.ManagedChannelUserFlag;
 import net.hatemachine.mortybot.dao.ManagedChannelDao;
+import net.hatemachine.mortybot.dao.ManagedChannelUserDao;
+import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.model.ManagedChannel;
+import net.hatemachine.mortybot.model.ManagedChannelUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ManagedChannelHelper {
 
@@ -33,44 +38,6 @@ public class ManagedChannelHelper {
 
     public ManagedChannelHelper() {
         throw new IllegalStateException("Utility class");
-    }
-
-    /**
-     * Parses a comma-delimited list of managed channel flags into a list, removing any duplicate or invalid flags.
-     *
-     * @param flags a comma-delimited string representing one or more flags
-     * @return a list of managed channel flags
-     * @see BotUserFlag
-     */
-    public static List<ManagedChannelFlag> parseFlags(String flags) {
-        return parseFlags(new ArrayList<>(), flags);
-    }
-
-    /**
-     * Parses a comma-delimited list of managed channel flags into a list, removing any duplicate or invalid flags.
-     *
-     * @param flagList a list of managed channel flags that will be used as a starting list
-     * @param flags a comma-delimited string representing one or more flags
-     * @return a list of managed channel flags
-     * @see BotUserFlag
-     */
-    public static List<ManagedChannelFlag> parseFlags(List<ManagedChannelFlag> flagList, String flags) {
-        for (String s : flags.split(",")) {
-            String flagStr = s.trim().toUpperCase();
-
-            try {
-                ManagedChannelFlag flag = Enum.valueOf(ManagedChannelFlag.class, flagStr);
-
-                if (!flagList.contains(flag)) {
-                    flagList.add(flag);
-                }
-
-            } catch (IllegalArgumentException ex) {
-                log.debug("Invalid flag: {}", flagStr);
-            }
-        }
-
-        return flagList;
     }
 
     /**
@@ -85,5 +52,45 @@ public class ManagedChannelHelper {
                     var flags = c.getManagedChannelFlags();
                     return (flags != null && flags.contains(ManagedChannelFlag.AUTO_JOIN));
                 }).toList();
+    }
+
+    /**
+     * Retrieves a map of bot users and their managed channel user flags.
+     *
+     * @param managedChannel the managed channel to retrieve users for
+     * @return a map of bot users and their flags for the provided channel
+     */
+    public static Map<BotUser, List<ManagedChannelUserFlag>> getUserFlagMap(ManagedChannel managedChannel) {
+        Map<BotUser, List<ManagedChannelUserFlag>> userFlagMap = new HashMap<>();
+        ManagedChannelUserDao mcuDao = new ManagedChannelUserDao();
+
+        for (ManagedChannelUser mcu : mcuDao.getMultipleWithManagedChannelId(managedChannel.getId())) {
+            userFlagMap.put(mcu.getBotUser(), mcu.getManagedChannelUserFlags());
+        }
+
+        return userFlagMap;
+    }
+
+    /**
+     * Parses a comma-delimited list of managed channel flags into a list, removing any duplicate or invalid flags.
+     *
+     * @param flagStr a comma-delimited string representing one or more flags
+     * @return a list of managed channel flags
+     */
+    public static List<ManagedChannelFlag> parseFlags(String flagStr) {
+        List<ManagedChannelFlag> flags = new ArrayList<>();
+
+        for (String s : flagStr.split(",")) {
+            try {
+                ManagedChannelFlag flag = Enum.valueOf(ManagedChannelFlag.class, s.toUpperCase());
+                if (!flags.contains(flag)) {
+                    flags.add(flag);
+                }
+            } catch (IllegalArgumentException ex) {
+                log.debug("Invalid flag: {}", s.toUpperCase());
+            }
+        }
+
+        return flags;
     }
 }

@@ -30,6 +30,10 @@ import java.util.Optional;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 
+/**
+ * DAO class for interacting with managed channel user entries. A "managed channel user" entry represents a bot user's
+ * channel-specific flags for a managed channel.
+ */
 public class ManagedChannelUserDao {
 
     private final SqlSessionFactory sqlSessionFactory;
@@ -38,6 +42,12 @@ public class ManagedChannelUserDao {
         this.sqlSessionFactory = MyBatisUtil.getSqlSessionFactory();
     }
 
+    /**
+     * Creates a new managed channel user entry.
+     *
+     * @param managedChannelUser the managed channel user to be created
+     * @return the managed channel user that was created
+     */
     public synchronized ManagedChannelUser create(ManagedChannelUser managedChannelUser) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelUserMapper mapper = session.getMapper(ManagedChannelUserMapper.class);
@@ -47,32 +57,57 @@ public class ManagedChannelUserDao {
         }
     }
 
-    public synchronized List<ManagedChannelUser> batchCreate(List<ManagedChannelUser> ManagedChannelUsers) {
+    /**
+     * Creates multiple managed cahnnel user entries from a list.
+     *
+     * @param managedChannelUsers list of managed channel users
+     * @return the list of managed channel users that were created
+     */
+    public synchronized List<ManagedChannelUser> batchCreate(List<ManagedChannelUser> managedChannelUsers) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelUserMapper mapper = session.getMapper(ManagedChannelUserMapper.class);
-            mapper.insertMultiple(ManagedChannelUsers);
+            mapper.insertMultiple(managedChannelUsers);
             session.commit();
-            return ManagedChannelUsers;
+            return managedChannelUsers;
         }
     }
 
-    public synchronized boolean createIfNotExist(ManagedChannelUser ManagedChannelUser) {
+    /**
+     * Creates a managed channel user entry if it does not yet exist.
+     *
+     * @param managedChannelUser the managed channel user to create
+     * @return true if the entry was created, false if not
+     */
+    public synchronized boolean createIfNotExist(ManagedChannelUser managedChannelUser) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelUserCustomMapper mapper = session.getMapper(ManagedChannelUserCustomMapper.class);
-            int count = mapper.ignoreInsert(ManagedChannelUser);
+            int count = mapper.ignoreInsert(managedChannelUser);
             session.commit();
             return count > 0;
         }
     }
 
-    public synchronized int batchCreateIfNotExist(List<ManagedChannelUser> ManagedChannelUsers) {
+    /**
+     * Creates multiple managed channel user entries from a list, if they do not yet exist.
+     *
+     * @param managedChannelUsers the list of managed channel users to create
+     * @return the total count of entries created
+     */
+    public synchronized int batchCreateIfNotExist(List<ManagedChannelUser> managedChannelUsers) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelUserCustomMapper mapper = session.getMapper(ManagedChannelUserCustomMapper.class);
+            int count = mapper.ignoreInsertMultiple(managedChannelUsers);
             session.commit();
-            return mapper.ignoreInsertMultiple(ManagedChannelUsers);
+            return count;
         }
     }
 
+    /**
+     * Updates a managed channel user entry.
+     *
+     * @param managedChannelUser the managed channel user to update
+     * @return the managed channel user that was updated
+     */
     public synchronized ManagedChannelUser update(ManagedChannelUser managedChannelUser) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelUserMapper mapper = session.getMapper(ManagedChannelUserMapper.class);
@@ -82,6 +117,11 @@ public class ManagedChannelUserDao {
         }
     }
 
+    /**
+     * Deletes a managed channel user entry by ID.
+     *
+     * @param id the id of the managed channel user to delete
+     */
     public synchronized void delete(int id) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelUserMapper mapper = session.getMapper(ManagedChannelUserMapper.class);
@@ -90,6 +130,12 @@ public class ManagedChannelUserDao {
         }
     }
 
+    /**
+     * Retrieves a managed channel user entry by ID.
+     *
+     * @param id the id of the managed channel user to retrieve
+     * @return an optional containing the managed channel user, if one exists, or an empty optional if not
+     */
     public synchronized Optional<ManagedChannelUser> get(Integer id) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelUserMapper mapper = session.getMapper(ManagedChannelUserMapper.class);
@@ -97,13 +143,13 @@ public class ManagedChannelUserDao {
         }
     }
 
-    public synchronized List<ManagedChannelUser> getWithManagedChannelId(Integer managedChannelId) {
-        try (SqlSession session = sqlSessionFactory.openSession()) {
-            ManagedChannelUserMapper mapper = session.getMapper(ManagedChannelUserMapper.class);
-            return mapper.leftJoinSelect(c -> c.where(ManagedChannelUserDynamicSqlSupport.managedChannelId, isEqualTo(managedChannelId)));
-        }
-    }
-
+    /**
+     * Retrieves a managed channel user entry by a combination of managed channel ID and bot user ID.
+     *
+     * @param managedChannelId the id of the managed channel
+     * @param botUserId the id of the bot user
+     * @return an optional containing the managed channel user, if one exists, or an empty optional if not
+     */
     public synchronized Optional<ManagedChannelUser> getWithManagedChannelIdAndBotUserId(Integer managedChannelId, Integer botUserId) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelUserMapper mapper = session.getMapper(ManagedChannelUserMapper.class);
@@ -112,10 +158,41 @@ public class ManagedChannelUserDao {
         }
     }
 
+    /**
+     * Retrieves all managed channel user entries.
+     *
+     * @return a list of managed channel users
+     */
     public synchronized List<ManagedChannelUser> getAll() {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelUserMapper mapper = session.getMapper(ManagedChannelUserMapper.class);
             return mapper.leftJoinSelect(c -> c);
+        }
+    }
+
+    /**
+     * Retrieves multiple managed channel user entries by bot user ID.
+     *
+     * @param botUserId the bot user id to retrieve entries for
+     * @return a list of managed channel user entries, presumably one per channel for this user
+     */
+    public synchronized List<ManagedChannelUser> getMultipleWithBotUserId(Integer botUserId) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            ManagedChannelUserMapper mapper = session.getMapper(ManagedChannelUserMapper.class);
+            return mapper.leftJoinSelect(c -> c.where(ManagedChannelUserDynamicSqlSupport.botUserId, isEqualTo(botUserId)));
+        }
+    }
+
+    /**
+     * Retrieves multiple managed channel user entries by managed channel ID.
+     *
+     * @param managedChannelId the managed channel id to retrieve entries for
+     * @return a list of managed channel user entries, presumably one per user for this channel
+     */
+    public synchronized List<ManagedChannelUser> getMultipleWithManagedChannelId(Integer managedChannelId) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            ManagedChannelUserMapper mapper = session.getMapper(ManagedChannelUserMapper.class);
+            return mapper.leftJoinSelect(c -> c.where(ManagedChannelUserDynamicSqlSupport.managedChannelId, isEqualTo(managedChannelId)));
         }
     }
 }

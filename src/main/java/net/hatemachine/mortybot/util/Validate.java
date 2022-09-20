@@ -17,21 +17,12 @@
  */
 package net.hatemachine.mortybot.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.text.NumberFormat;
 import java.text.ParsePosition;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public class Validate {
-
-    enum BotUserFlag {
-        ADMIN,
-        AOP,
-        DCC,
-        IGNORE
-    }
 
     private static final int MAX_BOT_USER_NAME_LENGTH = 16;
     private static final Pattern BOT_USER_NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_]+");
@@ -41,37 +32,78 @@ public class Validate {
     private static final Pattern ADDRESS_PATTERN = Pattern.compile("[a-zA-Z0-9\\[\\]|_-]+![a-zA-Z0-9~]+@[a-zA-Z0-9.:-]+");
     private static final Pattern HOSTMASK_PATTERN = Pattern.compile("[\\\\*a-zA-Z0-9\\[\\]|_-]+![\\\\*a-zA-Z0-9~]+@[\\\\*a-zA-Z0-9.:-]+");
     private static final Pattern ZIP_CODE_PATTERN = Pattern.compile("^\\d{5}(?:[-\\s]\\d{4})?$");
-
-    private static final Logger log = LoggerFactory.getLogger(Validate.class);
+    private static final String CHANNEL_PREFIXES = "&#";
 
     private Validate() {
         throw new IllegalStateException("Utility class");
     }
 
+    /**
+     * Checks to see if a string is a valid bot user name.
+     *
+     * @param s the string to be checked
+     * @return true if the string is a valid bot user name, otherwise false
+     */
     public static boolean isBotUserName(String s) {
         return s.length() <= MAX_BOT_USER_NAME_LENGTH && BOT_USER_NAME_PATTERN.matcher(s).matches();
     }
 
+    /**
+     * Checks to see if a string is a valid nickname.
+     *
+     * @param s the string to be checked
+     * @return true if the string is a valid nickname, otherwise false
+     */
     public static boolean isNickname(String s) {
         return NICKNAME_PATTERN.matcher(s).matches();
     }
 
+    /**
+     * Checks to see if a string is a valid username.
+     *
+     * @param s the string to be checked
+     * @return true if the string is a valid username, otherwise false
+     */
     public static boolean isUsername(String s) {
         return USERNAME_PATTERN.matcher(s).matches();
     }
 
+    /**
+     * Checks to see if a string is a valid hostname.
+     *
+     * @param s the string to be checked
+     * @return true if the string is a valid hostname, otherwise false
+     */
     public static boolean isHostname(String s) {
         return HOSTNAME_PATTERN.matcher(s).matches();
     }
 
+    /**
+     * Checks to see if a string is a valid IRC address.
+     *
+     * @param s the string to be checked
+     * @return true if the string is a valid IRC address, otherwise false
+     */
     public static boolean isAddress(String s) {
         return ADDRESS_PATTERN.matcher(s).matches();
     }
 
+    /**
+     * Checks to see if a string is a valid hostmask.
+     *
+     * @param s the string to be checked
+     * @return true if the string is a valid hostmask, otherwise false
+     */
     public static boolean isHostmask(String s) {
         return HOSTMASK_PATTERN.matcher(s).matches();
     }
 
+    /**
+     * Checks to see if a string is a numeric value.
+     *
+     * @param s the string to be checked
+     * @return true if the string is a numeric, otherwise false
+     */
     public static boolean isNumeric(String s) {
         NumberFormat formatter = NumberFormat.getInstance();
         ParsePosition pos = new ParsePosition(0);
@@ -79,20 +111,91 @@ public class Validate {
         return s.length() == pos.getIndex();
     }
 
-    private static boolean isZipCode(String zipCode) {
-        return ZIP_CODE_PATTERN.matcher(zipCode).matches();
+    /**
+     * Checks to see if a string is a valid ZIP code.
+     *
+     * @param s the string to be checked
+     * @return true if the string is a valid ZIP code, otherwise false
+     */
+    public static boolean isZipCode(String s) {
+        return ZIP_CODE_PATTERN.matcher(s).matches();
     }
 
+    /**
+     * Checks to see if a string is a valid channel name.
+     *
+     * @param s the string to be checked
+     * @return true if the string is a valid channel name, otherwise false
+     */
+    public static boolean isChannelName(String s) {
+        return isChannelName(s, CHANNEL_PREFIXES);
+    }
+
+    /**
+     * Checks to see if a string is a valid channel name.
+     *
+     * @param s the string to be checked
+     * @param prefixes a string representing characters that represent a valid channel prefix
+     * @return true if the string is a valid channel name, otherwise false
+     */
+    public static boolean isChannelName(String s, String prefixes) {
+        if (prefixes == null || prefixes.trim().isBlank()) {
+            prefixes = CHANNEL_PREFIXES;
+        }
+        return prefixes.chars().anyMatch(c -> c == s.charAt(0));
+    }
+
+    /**
+     * Validates a list of arguments to ensure it is not null, empty, or has null or blank items.
+     *
+     * @param args the list or arguments to validate
+     * @param minSize the minimum size of the list
+     * @throws IllegalArgumentException if list is null, empty, or has null or blank items.
+     */
+    public static void arguments(List<String> args, Integer minSize) {
+        if (args == null || args.isEmpty() || args.size() < minSize) {
+            throw new IllegalArgumentException("Not enough arguments");
+        }
+        for (int i = 0; i < args.size(); i++) {
+            String arg = args.get(i);
+            if (arg == null || arg.isBlank()) {
+                throw new IllegalArgumentException("Item in position " + i + " is null or blank");
+            }
+        }
+    }
+
+    /**
+     * Checks that an object is not null.
+     *
+     * @param o the object to check
+     * @return the object if it is not null
+     * @throws IllegalArgumentException if the object is null
+     */
     public static Object notNull(Object o) {
-        if (o == null)
+        if (o == null) {
             throw new IllegalArgumentException("Object is null");
+        }
         return o;
     }
 
+    /**
+     * Checks that an object is not null or empty.
+     *
+     * @param s the object to check
+     * @return the object if it is not null or empty
+     * @throws IllegalArgumentException if the object is null or empty
+     */
     public static String notNullOrEmpty(String s) {
         return notNullOrEmpty(s, "String is null or empty");
     }
 
+    /**
+     * Checks that an object is not null or empty.
+     *
+     * @param s the object to check
+     * @return the object if it is not null or empty
+     * @throws IllegalArgumentException if the object is null or empty
+     */
     public static String notNullOrEmpty(String s, String message) {
         if (s == null || s.trim().isEmpty()) {
             throw new IllegalArgumentException(message);
@@ -100,45 +203,126 @@ public class Validate {
         return s;
     }
 
+    /**
+     * Checks that a string is a valid bot user name.
+     *
+     * @param s the string to check
+     * @return the string if it is a valid bot user name
+     * @throws IllegalArgumentException if the string is not a valid bot user name
+     */
     public static String botUserName(String s) {
-        if (!isBotUserName(s))
+        if (!isBotUserName(s)) {
             throw new IllegalArgumentException("Invalid bot user name");
+        }
         return s;
     }
 
+    /**
+     * Checks that a string is a valid IRC nickname.
+     *
+     * @param s the string to check
+     * @return the string if it is a valid IRC nickname
+     * @throws IllegalArgumentException if the string is not a valid IRC nickname
+     */
     public static String nickname(String s) {
-        if (!isNickname(s))
+        if (!isNickname(s)) {
             throw new IllegalArgumentException("Invalid nickname");
+        }
         return s;
     }
 
+    /**
+     * Checks that a string is a valid username.
+     *
+     * @param s the string to check
+     * @return the string if it is a valid username
+     * @throws IllegalArgumentException if the string is not a valid username
+     */
     public static String username(String s) {
-        if (!isUsername(s))
+        if (!isUsername(s)) {
             throw new IllegalArgumentException("Invalid username");
+        }
         return s;
     }
 
+    /**
+     * Checks that a string is a valid hostname.
+     *
+     * @param s the string to check
+     * @return the string if it is a valid hostname
+     * @throws IllegalArgumentException if the string is not a valid hostname
+     */
     public static String hostname(String s) {
-        if (!isHostname(s))
+        if (!isHostname(s)) {
             throw new IllegalArgumentException("Invalid hostname");
+        }
         return s;
     }
 
+    /**
+     * Checks that a string is a valid IRC address.
+     *
+     * @param s the string to check
+     * @return the string if it is a valid IRC address
+     * @throws IllegalArgumentException if the string is not a valid IRC address
+     */
     public static String address(String s) {
-        if (!isAddress(s))
+        if (!isAddress(s)) {
             throw new IllegalArgumentException("Invalid address");
+        }
         return s;
     }
 
+    /**
+     * Checks that a string is a valid IRC hostmask.
+     *
+     * @param s the string to check
+     * @return the string if it is a valid IRC hostmask
+     * @throws IllegalArgumentException if the string is not a valid IRC hostmask
+     */
     public static String hostmask(String s) {
-        if (!isHostmask(s))
+        if (!isHostmask(s)) {
             throw new IllegalArgumentException("Invalid hostmask");
+        }
         return s;
     }
 
+    /**
+     * Checks that a string is a valid ZIP code
+     *
+     * @param s the string to check
+     * @return the string if it is a valid ZIP code
+     * @throws IllegalArgumentException if the string is not a valid ZIP code
+     */
     public static String zipCode(String s) {
-        if (!isZipCode(s))
+        if (!isZipCode(s)) {
             throw new IllegalArgumentException("Invalid zip code");
+        }
+        return s;
+    }
+
+    /**
+     * Checks that a string is a valid IRC channel name.
+     *
+     * @param s the string to check
+     * @return the string if it is a valid IRC channel name
+     * @throws IllegalArgumentException if the string is not a valid IRC channel name
+     */
+    public static String channelName(String s) {
+        return channelName(s, CHANNEL_PREFIXES);
+    }
+
+    /**
+     * Checks that a string is a valid IRC nickname.
+     *
+     * @param s the string to check
+     * @return the string if it is a valid IRC nickname
+     * @throws IllegalArgumentException if the string is not a valid IRC nickname
+     */
+    public static String channelName(String s, String prefixes) {
+        if (!isChannelName(s, prefixes)) {
+            throw new IllegalArgumentException("Invalid channel name");
+        }
         return s;
     }
 }

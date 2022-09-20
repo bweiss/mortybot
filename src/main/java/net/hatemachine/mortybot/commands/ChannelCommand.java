@@ -20,8 +20,14 @@ package net.hatemachine.mortybot.commands;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.custom.entity.ManagedChannelFlag;
 import net.hatemachine.mortybot.dao.ManagedChannelDao;
+import net.hatemachine.mortybot.dao.ManagedChannelUserDao;
+import net.hatemachine.mortybot.exception.ManagedChannelException;
 import net.hatemachine.mortybot.listeners.CommandListener;
+import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.model.ManagedChannel;
+import net.hatemachine.mortybot.model.ManagedChannelUser;
+import net.hatemachine.mortybot.util.ManagedChannelHelper;
+import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,14 +38,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * CHANNEL command that allows you to view and manipulate the bot's managed channels.<br/>
- * <br/>
- * Supported subcommands: ADD, REMOVE, LIST, SHOW, ADDFLAG, REMOVEFLAG
+ * <p>CHANNEL command that allows you to view and manipulate the bot's managed channels.</p>
+ * <p>Usage: CHANNEL &lt;subcommand&gt; [arguments]</p>
+ * <p>Supported subcommands: ADD, ADDFLAG, LIST, REMOVE, REMOVEFLAG, SHOW</p>
  */
 public class ChannelCommand implements BotCommand {
-
-    private static final String NOT_ENOUGH_ARGS_STR = "Not enough arguments";
-    private static final String UNKNOWN_CHANNEL_STR = "Unknown channel";
 
     private static final Logger log = LoggerFactory.getLogger(ChannelCommand.class);
 
@@ -57,9 +60,7 @@ public class ChannelCommand implements BotCommand {
 
     @Override
     public void execute() {
-        if (args.isEmpty()) {
-            throw new IllegalArgumentException(NOT_ENOUGH_ARGS_STR);
-        }
+        Validate.arguments(args, 1);
 
         String command = args.get(0).toUpperCase();
         List<String> newArgs = args.subList(1, args.size());
@@ -67,35 +68,36 @@ public class ChannelCommand implements BotCommand {
         try {
             switch (command) {
                 case "ADD" -> addCommand(newArgs);
-                case "REMOVE" -> removeCommand(newArgs);
-                case "LIST" -> listCommand();
-                case "SHOW" -> showCommand(newArgs);
                 case "ADDFLAG" -> addFlagCommand(newArgs);
+                case "LIST" -> listCommand();
+                case "REMOVE" -> removeCommand(newArgs);
                 case "REMOVEFLAG" -> removeFlagCommand(newArgs);
+                case "SHOW" -> showCommand(newArgs);
                 default -> log.info("Unknown CHANNEL subcommand {} from {}", command, event.getUser().getNick());
             }
+        } catch (IllegalArgumentException | ManagedChannelException ex) {
+            event.respondWith(ex.getMessage());
         } catch (Exception ex) {
             log.error("Exception encountered: {}", ex.getMessage(), ex);
+            event.respondWith("Something went wrong");
         }
     }
 
     /**
-     * Adds a new channel to be managed.<br/>
-     * Usage: <code>ADD channel_name</code>
+     * <p>Adds a new channel to be managed.</p>
+     * <p>Usage: CHANNEL ADD &lt;channel_name&gt;</p>
      *
-     * @param args the remaining arguments to the subcommand (index 0: channel name)
+     * @param args the remaining arguments to the subcommand
+     * @throws IllegalArgumentException if any arguments are missing or invalid
      */
     private void addCommand(final List<String> args) {
-        if (args.isEmpty()) {
-            event.respondWith(NOT_ENOUGH_ARGS_STR);
-            return;
-        }
+        Validate.arguments(args, 1);
 
-        String channelName = args.get(0);
+        String channelName = Validate.channelName(args.get(0), event.getBot().getServerInfo().getChannelTypes());
         Optional<ManagedChannel> optionalManagedChannel = managedChannelDao.getWithName(channelName);
 
         if (optionalManagedChannel.isPresent()) {
-            event.respondWith("Channel already added");
+            event.respondWith("Channel is already managed");
         } else {
             var managedChannel = new ManagedChannel();
             managedChannel.setName(channelName);
@@ -105,162 +107,128 @@ public class ChannelCommand implements BotCommand {
     }
 
     /**
-     * Removes a channel from management.</br>
-     * Usage: <code>REMOVE channel_name</code>
+     * <p>Adds flags to a managed channel.</p>
+     * <p>Usage: CHANNEL ADDFLAG &lt;channel_name&gt; &lt;flags&gt;</p>
      *
-     * @param args the remaining arguments to the subcommand (index 0: channel name)
+     * @param args the remaining arguments to the subcommand
+     * @throws IllegalArgumentException if any arguments are missing or invalid
+     * @throws ManagedChannelException if managed channel entry cannot be created
      */
-    private void removeCommand(final List<String> args) {
-        if (args.isEmpty()) {
-            event.respondWith(NOT_ENOUGH_ARGS_STR);
-            return;
+    private void addFlagCommand(final List<String> args) throws IllegalArgumentException, ManagedChannelException {
+        Validate.arguments(args, 2);
+
+        String channelName = Validate.channelName(args.get(0), event.getBot().getServerInfo().getChannelTypes());
+        List<ManagedChannelFlag> newFlags = ManagedChannelHelper.parseFlags(args.get(1));
+
+        ManagedChannel managedChannel = managedChannelDao.getWithName(channelName).or(() -> {
+            var mc = new ManagedChannel();
+            mc.setName(channelName);
+            return Optional.of(managedChannelDao.create(mc));
+        }).orElseThrow(() -> new ManagedChannelException(ManagedChannelException.Reason.UNKNOWN_CHANNEL, channelName));
+
+        List<ManagedChannelFlag> flags = managedChannel.getManagedChannelFlags() == null ? new ArrayList<>() : managedChannel.getManagedChannelFlags();
+
+        for (ManagedChannelFlag flag : newFlags) {
+            if (!flags.contains(flag)) {
+                flags.add(flag);
+            }
         }
 
-        String channelName = args.get(0);
-        Optional<ManagedChannel> optionalManagedChannel = managedChannelDao.getWithName(channelName);
+        managedChannel.setManagedChannelFlags(flags);
+        managedChannel = managedChannelDao.update(managedChannel);
 
-        if (optionalManagedChannel.isEmpty()) {
-            event.respondWith(UNKNOWN_CHANNEL_STR);
-        } else {
-            ManagedChannel managedChannel = optionalManagedChannel.get();
-            managedChannelDao.delete(managedChannel.getId());
-            event.respondWith("Channel removed");
-        }
+        event.respondWith(String.format("Flags for %s: %s", managedChannel.getName(), managedChannel.getManagedChannelFlags()));
     }
 
     /**
-     * Lists all managed channels.<br/>
-     * Usage: <code>LIST</code>
+     * <p>Lists all managed channels.</p>
+     * <p>Usage: CHANNEL LIST</p>
      */
     private void listCommand() {
         List<ManagedChannel> channels = managedChannelDao.getAll();
 
-        if (channels.isEmpty()) {
+        if (channels == null || channels.isEmpty()) {
             event.respondWith("There are no managed channels");
         } else {
             event.respondWith("Managed channels: " +
                     channels.stream().map(ManagedChannel::getName).collect(Collectors.joining(", ")));
         }
     }
-
+    
     /**
-     * Shows the details of a managed channel.<br/>
-     * Usage: <code>SHOW channel_name</code>
+     * <p>Removes a channel from management.</p>
+     * <p>Usage: CHANNEL REMOVE &lt;channel_name&gt;</p>
      *
-     * @param args the remaining arguments to the subcommand (index 0: channel name)
+     * @param args the remaining arguments to the subcommand
+     * @throws IllegalArgumentException if any arguments are missing or invalid
+     * @throws ManagedChannelException if no managed channel entry can be found for this channel
      */
-    private void showCommand(final List<String> args) {
-        if (args.isEmpty()) {
-            event.respondWith(NOT_ENOUGH_ARGS_STR);
-            return;
-        }
+    private void removeCommand(final List<String> args) throws IllegalArgumentException, ManagedChannelException {
+        Validate.arguments(args, 1);
 
-        String channelName = args.get(0);
-        Optional<ManagedChannel> optionalManagedChannel = managedChannelDao.getWithName(channelName);
+        String channelName = Validate.channelName(args.get(0), event.getBot().getServerInfo().getChannelTypes());
+        ManagedChannel managedChannel = managedChannelDao.getWithName(channelName)
+                .orElseThrow(() -> new ManagedChannelException(ManagedChannelException.Reason.UNKNOWN_CHANNEL, channelName));
 
-        if (optionalManagedChannel.isEmpty()) {
-            event.respondWith(UNKNOWN_CHANNEL_STR);
-        } else {
-            ManagedChannel managedChannel = optionalManagedChannel.get();
-            event.respondWith("Channel: " + managedChannel.getName() + " - flags" + managedChannel.getManagedChannelFlags());
-        }
+        managedChannelDao.delete(managedChannel.getId());
+        
+        event.respondWith("Channel removed");
     }
 
     /**
-     * Adds flags to a managed channel.<br/>
-     * Usage: <code>ADDFLAG channel_name flags</code>
+     * <p>Removes flags from a managed channel.</p>
+     * <p>Usage: CHANNEL REMOVEFLAG &lt;channel_name&gt; &lt;flags&gt;</p>
      *
-     * @param args the remaining arguments to the subcommand (index 0: channel name, index 1: comma-delimited list of flags)
+     * @param args the remaining arguments to the subcommand
+     * @throws IllegalArgumentException if any arguments are missing or invalid
+     * @throws ManagedChannelException if no managed channel entry can be found for this channel
      */
-    private void addFlagCommand(final List<String> args) {
-        if (args.size() < 2) {
-            event.respondWith(NOT_ENOUGH_ARGS_STR);
-            return;
+    private void removeFlagCommand(final List<String> args) throws IllegalArgumentException, ManagedChannelException {
+        Validate.arguments(args, 2);
+
+        String channelName = Validate.channelName(args.get(0), event.getBot().getServerInfo().getChannelTypes());
+        List<ManagedChannelFlag> flagsToRemove = ManagedChannelHelper.parseFlags(args.get(1));
+        ManagedChannel managedChannel = managedChannelDao.getWithName(channelName)
+                .orElseThrow(() -> new ManagedChannelException(ManagedChannelException.Reason.UNKNOWN_CHANNEL, channelName));
+        List<ManagedChannelFlag> flags = managedChannel.getManagedChannelFlags() == null ? new ArrayList<>() : managedChannel.getManagedChannelFlags();
+
+        for (ManagedChannelFlag flag : flagsToRemove) {
+            flags.remove(flag);
         }
 
-        String channelName = args.get(0);
-        String[] flagStr = args.get(1).split(",");
-        Optional<ManagedChannel> optionalManagedChannel = managedChannelDao.getWithName(channelName);
-        ManagedChannel managedChannel = null;
+        managedChannel.setManagedChannelFlags(flags);
+        managedChannel = managedChannelDao.update(managedChannel);
 
-        // if the channel isn't managed yet, create an entry for it
-        if (optionalManagedChannel.isEmpty()) {
-            managedChannel = new ManagedChannel();
-            managedChannel.setName(channelName);
-            managedChannelDao.create(managedChannel);
-            // retrieve from the database so we get the id
-            optionalManagedChannel = managedChannelDao.getWithName(channelName);
-            if (optionalManagedChannel.isPresent()) {
-                managedChannel = optionalManagedChannel.get();
-            }
-        }
-
-        if (managedChannel != null) {
-            List<ManagedChannelFlag> flags = managedChannel.getManagedChannelFlags();
-            if (flags == null) {
-                flags = new ArrayList<>();
-            }
-
-            for (String s : flagStr) {
-                try {
-                    ManagedChannelFlag flag = Enum.valueOf(ManagedChannelFlag.class, s.toUpperCase());
-
-                    if (!flags.contains(flag)) {
-                        flags.add(flag);
-                    }
-                } catch (IllegalArgumentException ex) {
-                    log.warn("Invalid flag {}", s.toUpperCase());
-                }
-            }
-
-            managedChannel.setManagedChannelFlags(flags);
-            managedChannelDao.update(managedChannel);
-
-            event.respondWith("Flags: " + managedChannel.getManagedChannelFlags());
-        } else {
-            log.error("managedChannel is null!");
-            event.respondWith("Something went wrong");
-        }
+        event.respondWith(String.format("Flags for %s: %s", managedChannel.getName(), managedChannel.getManagedChannelFlags()));
     }
 
     /**
-     * Removes flags from a managed channel.<br/>
-     * Usage: <code>REMOVEFLAG channel_name flags</code>
+     * <p>Shows the details of a managed channel.</p>
+     * <p>Usage: CHANNEL SHOW &lt;channel_name&gt;</p>
      *
-     * @param args the remaining arguments to the subcommand (index 0: channel name, index 1: comma-delimited list of flags)
+     * @param args the remaining arguments to the subcommand
+     * @throws IllegalArgumentException if any arguments are missing or invalid
+     * @throws ManagedChannelException if no managed channel entry can be found for this channel
      */
-    private void removeFlagCommand(final List<String> args) {
-        if (args.size() < 2) {
-            event.respondWith(NOT_ENOUGH_ARGS_STR);
-            return;
-        }
+    private void showCommand(final List<String> args) throws IllegalArgumentException, ManagedChannelException {
+        Validate.arguments(args, 1);
 
-        String channelName = args.get(0);
-        String[] flagStr = args.get(1).split(",");
-        Optional<ManagedChannel> optionalManagedChannel = managedChannelDao.getWithName(channelName);
+        String channelName = Validate.channelName(args.get(0), event.getBot().getServerInfo().getChannelTypes());
+        ManagedChannel managedChannel = managedChannelDao.getWithName(channelName)
+                .orElseThrow(() -> new ManagedChannelException(ManagedChannelException.Reason.UNKNOWN_CHANNEL, channelName));
+        String flagListStr = managedChannel.getManagedChannelFlags() == null ? "" : managedChannel.getManagedChannelFlags()
+                .stream().map(ManagedChannelFlag::name).collect(Collectors.joining(", "));
+        ManagedChannelUserDao mcuDao = new ManagedChannelUserDao();
+        List<ManagedChannelUser> mcuList = mcuDao.getMultipleWithManagedChannelId(managedChannel.getId());
 
-        if (optionalManagedChannel.isEmpty()) {
-            event.respondWith(UNKNOWN_CHANNEL_STR);
-        } else {
-            ManagedChannel managedChannel = optionalManagedChannel.get();
-            List<ManagedChannelFlag> flags = managedChannel.getManagedChannelFlags();
-            if (flags == null) {
-                flags = new ArrayList<>();
-            }
+        event.respondWith(String.format("%s -> flags[%s]", managedChannel.getName(), flagListStr));
 
-            for (String s : flagStr) {
-                try {
-                    ManagedChannelFlag flag = Enum.valueOf(ManagedChannelFlag.class, s.toUpperCase());
-                    flags.remove(flag);
-                } catch (IllegalArgumentException ex) {
-                    log.warn("Invalid flag {}", s.toUpperCase());
-                }
-            }
+        if (mcuList != null && !mcuList.isEmpty()) {
+            List<BotUser> botUsers = mcuList.stream().map(ManagedChannelUser::getBotUser).toList();
 
-            managedChannel.setManagedChannelFlags(flags);
-            managedChannelDao.update(managedChannel);
-
-            event.respondWith("Flags: " + managedChannel.getManagedChannelFlags());
+            event.respondWith(String.format("Bot users for %s: %s",
+                    managedChannel.getName(),
+                    botUsers.stream().map(BotUser::getName).collect(Collectors.joining(", "))));
         }
     }
 

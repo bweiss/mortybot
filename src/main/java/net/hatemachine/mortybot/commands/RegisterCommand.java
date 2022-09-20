@@ -32,16 +32,15 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
 
 /**
  * Registers yourself with the bot.
  * If there are no existing bot users this will grant admin rights.
  * If no hostmask is specified it will generate one for you via the <code>IrcUtils.maskAddress()</code> method.
- *
- * @see IrcUtils
  */
 public class RegisterCommand implements BotCommand {
 
@@ -67,33 +66,31 @@ public class RegisterCommand implements BotCommand {
                 props.getIntProperty("register.mask.type", BotDefaults.REGISTER_MASK_TYPE));
         String normalFlags = props.getStringProperty("register.normal.flags", BotDefaults.REGISTER_NORMAL_FLAGS);
         String ownerFlags = props.getStringProperty("register.owner.flags", BotDefaults.REGISTER_OWNER_FLAGS);
-        String userFlags = botUserDao.count() > 0 ? normalFlags : ownerFlags;
-        List<BotUserFlag> flagList = new ArrayList<>();
+        String flagStr = botUserDao.count() > 0 ? normalFlags : ownerFlags;
+        List<BotUserFlag> flagList = BotUserHelper.parseFlags(flagStr);
         List<BotUser> matchingBotUsers = BotUserHelper.findByHostmask(user.getHostmask());
 
-        for (String s : userFlags.split(",")) {
-            flagList.add(Enum.valueOf(BotUserFlag.class, s));
-        }
-
-        // first check to see if the user matches a hostmask for an existing bot user
         if (!matchingBotUsers.isEmpty()) {
             String userNames = matchingBotUsers.stream()
                     .map(BotUser::getName)
                     .collect(Collectors.joining(", "));
 
-            log.warn("Hostmask {} matches existing bot user(s): {}", user.getHostmask(), userNames);
+            log.info("Hostmask {} matches existing bot user(s): {}", user.getHostmask(), userNames);
             event.respondWith("You are already registered!");
-            return;
         } else {
-            // if no matches found, attempt to register them
             BotUser botUser = new BotUser();
             botUser.setName(userName);
             botUser.setBotUserHostmasks(List.of(maskedAddress));
             botUser.setBotUserFlags(flagList);
-            botUserDao.create(botUser);
+            botUser = botUserDao.create(botUser);
 
-            event.respondWith(String.format("Registered %s with hostmask %s and flags [%s]",
-                    userName, maskedAddress, flagList.stream().map(BotUserFlag::name).collect(Collectors.joining(","))));
+            String msg = String.format("Registered %s with hostmask [%s] and flags [%s]",
+                    botUser.getName(),
+                    botUser.getBotUserHostmasks() == null ? "" : String.join(", ", botUser.getBotUserHostmasks()),
+                    botUser.getBotUserFlags() == null ? "" : botUser.getBotUserFlags().stream().map(Enum::name).collect(joining(", ")));
+
+            log.info(msg);
+            event.respondWith(msg);
         }
     }
 

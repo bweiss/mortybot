@@ -22,8 +22,19 @@ public class ManagedChannelException extends Exception {
     protected final ManagedChannelException.Reason reason;
 
     public enum Reason {
-        UNKNOWN_CHANNEL,
-        CHANNEL_EXISTS
+        UNKNOWN_CHANNEL("Unknown channel"),
+        CHANNEL_EXISTS("Channel exists");
+
+        private final String description;
+
+        Reason(String desc) {
+            this.description = desc;
+        }
+
+        @Override
+        public String toString() {
+            return description;
+        }
     }
 
     public ManagedChannelException(ManagedChannelException.Reason reason, String message) {

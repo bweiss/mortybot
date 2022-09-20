@@ -20,16 +20,24 @@ package net.hatemachine.mortybot.dao;
 import net.hatemachine.mortybot.custom.mapper.ManagedChannelCustomMapper;
 import net.hatemachine.mortybot.mapper.ManagedChannelDynamicSqlSupport;
 import net.hatemachine.mortybot.mapper.ManagedChannelMapper;
+import net.hatemachine.mortybot.mapper.ManagedChannelUserDynamicSqlSupport;
+import net.hatemachine.mortybot.mapper.ManagedChannelUserMapper;
 import net.hatemachine.mortybot.model.ManagedChannel;
 import net.hatemachine.mortybot.util.MyBatisUtil;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.dynamic.sql.delete.render.DeleteStatementProvider;
+import org.mybatis.dynamic.sql.render.RenderingStrategies;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
+import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
+/**
+ * DAO class for interacting with managed channels.
+ */
 public class ManagedChannelDao {
 
     private final SqlSessionFactory sqlSessionFactory;
@@ -38,6 +46,12 @@ public class ManagedChannelDao {
         this.sqlSessionFactory = MyBatisUtil.getSqlSessionFactory();
     }
 
+    /**
+     * Creates a new managed channel entry.
+     *
+     * @param managedChannel the managed channel to create
+     * @return the managed channel that was created
+     */
     public synchronized ManagedChannel create(ManagedChannel managedChannel) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelMapper mapper = session.getMapper(ManagedChannelMapper.class);
@@ -47,32 +61,57 @@ public class ManagedChannelDao {
         }
     }
 
-    public synchronized List<ManagedChannel> batchCreate(List<ManagedChannel> ManagedChannels) {
+    /**
+     * Creates multiple new managed channels from a list.
+     *
+     * @param managedChannels the list of managed channels to create
+     * @return the list of managed channels that were created
+     */
+    public synchronized List<ManagedChannel> batchCreate(List<ManagedChannel> managedChannels) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelMapper mapper = session.getMapper(ManagedChannelMapper.class);
-            mapper.insertMultiple(ManagedChannels);
+            mapper.insertMultiple(managedChannels);
             session.commit();
-            return ManagedChannels;
+            return managedChannels;
         }
     }
 
-    public synchronized boolean createIfNotExist(ManagedChannel ManagedChannel) {
+    /**
+     * Creates a new managed channel if it does not yet exist.
+     *
+     * @param managedChannel the managed channel to create
+     * @return true if the managed channel was created, or false if not
+     */
+    public synchronized boolean createIfNotExist(ManagedChannel managedChannel) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelCustomMapper mapper = session.getMapper(ManagedChannelCustomMapper.class);
-            int count = mapper.ignoreInsert(ManagedChannel);
+            int count = mapper.ignoreInsert(managedChannel);
             session.commit();
             return count > 0;
         }
     }
 
-    public synchronized int batchCreateIfNotExist(List<ManagedChannel> ManagedChannels) {
+    /**
+     * Creates multiple new managed channels from a list if they do not yet exist.
+     *
+     * @param managedChannels the list of managed channels to create
+     * @return the total count of managed channels created
+     */
+    public synchronized int batchCreateIfNotExist(List<ManagedChannel> managedChannels) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelCustomMapper mapper = session.getMapper(ManagedChannelCustomMapper.class);
+            int count = mapper.ignoreInsertMultiple(managedChannels);
             session.commit();
-            return mapper.ignoreInsertMultiple(ManagedChannels);
+            return count;
         }
     }
 
+    /**
+     * Updates the details of a managed channel.
+     *
+     * @param managedChannel the managed channel to update
+     * @return the managed channel after being updated
+     */
     public synchronized ManagedChannel update(ManagedChannel managedChannel) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelMapper mapper = session.getMapper(ManagedChannelMapper.class);
@@ -82,22 +121,35 @@ public class ManagedChannelDao {
         }
     }
 
+    /**
+     * Deletes a managed channel by ID, as well as any managed channel user entries for that channel.
+     *
+     * @param id the id of the managed channel to be deleted
+     */
     public synchronized void delete(int id) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
+            // delete any managed channel user entries for this channel
+            ManagedChannelUserMapper mcuMapper = session.getMapper(ManagedChannelUserMapper.class);
+            DeleteStatementProvider deleteStatement = deleteFrom(ManagedChannelUserDynamicSqlSupport.managedChannelUser)
+                    .where(ManagedChannelUserDynamicSqlSupport.managedChannelId, isEqualTo(id))
+                    .build()
+                    .render(RenderingStrategies.MYBATIS3);
+            mcuMapper.delete(deleteStatement);
+
+            // delete the channel
             ManagedChannelMapper mapper = session.getMapper(ManagedChannelMapper.class);
             mapper.deleteByPrimaryKey(id);
+
             session.commit();
         }
     }
 
-    public synchronized void deleteWithName(String name) {
-        try (SqlSession session = sqlSessionFactory.openSession()) {
-            ManagedChannelMapper mapper = session.getMapper(ManagedChannelMapper.class);
-            mapper.delete(c -> c.where(ManagedChannelDynamicSqlSupport.name, isEqualTo(name)));
-            session.commit();
-        }
-    }
-
+    /**
+     * Retrieves a managed channel by ID.
+     *
+     * @param id the id of the managed channel to retrieve
+     * @return an optional containing the managed channel, if it exists, or an empty optional if not
+     */
     public synchronized Optional<ManagedChannel> get(Integer id) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelMapper mapper = session.getMapper(ManagedChannelMapper.class);
@@ -105,6 +157,12 @@ public class ManagedChannelDao {
         }
     }
 
+    /**
+     * Retrieves a managed channel by name.
+     *
+     * @param name the name of the managed channel to retrieve
+     * @return an optional containing the managed channel, if it exists, or an empty optional if not
+     */
     public synchronized Optional<ManagedChannel> getWithName(String name) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelMapper mapper = session.getMapper(ManagedChannelMapper.class);
@@ -112,10 +170,47 @@ public class ManagedChannelDao {
         }
     }
 
+    /**
+     * Retrieves all managed channels.
+     *
+     * @return a list of managed channels
+     */
     public synchronized List<ManagedChannel> getAll() {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             ManagedChannelMapper mapper = session.getMapper(ManagedChannelMapper.class);
             return mapper.leftJoinSelect(c -> c);
+        }
+    }
+
+    /**
+     * Retrieves multiple managed channels from a list of IDs.
+     *
+     * @param idList the list of managed channel IDs
+     * @return a list of managed channels
+     */
+    public synchronized List<ManagedChannel> getMultipleWithIdList(List<Integer> idList) {
+        if (idList == null || idList.isEmpty()) {
+            return new ArrayList<>();
+        }
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            ManagedChannelMapper mapper = session.getMapper(ManagedChannelMapper.class);
+            return mapper.leftJoinSelect(c -> c.where(ManagedChannelDynamicSqlSupport.id, isIn(idList)));
+        }
+    }
+
+    /**
+     * Retrieves multiple managed channels from a list of names.
+     *
+     * @param nameList the list of managed channel names
+     * @return a list of managed channels
+     */
+    public synchronized List<ManagedChannel> getMultipleWithNameList(List<String> nameList) {
+        if (nameList == null || nameList.isEmpty()) {
+            return new ArrayList<>();
+        }
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            ManagedChannelMapper mapper = session.getMapper(ManagedChannelMapper.class);
+            return mapper.leftJoinSelect(c -> c.where(ManagedChannelDynamicSqlSupport.name, isIn(nameList)));
         }
     }
 }

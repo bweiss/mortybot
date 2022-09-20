@@ -36,38 +36,23 @@ public class ManagedChannelUserHelper {
     /**
      * Parses a comma-delimited list of managed channel user flags into a list, removing any duplicate or invalid flags.
      *
-     * @param flags a comma-delimited string representing one or more flags
+     * @param flagStr a comma-delimited string representing one or more flags
      * @return a list of managed channel user flags
-     * @see BotUserFlag
      */
-    public static List<ManagedChannelUserFlag> parseFlags(String flags) {
-        return parseFlags(new ArrayList<>(), flags);
-    }
+    public static List<ManagedChannelUserFlag> parseFlags(String flagStr) {
+        List<ManagedChannelUserFlag> flags = new ArrayList<>();
 
-    /**
-     * Parses a comma-delimited list of managed channel user flags into a list, removing any duplicate or invalid flags.
-     *
-     * @param flagList a list of managed channel user flags that will be used as a starting list
-     * @param flags a comma-delimited string representing one or more flags
-     * @return a list of managed channel user flags
-     * @see BotUserFlag
-     */
-    public static List<ManagedChannelUserFlag> parseFlags(List<ManagedChannelUserFlag> flagList, String flags) {
-        for (String s : flags.split(",")) {
-            String flagStr = s.trim().toUpperCase();
-
+        for (String s : flagStr.split(",")) {
             try {
-                ManagedChannelUserFlag flag = Enum.valueOf(ManagedChannelUserFlag.class, flagStr);
-
-                if (!flagList.contains(flag)) {
-                    flagList.add(flag);
+                ManagedChannelUserFlag flag = Enum.valueOf(ManagedChannelUserFlag.class, s.toUpperCase());
+                if (!flags.contains(flag)) {
+                    flags.add(flag);
                 }
-
             } catch (IllegalArgumentException ex) {
-                log.debug("Invalid flag: {}", flagStr);
+                log.debug("Invalid flag: {}", s.toUpperCase());
             }
         }
 
-        return flagList;
+        return flags;
     }
 }

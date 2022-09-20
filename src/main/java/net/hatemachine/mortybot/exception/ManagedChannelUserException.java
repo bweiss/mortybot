@@ -22,8 +22,19 @@ public class ManagedChannelUserException extends Exception {
     protected final ManagedChannelUserException.Reason reason;
 
     public enum Reason {
-        UNKNOWN_USER,
-        USER_EXISTS
+        NO_SUCH_RECORD("No such record"),
+        RECORD_EXISTS("Record exists");
+
+        private final String description;
+
+        Reason(String desc) {
+            this.description = desc;
+        }
+
+        @Override
+        public String toString() {
+            return description;
+        }
     }
 
     public ManagedChannelUserException(ManagedChannelUserException.Reason reason, String message) {

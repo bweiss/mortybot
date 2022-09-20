@@ -20,7 +20,6 @@ package net.hatemachine.mortybot.util;
 import net.hatemachine.mortybot.custom.entity.BotUserFlag;
 import net.hatemachine.mortybot.custom.entity.ManagedChannelUserFlag;
 import net.hatemachine.mortybot.dao.BotUserDao;
-import net.hatemachine.mortybot.dao.ManagedChannelDao;
 import net.hatemachine.mortybot.dao.ManagedChannelUserDao;
 import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.model.ManagedChannel;
@@ -49,8 +48,8 @@ public class BotUserHelper {
      */
     public static List<BotUser> findByHostmask(String hostmask) {
         var botUserDao = new BotUserDao();
-
-        return botUserDao.getAll().stream()
+        return botUserDao.getAll()
+                .stream()
                 .filter(u -> {
                     for (String s : u.getBotUserHostmasks()) {
                         if (Pattern.matches(wildcardToRegex(s), hostmask)) {
@@ -67,81 +66,37 @@ public class BotUserHelper {
      * @param botUser the bot user
      * @return a map of managed channel user flags with the channel name as the key
      */
-    public static Map<String, List<ManagedChannelUserFlag>> getChannelFlagMap(BotUser botUser) {
-        Map<String, List<ManagedChannelUserFlag>> channelFlagMap = new HashMap<>();
-        ManagedChannelDao mcDao = new ManagedChannelDao();
+    public static Map<ManagedChannel, List<ManagedChannelUserFlag>> getChannelFlagMap(BotUser botUser) {
+        Map<ManagedChannel, List<ManagedChannelUserFlag>> channelFlagMap = new HashMap<>();
+        ManagedChannelUserDao mcuDao = new ManagedChannelUserDao();
 
-        for (ManagedChannelUser mcu : botUser.getManagedChannelUsers()) {
-            Optional<ManagedChannel> optionalManagedChannel = mcDao.get(mcu.getManagedChannelId());
-
-            if (optionalManagedChannel.isPresent()) {
-                ManagedChannel mc = optionalManagedChannel.get();
-                channelFlagMap.put(mc.getName(), mcu.getManagedChannelUserFlags());
-            }
+        for (ManagedChannelUser mcu : mcuDao.getMultipleWithBotUserId(botUser.getId())) {
+            channelFlagMap.put(mcu.getManagedChannel(), mcu.getManagedChannelUserFlags());
         }
 
         return channelFlagMap;
     }
 
     /**
-     * Gets a list of managed channel user flags for a bot user by channel name.
+     * Parses a comma-delimited list of bot user flags into a list, removing any duplicate or invalid flags.
      *
-     * @param botUser the bot user
-     * @param channelName the name of the channel
-     * @return a list of managed channel user flags
+     * @param flagStr a comma-delimited string representing one or more flags
+     * @return a list of bot user flags
      */
-    public static List<ManagedChannelUserFlag> getChannelFlags(BotUser botUser, String channelName) {
-        List<ManagedChannelUserFlag> flags = new ArrayList<>();
-        ManagedChannelDao managedChannelDao = new ManagedChannelDao();
-        ManagedChannelUserDao managedChannelUserDao = new ManagedChannelUserDao();
-        Optional<ManagedChannel> optionalManagedChannel = managedChannelDao.getWithName(channelName);
+    public static List<BotUserFlag> parseFlags(String flagStr) {
+        List<BotUserFlag> flags = new ArrayList<>();
 
-        if (optionalManagedChannel.isPresent()) {
-            ManagedChannel managedChannel = optionalManagedChannel.get();
-            Optional<ManagedChannelUser> optionalManagedChannelUser = managedChannelUserDao.getWithManagedChannelIdAndBotUserId(managedChannel.getId(), botUser.getId());
-            if (optionalManagedChannelUser.isPresent()) {
-                flags = optionalManagedChannelUser.get().getManagedChannelUserFlags();
+        for (String s : flagStr.split(",")) {
+            try {
+                BotUserFlag flag = Enum.valueOf(BotUserFlag.class, s.toUpperCase());
+                if (!flags.contains(flag)) {
+                    flags.add(flag);
+                }
+            } catch (IllegalArgumentException ex) {
+                log.debug("Invalid flag: {}", s.toUpperCase());
             }
         }
 
         return flags;
-    }
-
-    /**
-     * Parses a comma-delimited list of bot user flags into a list, removing any duplicate or invalid flags.
-     *
-     * @param flags a comma-delimited string representing one or more flags
-     * @return a list of bot user flags
-     * @see BotUserFlag
-     */
-    public static List<BotUserFlag> parseFlags(String flags) {
-        return parseFlags(new ArrayList<>(), flags);
-    }
-
-    /**
-     * Parses a comma-delimited list of bot user flags into a list, removing any duplicate or invalid flags.
-     *
-     * @param flagList a list of bot user flags that will be used as a starting list
-     * @param flags a comma-delimited string representing one or more flags
-     * @return a list of bot user flags
-     * @see BotUserFlag
-     */
-    public static List<BotUserFlag> parseFlags(List<BotUserFlag> flagList, String flags) {
-        for (String s : flags.split(",")) {
-            String flagStr = s.trim().toUpperCase();
-
-            try {
-                BotUserFlag flag = Enum.valueOf(BotUserFlag.class, flagStr);
-
-                if (!flagList.contains(flag)) {
-                    flagList.add(flag);
-                }
-
-            } catch (IllegalArgumentException ex) {
-                log.debug("Invalid flag: {}", flagStr);
-            }
-        }
-
-        return flagList;
     }
 }

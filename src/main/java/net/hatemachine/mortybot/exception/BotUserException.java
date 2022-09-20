@@ -21,8 +21,19 @@ public class BotUserException extends Exception {
     protected final Reason reason;
 
     public enum Reason {
-        UNKNOWN_USER,
-        USER_EXISTS
+        UNKNOWN_USER("Unknown user"),
+        USER_EXISTS("User exists");
+
+        private final String description;
+
+        Reason(String desc) {
+            this.description = desc;
+        }
+
+        @Override
+        public String toString() {
+            return description;
+        }
     }
 
     public BotUserException(Reason reason, String message) {
