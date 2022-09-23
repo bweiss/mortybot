@@ -99,10 +99,9 @@ public class ChannelCommand implements BotCommand {
         if (optionalManagedChannel.isPresent()) {
             event.respondWith("Channel is already managed");
         } else {
-            var managedChannel = new ManagedChannel();
-            managedChannel.setName(channelName);
-            managedChannelDao.create(managedChannel);
-            event.respondWith("Channel added");
+            ManagedChannel managedChannel = ManagedChannelHelper.createManagedChannel(channelName);
+            event.respondWith(String.format("Added channel %s with flags [%s]",
+                    managedChannel.getName(), formatFlags(managedChannel.getManagedChannelFlags())));
         }
     }
 
@@ -120,11 +119,9 @@ public class ChannelCommand implements BotCommand {
         String channelName = Validate.channelName(args.get(0), event.getBot().getServerInfo().getChannelTypes());
         List<ManagedChannelFlag> newFlags = ManagedChannelHelper.parseFlags(args.get(1));
 
-        ManagedChannel managedChannel = managedChannelDao.getWithName(channelName).or(() -> {
-            var mc = new ManagedChannel();
-            mc.setName(channelName);
-            return Optional.of(managedChannelDao.create(mc));
-        }).orElseThrow(() -> new ManagedChannelException(ManagedChannelException.Reason.UNKNOWN_CHANNEL, channelName));
+        ManagedChannel managedChannel = managedChannelDao.getWithName(channelName)
+                .or(() -> Optional.of(ManagedChannelHelper.createManagedChannel(channelName)))
+                .orElseThrow(() -> new ManagedChannelException(ManagedChannelException.Reason.UNKNOWN_CHANNEL, channelName));
 
         List<ManagedChannelFlag> flags = managedChannel.getManagedChannelFlags() == null ? new ArrayList<>() : managedChannel.getManagedChannelFlags();
 
@@ -137,7 +134,8 @@ public class ChannelCommand implements BotCommand {
         managedChannel.setManagedChannelFlags(flags);
         managedChannel = managedChannelDao.update(managedChannel);
 
-        event.respondWith(String.format("Flags for %s: %s", managedChannel.getName(), managedChannel.getManagedChannelFlags()));
+        event.respondWith(String.format("Flags for %s: %s",
+                managedChannel.getName(), formatFlags(managedChannel.getManagedChannelFlags())));
     }
 
     /**
@@ -199,7 +197,8 @@ public class ChannelCommand implements BotCommand {
         managedChannel.setManagedChannelFlags(flags);
         managedChannel = managedChannelDao.update(managedChannel);
 
-        event.respondWith(String.format("Flags for %s: %s", managedChannel.getName(), managedChannel.getManagedChannelFlags()));
+        event.respondWith(String.format("Flags for %s: %s",
+                managedChannel.getName(), formatFlags(managedChannel.getManagedChannelFlags())));
     }
 
     /**
@@ -230,6 +229,16 @@ public class ChannelCommand implements BotCommand {
                     managedChannel.getName(),
                     botUsers.stream().map(BotUser::getName).collect(Collectors.joining(", "))));
         }
+    }
+
+    /**
+     * Formats a list of managed channel flags into a string.
+     *
+     * @param flagList the list of managed channel flags
+     * @return a string of managed channel flags joined by commas, or an empty string if the list was null
+     */
+    private String formatFlags(List<ManagedChannelFlag> flagList) {
+        return flagList == null ? "" : flagList.stream().map(ManagedChannelFlag::name).collect(Collectors.joining(", "));
     }
 
     @Override

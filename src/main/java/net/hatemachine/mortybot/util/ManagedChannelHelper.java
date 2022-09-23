@@ -17,6 +17,8 @@
  */
 package net.hatemachine.mortybot.util;
 
+import net.hatemachine.mortybot.config.BotDefaults;
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.custom.entity.ManagedChannelFlag;
 import net.hatemachine.mortybot.custom.entity.ManagedChannelUserFlag;
 import net.hatemachine.mortybot.dao.ManagedChannelDao;
@@ -38,6 +40,26 @@ public class ManagedChannelHelper {
 
     public ManagedChannelHelper() {
         throw new IllegalStateException("Utility class");
+    }
+
+    /**
+     * Creates a new managed channel object with a set of default flags.
+     *
+     * @param channelName the name of the channel
+     * @return a managed channel object
+     */
+    public static ManagedChannel createManagedChannel(String channelName) {
+        Validate.notNullOrEmpty(channelName, "channelName cannot be null or empty");
+
+        ManagedChannelDao mcDao = new ManagedChannelDao();
+        ManagedChannel managedChannel = new ManagedChannel();
+        List<ManagedChannelFlag> flags = parseFlags(BotProperties.getBotProperties()
+                .getStringProperty("managed.channel.default.flags", BotDefaults.MANAGED_CHANNEL_DEFAULT_FLAGS));
+
+        managedChannel.setName(channelName);
+        managedChannel.setManagedChannelFlags(flags);
+
+        return mcDao.create(managedChannel);
     }
 
     /**

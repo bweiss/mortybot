@@ -19,6 +19,7 @@ package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.MortyBot;
+import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.custom.entity.BotUserFlag;
 import net.hatemachine.mortybot.custom.entity.ManagedChannelUserFlag;
@@ -32,10 +33,7 @@ import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.model.ManagedChannel;
 import net.hatemachine.mortybot.model.ManagedChannelUser;
-import net.hatemachine.mortybot.util.BotUserHelper;
-import net.hatemachine.mortybot.util.IrcUtils;
-import net.hatemachine.mortybot.util.ManagedChannelUserHelper;
-import net.hatemachine.mortybot.util.Validate;
+import net.hatemachine.mortybot.util.*;
 import org.pircbotx.User;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
@@ -138,6 +136,9 @@ public class UserCommand implements BotCommand {
 
         if (args.size() > 2) {
             flags = BotUserHelper.parseFlags(args.get(2));
+        } else {
+            flags = BotUserHelper.parseFlags(BotProperties.getBotProperties()
+                    .getStringProperty("bot.user.default.flags", BotDefaults.BOT_USER_DEFAULT_FLAGS));
         }
 
         Optional<BotUser> optionalBotUser = botUserDao.getWithName(userName);
@@ -182,11 +183,9 @@ public class UserCommand implements BotCommand {
         BotUser botUser = botUserDao.getWithName(userName)
                 .orElseThrow(() -> new BotUserException(BotUserException.Reason.UNKNOWN_USER, userName));
 
-        ManagedChannel managedChannel = mcDao.getWithName(channelName).or(() -> {
-            var mc = new ManagedChannel();
-            mc.setName(channelName);
-            return Optional.of(mcDao.create(mc));
-        }).orElseThrow(() -> new ManagedChannelException(ManagedChannelException.Reason.UNKNOWN_CHANNEL, channelName));
+        ManagedChannel managedChannel = mcDao.getWithName(channelName)
+                .or(() -> Optional.of(ManagedChannelHelper.createManagedChannel(channelName)))
+                .orElseThrow(() -> new ManagedChannelException(ManagedChannelException.Reason.UNKNOWN_CHANNEL, channelName));
 
         ManagedChannelUser managedChannelUser = mcuDao.getWithManagedChannelIdAndBotUserId(managedChannel.getId(), botUser.getId()).or(() -> {
             var mcu = new ManagedChannelUser();

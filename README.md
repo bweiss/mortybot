@@ -63,6 +63,8 @@ Supported flags:
 | DCC    | Allows the user to establish a DCC CHAT connection with the bot                   |
 | IGNORE | Ignore everything from this user (good for assholes or other bots)                |
 
+Admin users can add or remove flags from a user via the USER ADDFLAG/REMOVEFLAG commands.
+
 ### Managed Channels
 
 Once registered with admin rights, you can also add a channel as a "managed channel" via the CHANNEL command. This allows you to set channel-specific settings to control how the bot behaves in that channel.
@@ -72,7 +74,7 @@ For example:
 > CHANNEL ADD #yourchan<br/>
 > CHANNEL ADDFLAG #yourchan AUTO_JOIN<br/>
 
-Would cause the bot to automatically join that channel from that point on. A full list of managed channel flags is shown below.
+A full list of managed channel flags is shown below.
 
 | Flag          | Description                                 |
 |---------------|---------------------------------------------|
