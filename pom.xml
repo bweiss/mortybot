@@ -77,8 +77,10 @@
         <dependency>
             <groupId>com.github.pircbotx</groupId>
             <artifactId>pircbotx</artifactId>
-            <!-- The 2.3 build on jitpack.io is failing, so we need to use master-SNAPSHOT for the time being -->
-            <version>master-SNAPSHOT</version>
+            <!-- The 2.3 build on jitpack.io is failing, so we need to use a local jar for now -->
+            <version>2.3</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/pircbotx-2.3.jar</systemPath>
         </dependency>
 
         <dependency>
@@ -353,6 +355,7 @@
                 <configuration>
                     <outputDirectory>${project.build.directory}/${project.build.finalName}</outputDirectory>
                     <archive>
+                        <manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>

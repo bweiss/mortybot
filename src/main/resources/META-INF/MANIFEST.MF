@@ -1,0 +1,36 @@
+Class-Path: lib/slf4j-api-2.0.0.jar lib/logback-core-1.4.0.jar lib/logba
+ ck-classic-1.4.0.jar lib/geoip2-3.0.1.jar lib/maxmind-db-2.0.0.jar lib/
+ jsoup-1.15.3.jar lib/gson-2.9.0.jar lib/jackson-core-2.13.4.jar lib/jac
+ kson-annotations-2.13.4.jar lib/jackson-databind-2.13.4.jar lib/jackson
+ -datatype-jsr310-2.13.4.jar lib/json-path-2.7.0.jar lib/json-smart-2.4.
+ 7.jar lib/accessors-smart-2.4.7.jar lib/asm-9.1.jar lib/license-maven-p
+ lugin-4.1.jar lib/maven-plugin-api-3.6.3.jar lib/maven-model-3.6.3.jar
+ lib/maven-artifact-3.6.3.jar lib/org.eclipse.sisu.plexus-0.3.4.jar lib/
+ cdi-api-1.0.jar lib/jsr250-api-1.0.jar lib/plexus-utils-3.2.1.jar lib/p
+ lexus-classworlds-2.6.0.jar lib/maven-core-3.6.3.jar lib/maven-settings
+ -3.6.3.jar lib/maven-settings-builder-3.6.3.jar lib/plexus-interpolatio
+ n-1.25.jar lib/plexus-sec-dispatcher-1.4.jar lib/plexus-cipher-1.4.jar
+ lib/maven-builder-support-3.6.3.jar lib/maven-repository-metadata-3.6.3
+ .jar lib/maven-model-builder-3.6.3.jar lib/maven-resolver-provider-3.6.
+ 3.jar lib/maven-resolver-impl-1.4.1.jar lib/maven-resolver-api-1.4.1.ja
+ r lib/maven-resolver-spi-1.4.1.jar lib/maven-resolver-util-1.4.1.jar li
+ b/org.eclipse.sisu.inject-0.3.4.jar lib/guice-4.2.1-no_aop.jar lib/aopa
+ lliance-1.0.jar lib/javax.inject-1.jar lib/plexus-component-annotations
+ -2.1.0.jar lib/commons-lang3-3.8.1.jar lib/maven-shared-utils-3.3.3.jar
+  lib/commons-io-2.6.jar lib/mycila-xmltool-4.4.ga.jar lib/commons-pool2
+ -2.2.jar lib/darwinsys-api-1.7.5.jar lib/junit-jupiter-engine-5.7.1.jar
+  lib/apiguardian-api-1.1.0.jar lib/junit-platform-engine-1.7.1.jar lib/
+ opentest4j-1.2.0.jar lib/junit-platform-commons-1.7.1.jar lib/junit-jup
+ iter-api-5.7.1.jar lib/junit-vintage-engine-5.7.1.jar lib/junit-4.13.ja
+ r lib/hamcrest-core-1.3.jar lib/xalan-2.7.2.jar lib/serializer-2.7.2.ja
+ r lib/xml-apis-1.3.04.jar lib/twittered-2.17.jar lib/jackson-dataformat
+ -yaml-2.13.2.jar lib/snakeyaml-1.30.jar lib/scribejava-apis-8.3.1.jar l
+ ib/scribejava-core-8.3.1.jar lib/scribejava-java8-8.3.1.jar lib/httpcli
+ ent-4.5.13.jar lib/httpcore-4.4.13.jar lib/commons-logging-1.2.jar lib/
+ commons-codec-1.11.jar lib/guava-31.1-jre.jar lib/failureaccess-1.0.1.j
+ ar lib/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar l
+ ib/jsr305-3.0.2.jar lib/checker-qual-3.12.0.jar lib/error_prone_annotat
+ ions-2.11.0.jar lib/j2objc-annotations-1.3.jar lib/mybatis-3.5.10.jar l
+ ib/mybatis-dynamic-sql-1.4.0.jar lib/mybatis-migrations-3.3.11.jar lib/
+ sqlite-jdbc-3.39.3.0.jar lib/pircbotx-2.3.jar lib/ds-generator-core-1.2
+ .0.jar
