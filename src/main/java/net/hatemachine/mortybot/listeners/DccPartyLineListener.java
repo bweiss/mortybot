@@ -43,7 +43,7 @@ public class DccPartyLineListener extends ExtendedListenerAdapter {
      * Handles DCC CHAT events from users on the party line and dispatches them to other members.
      * Bot commands are ignored as they are handled by the {@link CommandListener} class
      *
-     * @param event {@link DccChatMessageEvent}
+     * @param event the dcc chat message event
      */
     @Override
     public void onDccChatMessage(final DccChatMessageEvent event) {
@@ -66,9 +66,9 @@ public class DccPartyLineListener extends ExtendedListenerAdapter {
     }
 
     /**
-     * Notify admin users of server connection events.
+     * Notifies admin users of server connection events.
      *
-     * @param event {@link ConnectEvent}
+     * @param event the connect event
      */
     @Override
     public void onConnect(ConnectEvent event) {
@@ -79,9 +79,9 @@ public class DccPartyLineListener extends ExtendedListenerAdapter {
     }
 
     /**
-     * Notify admin users of server disconnection events.
+     * Notifies admin users of server disconnection events.
      *
-     * @param event {@link DisconnectEvent}
+     * @param event the disconnect event
      */
     @Override
     public void onDisconnect(DisconnectEvent event) {
@@ -91,9 +91,9 @@ public class DccPartyLineListener extends ExtendedListenerAdapter {
     }
 
     /**
-     * Notify admin users if the bot gets kicked from a channel.
+     * Notifies admin users if the bot gets kicked from a channel.
      *
-     * @param event the {@link KickEvent}
+     * @param event the kick event
      */
     @Override
     public void onKick(final KickEvent event) {
@@ -114,7 +114,7 @@ public class DccPartyLineListener extends ExtendedListenerAdapter {
     /**
      * Handles private messages sent to the bot and dispatches them to admin users that are on the party line.
      *
-     * @param event {@link DccChatMessageEvent}
+     * @param event the dcc chat message event
      */
     @Override
     public void onPrivateMessage(final PrivateMessageEvent event) {

@@ -17,9 +17,11 @@
  */
 package net.hatemachine.mortybot.dcc;
 
+import net.hatemachine.mortybot.custom.entity.BotUserFlag;
 import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.events.DccChatMessageEvent;
+import net.hatemachine.mortybot.util.BotUserHelper;
 import org.pircbotx.User;
 import org.pircbotx.Utils;
 import org.pircbotx.dcc.Chat;
@@ -35,8 +37,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * DCC manager class.
- * Right now this is just responsible for keeping track of DCC CHAT sessions and dispatching messages to the party line.
+ * DCC manager class that keeps track of sessions and handles dispatching messages to the party line.
  */
 public class DccManager {
 
@@ -51,9 +52,9 @@ public class DccManager {
     }
 
     /**
-     * Retrieve a singleton instance of our DccManager object.
+     * Retrieves a singleton instance of our DccManager object.
      *
-     * @return a {@link DccManager} object
+     * @return a dcc manager object
      */
     public static DccManager getManager() {
         if (manager == null) {
@@ -63,10 +64,10 @@ public class DccManager {
     }
 
     /**
-     * Retrieve a chat session for a user if one exists.
+     * Retrieves a chat session for a user if one exists.
      *
-     * @param user the {@link User} to retrieve a session for
-     * @return an {@link Optional} containing a {@link ChatSession} if one exists for that user
+     * @param user the user to retrieve a session for
+     * @return an optional containing a chat session if one exists for that user
      */
     public Optional<ChatSession> getChatSession(User user) {
         Optional<ChatSession> chatSession = Optional.empty();
@@ -79,35 +80,35 @@ public class DccManager {
     /**
      * Add a chat session for a particular user to our manager.
      *
-     * @param user the {@link User} that the chat session is with
-     * @param chatSession the {@link ChatSession} object for this user
+     * @param user the user that the chat session is with
+     * @param chatSession the chat session object for this user
      */
     public synchronized void addChatSession(User user, ChatSession chatSession) {
         userChatMap.put(user, chatSession);
     }
 
     /**
-     * Remove a chat session from our manager.
+     * Removes a chat session from our manager.
      *
-     * @param user the {@link User} that owns the chat session
+     * @param user the user that owns the chat session
      */
     public synchronized void removeChatSession(User user) {
         userChatMap.remove(user);
     }
 
     /**
-     * Retrieve a list of all our chat sessions.
+     * Retrieves a list of all our chat sessions.
      *
-     * @return a {@link List} containing all of our {@link ChatSession} objects
+     * @return a list containing all of our chat session objects
      */
     public synchronized List<ChatSession> getChatSessions() {
         return new ArrayList<>(userChatMap.values());
     }
 
     /**
-     * Retrieve a list of only our active chat sessions.
+     * Retrieves a list of only our active chat sessions.
      *
-     * @return a {@link List} containing {@link ChatSession} objects of our active sessions
+     * @return a list containing chat session objects of our active sessions
      */
     public synchronized List<ChatSession> getActiveChatSessions() {
         return getChatSessions().stream()
@@ -116,9 +117,9 @@ public class DccManager {
     }
 
     /**
-     * Start a new chat session with a user.
+     * Starts a new chat session with a user.
      *
-     * @param user the {@link User} to start the chat with
+     * @param user the user to start the chat with
      */
     public void startDccChat(User user) {
         ChatSession chatSession = new ChatSession(ChatSession.SessionType.SEND, user);
@@ -127,9 +128,9 @@ public class DccManager {
     }
 
     /**
-     * Accept a new chat session from a user.
+     * Accepts a new chat session from a user.
      *
-     * @param event the {@link IncomingChatRequestEvent} event representing the incoming chat request
+     * @param event the {incoming chat request event
      */
     public void acceptDccChat(final IncomingChatRequestEvent event) {
         ChatSession chatSession = new ChatSession(ChatSession.SessionType.RECEIVE, event);
@@ -138,10 +139,10 @@ public class DccManager {
     }
 
     /**
-     * Handle a message from a chat session and dispatch it as an event.
+     * Handles a message from a chat session and dispatch it as an event.
      *
-     * @param chatSession the {@link ChatSession} object that's initiating the event
-     * @param line a {@link String} containing the message text
+     * @param chatSession the chat session object that's initiating the event
+     * @param line the message text
      */
     public void handleChatMessage(ChatSession chatSession, String line) {
         Chat chat = chatSession.getChat();
@@ -151,7 +152,7 @@ public class DccManager {
     }
 
     /**
-     * Dispatch a message to users on the party line.
+     * Dispatches a message to users on the party line.
      *
      * @param message the message text
      */
@@ -160,7 +161,7 @@ public class DccManager {
     }
 
     /**
-     * Dispatch a message to users on the party line.
+     * Dispatches a message to users on the party line.
      *
      * @param message the message text
      * @param adminOnly if true, message will only be dispatched to admin users
@@ -174,11 +175,13 @@ public class DccManager {
 
             // if adminOnly flag is set, skip over users that do not have the ADMIN flag
             if (adminOnly) {
-                MortyBot bot = user.getBot();
-                // FIXME
-//                List<BotUser> botUsers = bot.getBotUserDao().getAll(user.getHostmask());
-//                boolean adminFlag = botUsers.stream().anyMatch(u -> u.hasFlag("ADMIN"));
                 boolean adminFlag = false;
+                List<BotUser> botUsers = BotUserHelper.findByHostmask(user.getHostmask());
+
+                if (!botUsers.isEmpty()) {
+                    adminFlag = botUsers.stream().anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.ADMIN));
+                }
+
                 if (!adminFlag) {
                     continue;
                 }

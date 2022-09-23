@@ -20,13 +20,14 @@ package net.hatemachine.mortybot.listeners;
 import io.github.redouane59.twitter.TwitterClient;
 import io.github.redouane59.twitter.dto.tweet.Tweet;
 import io.github.redouane59.twitter.signature.TwitterCredentials;
-import net.hatemachine.mortybot.custom.entity.BotUserFlag;
-import net.hatemachine.mortybot.dao.BotUserDao;
-import net.hatemachine.mortybot.model.BotUser;
-import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.bitly.Bitly;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
+import net.hatemachine.mortybot.custom.entity.BotUserFlag;
+import net.hatemachine.mortybot.custom.entity.ManagedChannelFlag;
+import net.hatemachine.mortybot.dao.ManagedChannelDao;
+import net.hatemachine.mortybot.model.BotUser;
+import net.hatemachine.mortybot.model.ManagedChannel;
 import net.hatemachine.mortybot.util.BotUserHelper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -46,6 +47,8 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static net.hatemachine.mortybot.listeners.LinkListener.Source.*;
+
 public class LinkListener extends ListenerAdapter {
 
     private static final Pattern URL_PATTERN = Pattern.compile("https?:\\/\\/([.]|\\S+)");
@@ -53,25 +56,30 @@ public class LinkListener extends ListenerAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(LinkListener.class);
 
+    enum Source {
+        PUBLIC,
+        PRIVATE
+    }
+
     @Override
     public void onMessage(final MessageEvent event) {
         log.debug("onMessage event: {}", event);
-        handleMessage(event);
+        handleMessage(event, PUBLIC);
     }
 
     @Override
     public void onPrivateMessage(final PrivateMessageEvent event) {
         log.debug("onPrivateMessage event: {}", event);
-        handleMessage(event);
+        handleMessage(event, PRIVATE);
     }
 
     /**
-     * Handle a message event, checking for links. If the link appears to be to a tweet then we try to fetch the
+     * Handles a message event, checking for links. If the link appears to be to a tweet then we try to fetch the
      * details and display that. Otherwise, shorten the link and fetch the page title.
      *
      * @param event the event being handled
      */
-    private void handleMessage(final GenericMessageEvent event) {
+    private void handleMessage(final GenericMessageEvent event, Source source) {
         BotProperties props = BotProperties.getBotProperties();
         int maxLinks = props.getIntProperty("links.max", BotDefaults.LINKS_MAX);
         int minLenToShorten = props.getIntProperty("links.min.length", BotDefaults.LINKS_MIN_LENGTH);
@@ -79,21 +87,34 @@ public class LinkListener extends ListenerAdapter {
         boolean shortenLinksFlag = props.getBooleanProperty("links.shorten", BotDefaults.LINKS_SHORTEN);
         boolean showTitlesFlag = props.getBooleanProperty("links.show.titles", BotDefaults.LINKS_SHOW_TITLES);
         boolean showTweetsFlag = props.getBooleanProperty("links.show.tweets", BotDefaults.LINKS_SHOW_TWEETS);
-        MortyBot bot = event.getBot();
+        String commandPrefix = props.getStringProperty("command.prefix", BotDefaults.BOT_COMMAND_PREFIX);
+
         User user = event.getUser();
-
-        String commandPrefix = BotProperties.getBotProperties().getStringProperty("command.prefix", BotDefaults.BOT_COMMAND_PREFIX);
-        if (event.getMessage().startsWith(commandPrefix)) {
-            // Commands should be ignored
-            return;
-        }
-
         List<BotUser> botUsers = BotUserHelper.findByHostmask(user.getHostmask());
         boolean ignoreUser = botUsers.stream().anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.IGNORE));
+        ManagedChannelDao mcDao = new ManagedChannelDao();
+        Optional<ManagedChannel> managedChannel;
 
+        // ignore this user
         if (ignoreUser) {
             log.info("User {} has IGNORE flag, ignoring message...", user.getNick());
             return;
+        }
+
+        // ignore commands
+        if (event.getMessage().startsWith(commandPrefix)) {
+            return;
+        }
+
+        // if the source is a public message, see if this is a managed channel and use those settings instead
+        if (source == PUBLIC) {
+            String channelName = ((MessageEvent) event).getChannel().getName();
+            managedChannel = mcDao.getWithName(channelName);
+
+            if (managedChannel.isPresent()) {
+                log.debug("Channel is managed, using those settings");
+                shortenLinksFlag = managedChannel.get().getManagedChannelFlags().contains(ManagedChannelFlag.SHORTEN_LINKS);
+            }
         }
 
         // Parse the message looking for links
@@ -118,8 +139,8 @@ public class LinkListener extends ListenerAdapter {
 
                         event.respondWith(Colors.BOLD + "@" + tweet.getUser().getName() + Colors.BOLD + ": " + tweet.getText());
                     }
-                } catch (Exception e) {
-                    log.error("Exception encountered while trying to fetch tweet", e);
+                } catch (Exception ex) {
+                    log.error("Failed to fetch tweet", ex);
                 }
 
             // Regular link, shorten and fetch title
@@ -133,17 +154,19 @@ public class LinkListener extends ListenerAdapter {
                     } else {
                         try {
                             shortLink = Bitly.shorten(link);
-                        } catch (InterruptedException e) {
-                            log.warn("Thread interrupted", e);
+                            log.debug("Shortened {} to {}", link, shortLink.orElse(""));
+                        } catch (InterruptedException ex) {
+                            log.warn("Thread interrupted", ex);
                             Thread.currentThread().interrupt();
-                        } catch (IOException e) {
-                            log.error("Exception encountered shortening link", e);
+                        } catch (IOException ex) {
+                            log.error("I/O error", ex);
                         }
                     }
                 }
 
                 if (showTitlesFlag) {
                     title = fetchTitle(link);
+                    log.debug("Title: {}", title);
                 }
 
                 // shortened link only
