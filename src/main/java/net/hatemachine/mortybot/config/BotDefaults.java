@@ -57,7 +57,7 @@ public class BotDefaults {
     public static final String  BOT_USER_DEFAULT_FLAGS = "DCC";
 
     // ManagedChannelHelper
-    public static final String  MANAGED_CHANNEL_DEFAULT_FLAGS = "AUTO_JOIN,SHORTEN_LINKS";
+    public static final String  MANAGED_CHANNEL_DEFAULT_FLAGS = "AUTO_JOIN,SHORTEN_LINKS,SHOW_TITLES,SHOW_TWEETS";
 
     // Wordle (Game, WordleListener)
     public static final int     WORDLE_MAX_ATTEMPTS = 6;

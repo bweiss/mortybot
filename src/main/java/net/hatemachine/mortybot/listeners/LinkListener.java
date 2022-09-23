@@ -88,32 +88,33 @@ public class LinkListener extends ListenerAdapter {
         boolean showTitlesFlag = props.getBooleanProperty("links.show.titles", BotDefaults.LINKS_SHOW_TITLES);
         boolean showTweetsFlag = props.getBooleanProperty("links.show.tweets", BotDefaults.LINKS_SHOW_TWEETS);
         String commandPrefix = props.getStringProperty("command.prefix", BotDefaults.BOT_COMMAND_PREFIX);
+        boolean ignoreFlag = BotUserHelper.findByHostmask(event.getUser().getHostmask())
+                .stream()
+                .anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.IGNORE));
 
-        User user = event.getUser();
-        List<BotUser> botUsers = BotUserHelper.findByHostmask(user.getHostmask());
-        boolean ignoreUser = botUsers.stream().anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.IGNORE));
-        ManagedChannelDao mcDao = new ManagedChannelDao();
-        Optional<ManagedChannel> managedChannel;
-
-        // ignore this user
-        if (ignoreUser) {
-            log.info("User {} has IGNORE flag, ignoring message...", user.getNick());
+        if (ignoreFlag || event.getMessage().startsWith(commandPrefix)) {
             return;
         }
 
-        // ignore commands
-        if (event.getMessage().startsWith(commandPrefix)) {
-            return;
-        }
-
-        // if the source is a public message, see if this is a managed channel and use those settings instead
+        // if the source is a public message, see if this is a managed channel and check its flags
         if (source == PUBLIC) {
             String channelName = ((MessageEvent) event).getChannel().getName();
-            managedChannel = mcDao.getWithName(channelName);
+            ManagedChannelDao mcDao = new ManagedChannelDao();
+            Optional<ManagedChannel> optionalManagedChannel = mcDao.getWithName(channelName);
 
-            if (managedChannel.isPresent()) {
-                log.debug("Channel is managed, using those settings");
-                shortenLinksFlag = managedChannel.get().getManagedChannelFlags().contains(ManagedChannelFlag.SHORTEN_LINKS);
+            if (optionalManagedChannel.isPresent()) {
+                ManagedChannel managedChannel = optionalManagedChannel.get();
+                List<ManagedChannelFlag> flags = managedChannel.getManagedChannelFlags();
+
+                if (!flags.contains(ManagedChannelFlag.SHORTEN_LINKS)) {
+                    shortenLinksFlag = false;
+                }
+                if (!flags.contains(ManagedChannelFlag.SHOW_TITLES)) {
+                    showTitlesFlag = false;
+                }
+                if (!flags.contains(ManagedChannelFlag.SHOW_TWEETS)) {
+                    showTweetsFlag = false;
+                }
             }
         }
 

@@ -82,6 +82,8 @@ A full list of managed channel flags is shown below.
 | ENFORCE_BANS  | Enforce channel bans (not implemented yet)  |
 | ENFORCE_MODES | Enforce channel modes (not implemented yet) |
 | SHORTEN_LINKS | Shorten links on the channel                |
+| SHOW_TITLES   | Fetch and display titles for links          |
+| SHOW_TWEETS   | Fetch and display the text of tweets        |
 
 ### Features Requiring API Keys
 
