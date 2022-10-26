@@ -57,7 +57,7 @@ public class IMDBHelper {
      * @return list of the results
      */
     public static List<SearchResult> search(String query) {
-        Validate.notNullOrEmpty(query);
+        Validate.notNullOrBlank(query);
         String searchUrl = SEARCH_URL + URLEncoder.encode(query, StandardCharsets.UTF_8);
         List<SearchResult> results = new ArrayList<>();
         Document searchResultPage = null;
@@ -123,7 +123,7 @@ public class IMDBHelper {
      * @return optional person object
      */
     public static Optional<Person> fetchPerson(String url) {
-        Validate.notNullOrEmpty(url);
+        Validate.notNullOrBlank(url);
         Optional<Person> person = Optional.empty();
         Document personDetailsPage = null;
 
@@ -170,7 +170,7 @@ public class IMDBHelper {
      * @return optional title object
      */
     public static Optional<Title> fetchTitle(String url) {
-        Validate.notNullOrEmpty(url);
+        Validate.notNullOrBlank(url);
         Optional<Title> title = Optional.empty();
         Document titleDetailsPage = null;
 

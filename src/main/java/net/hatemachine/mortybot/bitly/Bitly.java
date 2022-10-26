@@ -43,9 +43,9 @@ public class Bitly {
         String apiKey = props.getStringProperty("bitly.api.key", System.getenv("BITLY_API_KEY"));
 
         try {
-            Validate.notNullOrEmpty(url, "url cannot be null or empty");
-            Validate.notNullOrEmpty(apiEndpoint, "apiEndpoint cannot be null or empty");
-            Validate.notNullOrEmpty(apiKey, "apiKey cannot be null or empty");
+            Validate.notNullOrBlank(url, "url cannot be null or blank");
+            Validate.notNullOrBlank(apiEndpoint, "apiEndpoint cannot be null or blank");
+            Validate.notNullOrBlank(apiKey, "apiKey cannot be null or blank");
         } catch (IllegalArgumentException ex) {
             log.error("Invalid argument to shorten(): {}", ex.getMessage());
             return Optional.empty();

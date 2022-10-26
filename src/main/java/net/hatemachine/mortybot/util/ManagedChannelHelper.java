@@ -49,7 +49,7 @@ public class ManagedChannelHelper {
      * @return a managed channel object
      */
     public static ManagedChannel createManagedChannel(String channelName) {
-        Validate.notNullOrEmpty(channelName, "channelName cannot be null or empty");
+        Validate.notNullOrBlank(channelName, "channelName cannot be null or empty");
 
         ManagedChannelDao mcDao = new ManagedChannelDao();
         ManagedChannel managedChannel = new ManagedChannel();

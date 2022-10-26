@@ -26,26 +26,26 @@ public class IrcUtils {
     }
 
     /**
-     * Returns address with a mask specified by type.
+     * Returns address with a mask specified by type. <br/><br/>
      *
-     * The idea is to implement the $mask() function from EPIC (http://epicsol.org/mask).
+     * The idea is to implement the $mask() function from EPIC (<a href="http://epicsol.org/mask">...</a>). <br/><br/>
      *
-     * $mask(1 nick!khaled@mardam.demon.co.uk)  returns *!*khaled@mardam.demon.co.uk
-     * $mask(2 nick!khaled@mardam.demon.co.uk)  returns *!*@mardam.demon.co.uk
+     * $mask(1 nick!khaled@mardam.demon.co.uk)  returns *!*khaled@mardam.demon.co.uk <br/>
+     * $mask(2 nick!khaled@mardam.demon.co.uk)  returns *!*@mardam.demon.co.uk <br/><br/>
      *
-     * The available types are:
+     * The available types are: <br/><br/>
      *
-     * 0: *!user@host.domain
-     * 1: *!*user@host.domain
-     * 2: *!*@host.domain
-     * 3: *!*user@*.domain
-     * 4: *!*@*.domain
-     * 5: nick!user@host.domain
-     * 6: nick!*user@host.domain
-     * 7: nick!*@host.domain
-     * 8: nick!*user@*.domain
-     * 9: nick!*@*.domain
-     * 10:*!*user@*
+     * 0: *!user@host.domain <br/>
+     * 1: *!*user@host.domain <br/>
+     * 2: *!*@host.domain <br/>
+     * 3: *!*user@*.domain <br/>
+     * 4: *!*@*.domain <br/>
+     * 5: nick!user@host.domain <br/>
+     * 6: nick!*user@host.domain <br/>
+     * 7: nick!*@host.domain <br/>
+     * 8: nick!*user@*.domain <br/>
+     * 9: nick!*@*.domain <br/>
+     * 10:*!*user@* <br/>
      *
      * @param address the address you want to mask in the form nick!user@host
      * @param maskType an integer representing the mask type to use
@@ -76,13 +76,13 @@ public class IrcUtils {
     }
 
     /**
-     * Mask a hostname using the same logic as the EPIC $mask() function.
+     * Mask a hostname using the same logic as the EPIC $mask() function. <br/><br/>
      *
-     * Examples:
-     *  "this.is.a.long.vhost.domain.com" -> "*.domain.com"
-     *  "101.102.103.104" -> "101.102.103.*"
-     *  "some.foreign.domain.co.uk" -> "*.domain.co.uk"
-     *  "2603:300a:1d10:c000:de4a:3eff:fe88:cc5f" -> "2603:300a:*"
+     * Examples: <br/>
+     *  "this.is.a.long.vhost.domain.com" -> "*.domain.com" <br/>
+     *  "101.102.103.104" -> "101.102.103.*" <br/>
+     *  "some.foreign.domain.co.uk" -> "*.domain.co.uk" <br/>
+     *  "2603:300a:1d10:c000:de4a:3eff:fe88:cc5f" -> "2603:300a:*" <br/>
      *
      * @param hostname the hostname to be masked
      * @return the hostname with masking applied

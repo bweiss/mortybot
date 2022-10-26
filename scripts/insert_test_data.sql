@@ -20,3 +20,9 @@ INSERT INTO bot_user (name, bot_user_hostmasks, bot_user_flags, location) VALUES
 INSERT INTO bot_user (name, bot_user_hostmasks, bot_user_flags, location) VALUES ('test20', 'test20!test@fake.domain.localhost', null, null);
 INSERT INTO bot_user (name, bot_user_hostmasks, bot_user_flags, location) VALUES ('test21', 'test21!test@fake.domain.localhost', null, null);
 INSERT INTO bot_user (name, bot_user_hostmasks, bot_user_flags, location) VALUES ('test22', 'test22!test@fake.domain.localhost', null, null);
+
+INSERT INTO managed_channel (name, managed_channel_flags, bans, modes) VALUES ('#mortybot', '["AUTO_JOIN","SHORTEN_LINKS"]', 'foo!bar@baz,foo!qux@quux', '+nt');
+INSERT INTO managed_channel (name, managed_channel_flags, bans, modes) VALUES ('#test', '["SHORTEN_LINKS"]', null, null);
+
+INSERT INTO managed_channel_user (managed_channel_id, bot_user_id, managed_channel_user_flags) VALUES (1, 1, '["AUTO_OP","AUTO_VOICE"]');
+INSERT INTO managed_channel_user (managed_channel_id, bot_user_id, managed_channel_user_flags) VALUES (2, 1, '["AUTO_OP"]');

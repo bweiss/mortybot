@@ -5,6 +5,8 @@
     <id column="id" jdbcType="INTEGER" property="id" />
     <result column="name" jdbcType="VARCHAR" property="name" />
     <result column="managed_channel_flags" jdbcType="VARCHAR" property="managedChannelFlags" typeHandler="net.hatemachine.mortybot.custom.handler.ManagedChannelFlagListHandler" />
+    <result column="bans" jdbcType="VARCHAR" property="bans" typeHandler="net.hatemachine.mortybot.custom.handler.StringListHandler" />
+    <result column="modes" jdbcType="VARCHAR" property="modes" />
     <collection ofType="net.hatemachine.mortybot.model.ManagedChannelUser" property="managedChannelUsers">
       <id column="managed_channel_user_id" jdbcType="INTEGER" property="id" />
       <result column="managed_channel_user_managed_channel_id" jdbcType="INTEGER" property="managedChannelId" />

@@ -44,7 +44,7 @@ public class MerriamWebster {
     }
 
     public static List<DictionaryEntry> dictionary(String term) {
-        String url = DICTIONARY_URL + URLEncoder.encode(Validate.notNullOrEmpty(term), StandardCharsets.UTF_8);
+        String url = DICTIONARY_URL + URLEncoder.encode(Validate.notNullOrBlank(term), StandardCharsets.UTF_8);
         List<DictionaryEntry> entries = new ArrayList<>();
 
         log.info("Fetching definition for \"{}\"", term);

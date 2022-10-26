@@ -17,7 +17,6 @@
  */
 package net.hatemachine.mortybot.util;
 
-import net.hatemachine.mortybot.custom.entity.BotUserFlag;
 import net.hatemachine.mortybot.custom.entity.ManagedChannelUserFlag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

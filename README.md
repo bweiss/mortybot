@@ -89,7 +89,7 @@ A full list of managed channel flags is shown below.
 
 ### Features Requiring API Keys
 
-There are a number of features that require API keys to function. They can be set via properties file or environment variable.
+There are a number of features that require (free) API keys to function. They can be set via properties file or environment variable. Visit each service's official website for information on how to obtain a key.
 
 | Feature                                    | Property             | Environment Variable |
 |--------------------------------------------|----------------------|----------------------|
@@ -117,7 +117,7 @@ To get a list of commands and basic usage information, issue the HELP command in
 For example:
 
 > &lt;rick&gt; .help<br/>
-> &lt;morty&gt; Commands: BAN, BANKICK, BOTTLE, CHAT, CONFIG, DICT, GEOIP, GOO, HELP, HOST, IMDB, JOIN, KICK, KICKBAN, MSG, OP, PART, QUIT, REGISTER, RT, STOCK, URB, USER, WHO, WORDLE, WOTD, WTR, YEAR<br/>
+> &lt;morty&gt; Commands: BAN, BANKICK, BOTTLE, CHANNEL, CHAT, CONFIG, DICT, GEOIP, GOO, HELP, HOST, IMDB, JOIN, KICK, KICKBAN, MSG, OP, PART, QUIT, REGISTER, RT, STOCK, URB, USER, WHO, WORDLE, WOTD, WTR, YEAR<br/>
 > &lt;morty&gt; Type .HELP &lt;command&gt; to get more information about a command<br/>
 > &lt;rick&gt; .help register<br/>
 > &lt;morty&gt; Registers yourself with the bot using your current hostname<br/>

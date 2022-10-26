@@ -43,7 +43,7 @@ public class BottleBlueBook {
     }
 
     public static List<SearchResult> search(String query) {
-        Validate.notNullOrEmpty(query);
+        Validate.notNullOrBlank(query);
         String searchUrl = SEARCH_URL + URLEncoder.encode(query, StandardCharsets.UTF_8);
         List<SearchResult> results = new ArrayList<>();
         Document resultsPage = null;
@@ -84,7 +84,7 @@ public class BottleBlueBook {
     }
 
     public static Optional<Bottle> fetchBottle(String url) {
-        Validate.notNullOrEmpty(url);
+        Validate.notNullOrBlank(url);
         Optional<Bottle> bottle = Optional.empty();
         Document bottlePage = null;
 

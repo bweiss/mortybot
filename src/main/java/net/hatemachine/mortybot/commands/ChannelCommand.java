@@ -28,6 +28,7 @@ import net.hatemachine.mortybot.model.ManagedChannel;
 import net.hatemachine.mortybot.model.ManagedChannelUser;
 import net.hatemachine.mortybot.util.ManagedChannelHelper;
 import net.hatemachine.mortybot.util.Validate;
+import org.pircbotx.Channel;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,9 +39,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * <p>CHANNEL command that allows you to view and manipulate the bot's managed channels.</p>
- * <p>Usage: CHANNEL &lt;subcommand&gt; [arguments]</p>
- * <p>Supported subcommands: ADD, ADDFLAG, LIST, REMOVE, REMOVEFLAG, SHOW</p>
+ * CHANNEL command that allows you to view and manipulate the bot's managed channels. <br/>
+ * Usage: CHANNEL &lt;subcommand&gt; [arguments] <br/>
+ * Supported subcommands: ADD, ADDBAN, ADDFLAG, LIST, MODES, REMOVE, REMOVEBAN, REMOVEFLAG, SHOW, SHOWBANS <br/>
  */
 public class ChannelCommand implements BotCommand {
 
@@ -68,11 +69,15 @@ public class ChannelCommand implements BotCommand {
         try {
             switch (command) {
                 case "ADD" -> addCommand(newArgs);
+                case "ADDBAN" -> addBanCommand(newArgs);
                 case "ADDFLAG" -> addFlagCommand(newArgs);
                 case "LIST" -> listCommand();
+                case "MODES" -> modesCommand(newArgs);
                 case "REMOVE" -> removeCommand(newArgs);
+                case "REMOVEBAN" -> removeBanCommand(newArgs);
                 case "REMOVEFLAG" -> removeFlagCommand(newArgs);
                 case "SHOW" -> showCommand(newArgs);
+                case "SHOWBANS" -> showBansCommand(newArgs);
                 default -> log.info("Unknown CHANNEL subcommand {} from {}", command, event.getUser().getNick());
             }
         } catch (IllegalArgumentException | ManagedChannelException ex) {
@@ -84,8 +89,8 @@ public class ChannelCommand implements BotCommand {
     }
 
     /**
-     * <p>Adds a new channel to be managed.</p>
-     * <p>Usage: CHANNEL ADD &lt;channel_name&gt;</p>
+     * Adds a new channel to be managed. <br/>
+     * Usage: CHANNEL ADD &lt;channel_name&gt; <br/>
      *
      * @param args the remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -106,8 +111,41 @@ public class ChannelCommand implements BotCommand {
     }
 
     /**
-     * <p>Adds flags to a managed channel.</p>
-     * <p>Usage: CHANNEL ADDFLAG &lt;channel_name&gt; &lt;flags&gt;</p>
+     * Adds a new ban to a managed channel. <br/>
+     * Usage: CHANNEL ADDBAN &lt;channel_name&gt; &lt;hostmask&gt; <br/>
+     *
+     * @param args the remaining arguments to the subcommand
+     * @throws IllegalArgumentException if any arguments are missing or invalid
+     * @throws ManagedChannelException if a managed channel with the given name cannot be found
+     */
+    private void addBanCommand(final List<String> args) throws IllegalArgumentException, ManagedChannelException {
+        Validate.arguments(args, 2);
+
+        String channelName = args.get(0);
+        String targetHostmask = Validate.hostmask(args.get(1));
+        ManagedChannel managedChannel = managedChannelDao.getWithName(channelName)
+                .orElseThrow(() -> new ManagedChannelException(ManagedChannelException.Reason.UNKNOWN_CHANNEL, channelName));
+        List<String> bans = managedChannel.getBans() == null ? new ArrayList<>() : managedChannel.getBans();
+
+        if (bans.contains(targetHostmask)) {
+            event.respondWith("Ban already exists for this channel");
+        } else {
+            bans.add(targetHostmask);
+            managedChannel.setBans(bans);
+            managedChannelDao.update(managedChannel);
+
+            if (managedChannel.getManagedChannelFlags().contains(ManagedChannelFlag.ENFORCE_BANS)) {
+                Channel channel = event.getBot().getUserChannelDao().getChannel(channelName);
+                channel.send().ban(targetHostmask);
+            }
+
+            event.respondWith("Ban added");
+        }
+    }
+
+    /**
+     * Adds flags to a managed channel. <br/>
+     * Usage: CHANNEL ADDFLAG &lt;channel_name&gt; &lt;flags&gt; <br/>
      *
      * @param args the remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -139,8 +177,8 @@ public class ChannelCommand implements BotCommand {
     }
 
     /**
-     * <p>Lists all managed channels.</p>
-     * <p>Usage: CHANNEL LIST</p>
+     * Lists all managed channels. <br/>
+     * Usage: CHANNEL LIST <br/>
      */
     private void listCommand() {
         List<ManagedChannel> channels = managedChannelDao.getAll();
@@ -152,10 +190,40 @@ public class ChannelCommand implements BotCommand {
                     channels.stream().map(ManagedChannel::getName).collect(Collectors.joining(", ")));
         }
     }
+
+    /**
+     * Shows or sets the modes for a managed channel.
+     *
+     * @param args the remaining arguments to the subcommand
+     * @throws IllegalArgumentException if any arguments are missing or invalid
+     * @throws ManagedChannelException if managed channel entry cannot be created
+     */
+    private void modesCommand(final List<String> args) throws IllegalArgumentException, ManagedChannelException {
+        Validate.arguments(args, 1);
+
+        String channelName = args.get(0);
+        Optional<String> newModes = Optional.empty();
+        ManagedChannel managedChannel = managedChannelDao.getWithName(channelName)
+                .orElseThrow(() -> new ManagedChannelException(ManagedChannelException.Reason.UNKNOWN_CHANNEL, channelName));
+
+        if (args.size() > 1) {
+//            newModes = Optional.of(Validate.channelModes(args.get(1)));
+            newModes = Optional.of(args.get(1));
+        }
+
+        if (newModes.isPresent()) {
+            managedChannel.setModes(newModes.get());
+            managedChannel = managedChannelDao.update(managedChannel);
+        }
+
+        event.respondWith(String.format("Modes for %s: %s",
+                managedChannel.getName(),
+                managedChannel.getModes() == null ? "" : managedChannel.getModes()));
+    }
     
     /**
-     * <p>Removes a channel from management.</p>
-     * <p>Usage: CHANNEL REMOVE &lt;channel_name&gt;</p>
+     * Removes a channel from management. <br/>
+     * Usage: CHANNEL REMOVE &lt;channel_name&gt; <br/>
      *
      * @param args the remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -174,8 +242,41 @@ public class ChannelCommand implements BotCommand {
     }
 
     /**
-     * <p>Removes flags from a managed channel.</p>
-     * <p>Usage: CHANNEL REMOVEFLAG &lt;channel_name&gt; &lt;flags&gt;</p>
+     * Removes a ban from a managed channel. <br/>
+     * Usage: CHANNEL REMOVEBAN &lt;channel_name&gt; &lt;hostmask&gt; <br/>
+     *
+     * @param args the remaining arguments to the subcommand
+     * @throws IllegalArgumentException if any arguments are missing or invalid
+     * @throws ManagedChannelException if a managed channel with the given name cannot be found
+     */
+    private void removeBanCommand(final List<String> args) throws IllegalArgumentException, ManagedChannelException {
+        Validate.arguments(args, 2);
+
+        String channelName = args.get(0);
+        String targetHostmask = args.get(1);
+        ManagedChannel managedChannel = managedChannelDao.getWithName(channelName)
+                .orElseThrow(() -> new ManagedChannelException(ManagedChannelException.Reason.UNKNOWN_CHANNEL, channelName));
+        List<String> bans = managedChannel.getBans() == null ? new ArrayList<>() : managedChannel.getBans();
+
+        if (!bans.contains(targetHostmask)) {
+            event.respondWith("No such ban exists for this channel");
+        } else {
+            bans.remove(targetHostmask);
+            managedChannel.setBans(bans);
+            managedChannelDao.update(managedChannel);
+
+            if (managedChannel.getManagedChannelFlags().contains(ManagedChannelFlag.ENFORCE_BANS)) {
+                Channel channel = event.getBot().getUserChannelDao().getChannel(channelName);
+                channel.send().unBan(targetHostmask);
+            }
+
+            event.respondWith("Ban removed");
+        }
+    }
+
+    /**
+     * Removes flags from a managed channel. <br/>
+     * Usage: CHANNEL REMOVEFLAG &lt;channel_name&gt; &lt;flags&gt; <br/>
      *
      * @param args the remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -202,8 +303,8 @@ public class ChannelCommand implements BotCommand {
     }
 
     /**
-     * <p>Shows the details of a managed channel.</p>
-     * <p>Usage: CHANNEL SHOW &lt;channel_name&gt;</p>
+     * Shows the details of a managed channel. <br/>
+     * Usage: CHANNEL SHOW &lt;channel_name&gt; <br/>
      *
      * @param args the remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -220,14 +321,43 @@ public class ChannelCommand implements BotCommand {
         ManagedChannelUserDao mcuDao = new ManagedChannelUserDao();
         List<ManagedChannelUser> mcuList = mcuDao.getMultipleWithManagedChannelId(managedChannel.getId());
 
-        event.respondWith(String.format("%s -> flags[%s]", managedChannel.getName(), flagListStr));
+        event.respondWith(String.format("%s -> flags[%s] modes[%s]",
+                managedChannel.getName(),
+                flagListStr,
+                managedChannel.getModes() == null ? "" : managedChannel.getModes()));
 
         if (mcuList != null && !mcuList.isEmpty()) {
             List<BotUser> botUsers = mcuList.stream().map(ManagedChannelUser::getBotUser).toList();
 
-            event.respondWith(String.format("Bot users for %s: %s",
+            event.respondWith(String.format("Bot users registered on %s: %s",
                     managedChannel.getName(),
                     botUsers.stream().map(BotUser::getName).collect(Collectors.joining(", "))));
+            event.respondWith("USER SHOW <name> to see their channel specific flags");
+        }
+    }
+
+    /**
+     * Shows all the bans for a managed channel.
+     *
+     * @param args the remaining arguments to the subcommand
+     * @throws IllegalArgumentException if any arguments are missing or invalid
+     * @throws ManagedChannelException if no managed channel entry can be found for this channel
+     */
+    private void showBansCommand(final List<String> args) throws IllegalArgumentException, ManagedChannelException {
+        Validate.arguments(args, 1);
+
+        String channelName = args.get(0);
+        ManagedChannel managedChannel = managedChannelDao.getWithName(channelName)
+                .orElseThrow(() -> new ManagedChannelException(ManagedChannelException.Reason.UNKNOWN_CHANNEL, channelName));
+        List<String> banList = managedChannel.getBans();
+
+        if (banList == null) {
+            event.respondWith("There are no bans set for " + managedChannel.getName());
+        } else {
+            event.respondWith("Bans for " + managedChannel.getName() + ":");
+            for (String hostmask : banList) {
+                event.respondWith(hostmask);
+            }
         }
     }
 

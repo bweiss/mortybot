@@ -26,13 +26,11 @@ import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.custom.entity.BotUserFlag;
 import net.hatemachine.mortybot.custom.entity.ManagedChannelFlag;
 import net.hatemachine.mortybot.dao.ManagedChannelDao;
-import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.model.ManagedChannel;
 import net.hatemachine.mortybot.util.BotUserHelper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.pircbotx.Colors;
-import org.pircbotx.User;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
@@ -47,7 +45,8 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static net.hatemachine.mortybot.listeners.LinkListener.Source.*;
+import static net.hatemachine.mortybot.listeners.LinkListener.Source.PRIVATE;
+import static net.hatemachine.mortybot.listeners.LinkListener.Source.PUBLIC;
 
 public class LinkListener extends ListenerAdapter {
 

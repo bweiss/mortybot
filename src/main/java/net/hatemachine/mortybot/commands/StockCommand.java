@@ -120,7 +120,7 @@ public class StockCommand implements BotCommand {
     }
 
     private static Optional<String> fetchQuote(String symbol) {
-        Validate.notNullOrEmpty(symbol);
+        Validate.notNullOrBlank(symbol);
         Optional<String> quote = Optional.empty();
 
         log.info("Fetching stock quote for {}", symbol);
@@ -160,7 +160,7 @@ public class StockCommand implements BotCommand {
     }
 
     private static String parseQuote(String json) {
-        Validate.notNullOrEmpty(json);
+        Validate.notNullOrBlank(json);
         Configuration conf = Configuration.defaultConfiguration();
         JsonNode metaNode = JsonPath.using(conf)
                 .parse(json)

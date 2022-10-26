@@ -17,6 +17,9 @@
  */
 package net.hatemachine.mortybot.util;
 
+import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.NotImplementedException;
+
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 import java.util.List;
@@ -25,6 +28,7 @@ import java.util.regex.Pattern;
 public class Validate {
 
     private static final int MAX_BOT_USER_NAME_LENGTH = 16;
+
     private static final Pattern BOT_USER_NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_]+");
     private static final Pattern NICKNAME_PATTERN = Pattern.compile("[a-zA-Z0-9\\[\\]|_-]+");
     private static final Pattern USERNAME_PATTERN = Pattern.compile("[a-zA-Z0-9~]+");
@@ -32,7 +36,24 @@ public class Validate {
     private static final Pattern ADDRESS_PATTERN = Pattern.compile("[a-zA-Z0-9\\[\\]|_-]+![a-zA-Z0-9~]+@[a-zA-Z0-9.:-]+");
     private static final Pattern HOSTMASK_PATTERN = Pattern.compile("[\\\\*a-zA-Z0-9\\[\\]|_-]+![\\\\*a-zA-Z0-9~]+@[\\\\*a-zA-Z0-9.:-]+");
     private static final Pattern ZIP_CODE_PATTERN = Pattern.compile("^\\d{5}(?:[-\\s]\\d{4})?$");
+
+    // Default channel prefixes (to be used when we can't get from 005 numeric)
     private static final String CHANNEL_PREFIXES = "&#";
+
+    // Map of valid channel modes and whether they have additional parameters (e.g. +k channelkey)
+    public static final ImmutableMap<Character, Boolean> CHANNEL_MODE_HAS_PARAMS = ImmutableMap.<Character, Boolean> builder()
+            .put('o', true) // nickname
+            .put('p', false)
+            .put('s', false)
+            .put('i', false)
+            .put('t', false)
+            .put('n', false)
+            .put('m', false)
+            .put('l', true) // integer
+            .put('b', true) // hostmask
+            .put('v', true) // nickname
+            .put('k', true) // channel key
+            .build();
 
     private Validate() {
         throw new IllegalStateException("Utility class");
@@ -138,10 +159,12 @@ public class Validate {
      * @param prefixes a string representing characters that represent a valid channel prefix
      * @return true if the string is a valid channel name, otherwise false
      */
+    // TODO adhere to RFC1459 and check for ^G (ASCII 7) and comma in addition to the prefixes
     public static boolean isChannelName(String s, String prefixes) {
         if (prefixes == null || prefixes.trim().isBlank()) {
             prefixes = CHANNEL_PREFIXES;
         }
+
         return prefixes.chars().anyMatch(c -> c == s.charAt(0));
     }
 
@@ -173,34 +196,59 @@ public class Validate {
      */
     public static Object notNull(Object o) {
         if (o == null) {
-            throw new IllegalArgumentException("Object is null");
+            throw new IllegalArgumentException("Object cannot be null");
         }
         return o;
     }
 
     /**
-     * Checks that an object is not null or empty.
+     * Checks that an string is not null or blank.
      *
-     * @param s the object to check
-     * @return the object if it is not null or empty
-     * @throws IllegalArgumentException if the object is null or empty
+     * @param s the string to check
+     * @return the string if it is not null or blank
+     * @throws IllegalArgumentException if the string is null or blank
      */
-    public static String notNullOrEmpty(String s) {
-        return notNullOrEmpty(s, "String is null or empty");
+    public static String notNullOrBlank(String s) {
+        return notNullOrBlank(s, "String cannot be null or blank");
     }
 
     /**
-     * Checks that an object is not null or empty.
+     * Checks if a string is null or blank.
      *
-     * @param s the object to check
-     * @return the object if it is not null or empty
-     * @throws IllegalArgumentException if the object is null or empty
+     * @param s the string to check
+     * @param message the message to include in the thrown exception
+     * @return the string if it is not null or blank
+     * @throws IllegalArgumentException if the string is null or blank
      */
-    public static String notNullOrEmpty(String s, String message) {
-        if (s == null || s.trim().isEmpty()) {
+    public static String notNullOrBlank(String s, String message) {
+        if (s == null || s.isBlank()) {
             throw new IllegalArgumentException(message);
         }
         return s;
+    }
+
+    /**
+     * Checks if a list of strings is null or empty.
+     *
+     * @param list the list to check
+     * @return the list if it is not null or empty
+     */
+    public static List<String> notNullOrEmpty(List<String> list) {
+        return notNullOrEmpty(list, "List cannot be null or empty");
+    }
+
+    /**
+     * Checks if a list of strings is null or empty.
+     *
+     * @param list the list to check
+     * @param message the message to include in the thrown exception
+     * @return the list if it is not null or empty
+     */
+    public static List<String> notNullOrEmpty(List<String> list, String message) {
+        if (list == null || list.isEmpty()) {
+            throw new IllegalArgumentException(message);
+        }
+        return list;
     }
 
     /**
@@ -324,5 +372,10 @@ public class Validate {
             throw new IllegalArgumentException("Invalid channel name");
         }
         return s;
+    }
+
+    // TODO implement me!
+    public static String channelModes(String s) {
+        throw new NotImplementedException("channelModes()");
     }
 }

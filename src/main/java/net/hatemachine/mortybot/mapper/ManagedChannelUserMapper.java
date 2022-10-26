@@ -66,6 +66,8 @@ public interface ManagedChannelUserMapper {
 		(managedChannel.id).as("managed_channel_id"), 
 		(managedChannel.name).as("managed_channel_name"), 
 		(managedChannel.managedChannelFlags).as("managed_channel_managed_channel_flags"), 
+		(managedChannel.bans).as("managed_channel_bans"), 
+		(managedChannel.modes).as("managed_channel_modes"), 
 		(botUser.id).as("bot_user_id"), 
 		(botUser.name).as("bot_user_name"), 
 		(botUser.botUserHostmasks).as("bot_user_bot_user_hostmasks"), 

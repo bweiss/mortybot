@@ -43,7 +43,7 @@ public enum Command {
     CHANNEL(ChannelCommand.class, new String[] {
             "Manages the bot's channels",
             "Usage: CHANNEL <subcommand> [args]",
-            "Subcommands: ADD, REMOVE, LIST, SHOW"
+            "Subcommands: ADD, ADDBAN, ADDFLAG, LIST, MODES, REMOVE, REMOVEBAN, REMOVEFLAG, SHOW, SHOWBANS"
     }),
 
     CHAT(ChatCommand.class, new String[] {

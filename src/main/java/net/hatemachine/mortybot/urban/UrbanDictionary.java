@@ -48,7 +48,7 @@ public class UrbanDictionary {
     }
 
     private static List<Definition> doLookup(String url) {
-        Validate.notNullOrEmpty(url);
+        Validate.notNullOrBlank(url);
         List<Definition> results = new ArrayList<>();
         Optional<Document> page = fetchPage(url);
         if (page.isPresent()) {

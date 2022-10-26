@@ -6,5 +6,7 @@ create table managed_channel
     name  text    not null
         constraint managed_channel_pk
             unique,
-    managed_channel_flags text default null
+    managed_channel_flags text default null,
+    bans                  text default null,
+    modes                 text default null
 );

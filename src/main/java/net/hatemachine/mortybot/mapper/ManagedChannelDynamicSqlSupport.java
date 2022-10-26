@@ -32,12 +32,20 @@ public final class ManagedChannelDynamicSqlSupport {
 
     public static final SqlColumn<List<ManagedChannelFlag>> managedChannelFlags = managedChannel.managedChannelFlags;
 
+    public static final SqlColumn<List<String>> bans = managedChannel.bans;
+
+    public static final SqlColumn<String> modes = managedChannel.modes;
+
     public static final class ManagedChannel extends SqlTable {
         public final SqlColumn<Integer> id = column("id", JDBCType.INTEGER);
 
         public final SqlColumn<String> name = column("\"name\"", JDBCType.VARCHAR);
 
         public final SqlColumn<List<ManagedChannelFlag>> managedChannelFlags = column("managed_channel_flags", JDBCType.VARCHAR, "net.hatemachine.mortybot.custom.handler.ManagedChannelFlagListHandler");
+
+        public final SqlColumn<List<String>> bans = column("bans", JDBCType.VARCHAR, "net.hatemachine.mortybot.custom.handler.StringListHandler");
+
+        public final SqlColumn<String> modes = column("modes", JDBCType.VARCHAR);
 
         public ManagedChannel() {
             super("managed_channel");

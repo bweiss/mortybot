@@ -36,6 +36,10 @@ public class ManagedChannel implements Serializable {
 
     private List<ManagedChannelFlag> managedChannelFlags;
 
+    private List<String> bans;
+
+    private String modes;
+
     private List<ManagedChannelUser> managedChannelUsers;
 
     private static final long serialVersionUID = 1L;

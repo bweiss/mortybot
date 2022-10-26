@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import net.hatemachine.mortybot.custom.handler.ManagedChannelFlagListHandler;
+import net.hatemachine.mortybot.custom.handler.StringListHandler;
 import net.hatemachine.mortybot.model.ManagedChannel;
 import org.apache.ibatis.annotations.DeleteProvider;
 import org.apache.ibatis.annotations.Insert;
@@ -59,9 +60,9 @@ import org.mybatis.dynamic.sql.util.mybatis3.MyBatis3Utils;
 
 @Mapper
 public interface ManagedChannelMapper {
-    BasicColumn[] selectList = BasicColumn.columnList(id, name, managedChannelFlags);
+    BasicColumn[] selectList = BasicColumn.columnList(id, name, managedChannelFlags, bans, modes);
 
-    BasicColumn[] leftJoinSelectList = BasicColumn.columnList(id, name, managedChannelFlags,
+    BasicColumn[] leftJoinSelectList = BasicColumn.columnList(id, name, managedChannelFlags, bans, modes,
 		(managedChannelUser.id).as("managed_channel_user_id"), 
 		(managedChannelUser.managedChannelId).as("managed_channel_user_managed_channel_id"), 
 		(managedChannelUser.botUserId).as("managed_channel_user_bot_user_id"), 
@@ -95,7 +96,9 @@ public interface ManagedChannelMapper {
     @Results(id="ManagedChannelResult", value = {
         @Result(column="id", property="id", jdbcType=JdbcType.INTEGER, id=true),
         @Result(column="name", property="name", jdbcType=JdbcType.VARCHAR),
-        @Result(column="managed_channel_flags", property="managedChannelFlags", typeHandler=ManagedChannelFlagListHandler.class, jdbcType=JdbcType.VARCHAR)
+        @Result(column="managed_channel_flags", property="managedChannelFlags", typeHandler=ManagedChannelFlagListHandler.class, jdbcType=JdbcType.VARCHAR),
+        @Result(column="bans", property="bans", typeHandler=StringListHandler.class, jdbcType=JdbcType.VARCHAR),
+        @Result(column="modes", property="modes", jdbcType=JdbcType.VARCHAR)
     })
     List<ManagedChannel> selectMany(SelectStatementProvider selectStatement);
 
@@ -120,6 +123,8 @@ public interface ManagedChannelMapper {
         return MyBatis3Utils.insert(this::insert, record, managedChannel, c ->
             c.map(name).toProperty("name")
             .map(managedChannelFlags).toProperty("managedChannelFlags")
+            .map(bans).toProperty("bans")
+            .map(modes).toProperty("modes")
         );
     }
 
@@ -127,6 +132,8 @@ public interface ManagedChannelMapper {
         return MyBatis3Utils.insertMultiple(this::insertMultiple, records, managedChannel, c ->
             c.map(name).toProperty("name")
             .map(managedChannelFlags).toProperty("managedChannelFlags")
+            .map(bans).toProperty("bans")
+            .map(modes).toProperty("modes")
         );
     }
 
@@ -134,6 +141,8 @@ public interface ManagedChannelMapper {
         return MyBatis3Utils.insert(this::insert, record, managedChannel, c ->
             c.map(name).toPropertyWhenPresent("name", record::getName)
             .map(managedChannelFlags).toPropertyWhenPresent("managedChannelFlags", record::getManagedChannelFlags)
+            .map(bans).toPropertyWhenPresent("bans", record::getBans)
+            .map(modes).toPropertyWhenPresent("modes", record::getModes)
         );
     }
 
@@ -161,18 +170,24 @@ public interface ManagedChannelMapper {
 
     static UpdateDSL<UpdateModel> updateAllColumns(ManagedChannel record, UpdateDSL<UpdateModel> dsl) {
         return dsl.set(name).equalTo(record::getName)
-                .set(managedChannelFlags).equalTo(record::getManagedChannelFlags);
+                .set(managedChannelFlags).equalTo(record::getManagedChannelFlags)
+                .set(bans).equalTo(record::getBans)
+                .set(modes).equalTo(record::getModes);
     }
 
     static UpdateDSL<UpdateModel> updateSelectiveColumns(ManagedChannel record, UpdateDSL<UpdateModel> dsl) {
         return dsl.set(name).equalToWhenPresent(record::getName)
-                .set(managedChannelFlags).equalToWhenPresent(record::getManagedChannelFlags);
+                .set(managedChannelFlags).equalToWhenPresent(record::getManagedChannelFlags)
+                .set(bans).equalToWhenPresent(record::getBans)
+                .set(modes).equalToWhenPresent(record::getModes);
     }
 
     default int updateByPrimaryKey(ManagedChannel record) {
         return update(c ->
             c.set(name).equalTo(record::getName)
             .set(managedChannelFlags).equalTo(record::getManagedChannelFlags)
+            .set(bans).equalTo(record::getBans)
+            .set(modes).equalTo(record::getModes)
             .where(id, isEqualTo(record::getId))
         );
     }
@@ -181,6 +196,8 @@ public interface ManagedChannelMapper {
         return update(c ->
             c.set(name).equalToWhenPresent(record::getName)
             .set(managedChannelFlags).equalToWhenPresent(record::getManagedChannelFlags)
+            .set(bans).equalToWhenPresent(record::getBans)
+            .set(modes).equalToWhenPresent(record::getModes)
             .where(id, isEqualTo(record::getId))
         );
     }
