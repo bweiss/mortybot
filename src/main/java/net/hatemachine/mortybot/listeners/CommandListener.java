@@ -111,7 +111,7 @@ public class CommandListener extends ExtendedListenerAdapter {
                     commandStr,
                     user.getNick(),
                     source == PUBLIC ? ((MessageEvent) event).getChannel().getName() : source.toString(),
-                    String.join(" ", args)
+                    event.getMessage()
             ), true);
 
             BotCommandProxy.newInstance(botCommand).execute();
