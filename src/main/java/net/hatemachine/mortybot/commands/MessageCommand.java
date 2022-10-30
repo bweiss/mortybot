@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.MortyBot;
@@ -24,7 +25,11 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;
 
-public class MessageCommand implements BotCommand {
+@BotCommand(name="MSG", clazz= MessageCommand.class, help={
+        "Tells the bot to send a PRIVMSG to a user or channel",
+        "Usage: MSG <user> <text>"
+})
+public class MessageCommand implements Command {
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;

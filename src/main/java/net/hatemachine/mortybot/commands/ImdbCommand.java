@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
@@ -35,7 +36,11 @@ import java.util.List;
  * If the -l flag is present as the first argument, it will respond with a list of results.
  * Otherwise, it will respond with the details for the top result.
  */
-public class ImdbCommand implements BotCommand {
+@BotCommand(name="IMDB", clazz= ImdbCommand.class, help={
+        "Searches IMDB for movie titles or persons",
+        "Usage: IMDB [-l] <query>"
+})
+public class ImdbCommand implements Command {
 
     private static final String RESPONSE_PREFIX = "[imdb] ";
 

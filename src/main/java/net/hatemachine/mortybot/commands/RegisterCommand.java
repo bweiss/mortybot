@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
@@ -42,7 +43,11 @@ import static java.util.stream.Collectors.joining;
  * If there are no existing bot users this will grant admin rights.
  * If no hostmask is specified it will generate one for you via the <code>IrcUtils.maskAddress()</code> method.
  */
-public class RegisterCommand implements BotCommand {
+@BotCommand(name="REGISTER", clazz= RegisterCommand.class, help={
+        "Registers yourself with the bot using your current hostname",
+        "Usage: REGISTER [name]"
+})
+public class RegisterCommand implements Command {
 
     private static final Logger log = LoggerFactory.getLogger(RegisterCommand.class);
 

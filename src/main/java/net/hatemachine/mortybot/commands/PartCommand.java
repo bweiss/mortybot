@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.MortyBot;
@@ -29,7 +30,11 @@ import java.util.List;
 
 import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.PUBLIC;
 
-public class PartCommand implements BotCommand {
+@BotCommand(name="PART", clazz= PartCommand.class, help={
+        "Makes the bot part a channel",
+        "Usage: PART [channel]"
+})
+public class PartCommand implements Command {
 
     private static final Logger log = LoggerFactory.getLogger(PartCommand.class);
 

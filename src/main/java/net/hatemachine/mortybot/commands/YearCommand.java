@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.util.ProgressBar;
@@ -30,7 +31,11 @@ import java.util.List;
  *
  * Inspired by vect0rx and https://twitter.com/year_progress.
  */
-public class YearCommand implements BotCommand {
+@BotCommand(name="YEAR", clazz=YearCommand.class, help={
+        "Shows progress through the current year",
+        "Usage: YEAR"
+})
+public class YearCommand implements Command {
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;

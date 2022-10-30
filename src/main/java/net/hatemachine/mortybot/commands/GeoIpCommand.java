@@ -27,6 +27,7 @@ import com.maxmind.geoip2.model.CityResponse;
 import com.maxmind.geoip2.record.City;
 import com.maxmind.geoip2.record.Country;
 import com.maxmind.geoip2.record.Subdivision;
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
@@ -44,7 +45,11 @@ import java.util.List;
  *
  * <a href="https://dev.maxmind.com/geoip/geolite2-free-geolocation-data">https://dev.maxmind.com/geoip/geolite2-free-geolocation-data</a>
  */
-public class GeoIpCommand implements BotCommand {
+@BotCommand(name="GEOIP", clazz= GeoIpCommand.class, help={
+        "Shows the geographic location of an IP address or hostname",
+        "Usage: GEOIP <IP|hostname>"
+})
+public class GeoIpCommand implements Command {
 
     private static final String WEB_SERVICE_HOST = "geolite.info";
 

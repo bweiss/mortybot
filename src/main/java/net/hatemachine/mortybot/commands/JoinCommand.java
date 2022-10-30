@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.MortyBot;
@@ -24,7 +25,11 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;
 
-public class JoinCommand implements BotCommand {
+@BotCommand(name="JOIN", clazz= JoinCommand.class, help={
+        "Makes the bot join a channel",
+        "Usage: JOIN <channel> [key]"
+})
+public class JoinCommand implements Command {
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;

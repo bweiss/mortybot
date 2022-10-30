@@ -20,10 +20,9 @@ package net.hatemachine.mortybot.commands;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.dao.BotUserDao;
-import net.hatemachine.mortybot.MortyBot;
-import net.hatemachine.mortybot.exception.BotUserException;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.util.BotUserHelper;
@@ -40,10 +39,19 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 
-public class WeatherCommand implements BotCommand {
+@BotCommand(name="WEATHER", clazz=WeatherCommand.class, help={
+        "Shows the weather for a location",
+        "Usage: WEATHER [-d] [location]",
+        "If the -d option is present the bot will attempt to save your default location (requires being registered with the bot)"
+})
+@BotCommand(name="WTR", clazz=WeatherCommand.class, help={
+        "Shows the weather for a location",
+        "Usage: WTR [-d] [location]",
+        "If the -d option is present the bot will attempt to save your default location (requires being registered with the bot)"
+})
+public class WeatherCommand implements Command {
 
     private static final String BASE_URL = "https://wttr.in/";
     private static final String PARAMETERS = "?format=j1";

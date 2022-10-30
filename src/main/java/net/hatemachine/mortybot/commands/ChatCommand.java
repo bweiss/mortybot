@@ -17,9 +17,9 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.custom.entity.BotUserFlag;
-import net.hatemachine.mortybot.dao.BotUserDao;
 import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
@@ -38,7 +38,11 @@ import java.util.List;
  * CHAT command
  * Instructs the bot to initiate a DCC CHAT session with the calling user.
  */
-public class ChatCommand implements BotCommand {
+@BotCommand(name="CHAT", clazz= ChatCommand.class, help={
+        "Tells the bot to initiate a DCC chat request with you or [nick] if specified",
+        "Usage: CHAT [nick]"
+})
+public class ChatCommand implements Command {
 
     private static final Logger log = LoggerFactory.getLogger(ChatCommand.class);
 

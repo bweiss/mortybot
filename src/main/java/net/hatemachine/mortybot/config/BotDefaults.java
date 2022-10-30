@@ -80,13 +80,13 @@ public class BotDefaults {
     public static final String  REGISTER_NORMAL_FLAGS = "DCC";
     public static final String  REGISTER_OWNER_FLAGS = "ADMIN,DCC";
 
-    // RtCommand
+    // RottenTomatoesCommand
     public static final int     RT_MAX_RESULTS = 4;
 
     // StockCommand
     public static final int     STOCK_MAX_SYMBOLS = 4;
 
-    // UrbCommand
+    // UrbanDictionaryCommand
     public static final int     URB_MAX_RESPONSE_LENGTH = 430;
 
     // UserCommand

@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
@@ -37,7 +38,11 @@ import java.util.List;
  * If the -l flag is present as the first argument, it will respond with a list of results.
  * Otherwise, it will respond with the details for the top result.
  */
-public class RtCommand implements BotCommand {
+@BotCommand(name="RT", clazz= RottenTomatoesCommand.class, help={
+        "Searches Rotten Tomatoes for movie ratings",
+        "Usage: RT [-l] <query>"
+})
+public class RottenTomatoesCommand implements Command {
 
     private static final String RESPONSE_PREFIX = "[rt]";
     private static final String TOMATO = Colors.RED + "\uD83C\uDF45" + Colors.NORMAL;
@@ -50,7 +55,7 @@ public class RtCommand implements BotCommand {
     private final CommandListener.CommandSource source;
     private final List<String> args;
 
-    public RtCommand(GenericMessageEvent event, CommandListener.CommandSource source, List<String> args) {
+    public RottenTomatoesCommand(GenericMessageEvent event, CommandListener.CommandSource source, List<String> args) {
         this.event = event;
         this.source = source;
         this.args = args;

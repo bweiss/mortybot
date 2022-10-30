@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.wordle.Game;
@@ -26,7 +27,12 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import java.util.List;
 import java.util.Optional;
 
-public class WordleCommand implements BotCommand {
+@BotCommand(name="WORDLE", clazz=WordleCommand.class, help={
+        "Play a game of Wordle!",
+        "Usage: WORDLE",
+        "After starting the game, simply type your 5-letter word guesses into the channel where you began the game"
+})
+public class WordleCommand implements Command {
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;

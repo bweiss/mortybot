@@ -20,6 +20,7 @@ package net.hatemachine.mortybot.commands;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
@@ -47,7 +48,11 @@ import java.util.stream.Collectors;
  *
  * This requires a Shodan API key that must be set in either bot.properties for the SHODAN_API_KEY environment variable.
  */
-public class HostCommand implements BotCommand {
+@BotCommand(name="HOST", clazz=HostCommand.class, help={
+        "Looks up basic information on a particular hostname or IP address",
+        "Usage: HOST <address>"
+})
+public class HostCommand implements Command {
 
     private static final String API_ENDPOINT = "https://api.shodan.io/shodan/host/";
 

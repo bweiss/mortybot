@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.dcc.ChatSession;
 import net.hatemachine.mortybot.dcc.DccManager;
@@ -32,7 +33,11 @@ import java.util.stream.Collectors;
 
 import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.DCC;
 
-public class WhoCommand implements BotCommand {
+@BotCommand(name="WHO", clazz= WhoCommand.class, help={
+        "Displays all users connected to the party line (DCC chat only)",
+        "Usage: WHO"
+})
+public class WhoCommand implements Command {
 
     private static final Logger log = LoggerFactory.getLogger(WhoCommand.class);
 

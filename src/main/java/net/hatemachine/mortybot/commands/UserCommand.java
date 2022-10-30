@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
@@ -50,7 +51,13 @@ import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.D
  * <p>Usage: USER &lt;subcommand&gt; [arguments]</p>
  * <p>Supported subcommands: ADD, ADDHOSTMASK, ADDFLAG, LIST, LOCATION, REMOVE, REMOVEHOSTMASK, REMOVEFLAG, SHOW</p>
  */
-public class UserCommand implements BotCommand {
+@BotCommand(name="USER", clazz= UserCommand.class, help={
+        "Manages bot users",
+        "Usage: USER <subcommand> [target] [args]",
+        "Subcommands: LIST, SHOW, ADD, REMOVE, ADDHOSTMASK, REMOVEHOSTMASK, ADDFLAG, REMOVEFLAG, SETLOCATION",
+        "Available user flags: ADMIN, AOP, DCC, IGNORE"
+})
+public class UserCommand implements Command {
 
     private static final int LIST_COMMAND_MAX_USERS_PER_LINE = 20;
 

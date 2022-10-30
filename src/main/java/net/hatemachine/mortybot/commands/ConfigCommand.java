@@ -17,8 +17,8 @@
  */
 package net.hatemachine.mortybot.commands;
 
-import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.Command;
+import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.hooks.types.GenericMessageEvent;
@@ -31,7 +31,11 @@ import java.util.regex.Pattern;
 /**
  * CONFIG command that allows you to view and set bot properties.
  */
-public class ConfigCommand implements BotCommand {
+@BotCommand(name="CONFIG", clazz= ConfigCommand.class, help={
+        "Allows you to view and change bot properties",
+        "Usage: CONFIG <property> [value]"
+})
+public class ConfigCommand implements Command {
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;
@@ -46,7 +50,8 @@ public class ConfigCommand implements BotCommand {
     @Override
     public void execute() {
         if (args.isEmpty()) {
-            for (String line : Command.CONFIG.getHelp()) {
+            BotCommand cmd = this.getClass().getAnnotation(BotCommand.class);
+            for (String line : cmd.help()) {
                 event.respondWith(line);
             }
 

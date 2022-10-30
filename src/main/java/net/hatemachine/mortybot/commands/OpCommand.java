@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.listeners.CommandListener;
@@ -34,7 +35,11 @@ import java.util.Set;
 
 import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.*;
 
-public class OpCommand implements BotCommand {
+@BotCommand(name="OP", clazz= OpCommand.class, help={
+        "Makes the bot op a user",
+        "Usage: OP [user]"
+})
+public class OpCommand implements Command {
 
     private static final Logger log = LoggerFactory.getLogger(OpCommand.class);
 

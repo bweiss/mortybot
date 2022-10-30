@@ -17,13 +17,11 @@
  */
 package net.hatemachine.mortybot.listeners;
 
-import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.BotCommandProxy;
-import net.hatemachine.mortybot.Command;
-import net.hatemachine.mortybot.ExtendedListenerAdapter;
+import net.hatemachine.mortybot.*;
 import net.hatemachine.mortybot.dcc.DccManager;
 import net.hatemachine.mortybot.events.DccChatMessageEvent;
 import net.hatemachine.mortybot.exception.BotCommandException;
+import net.hatemachine.mortybot.util.BotCommandHelper;
 import org.pircbotx.User;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
@@ -31,9 +29,7 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.*;
 
@@ -100,21 +96,27 @@ public class CommandListener extends ExtendedListenerAdapter {
         DccManager dccManager = DccManager.getManager();
 
         try {
-            Command command = Enum.valueOf(Command.class, commandStr);
-            BotCommand botCommand = (BotCommand) command.getBotCommandClass()
-                    .getDeclaredConstructor(GenericMessageEvent.class, CommandListener.CommandSource.class, List.class)
-                    .newInstance(event, source, args);
+            Map<String, BotCommand> commandMap = BotCommandHelper.getCommandMap();
 
-            log.info("{} command triggered by {}, source: {}, args: {}", commandStr, user.getNick(), source, args);
+            if (commandMap.containsKey(commandStr)) {
+                Command command = (Command) commandMap.get(commandStr).clazz()
+                        .getDeclaredConstructor(GenericMessageEvent.class, CommandListener.CommandSource.class, List.class)
+                        .newInstance(event, source, args);
 
-            dccManager.dispatchMessage(String.format("*** %s command triggered by %s (%s): %s",
-                    commandStr,
-                    user.getNick(),
-                    source == PUBLIC ? ((MessageEvent) event).getChannel().getName() : source.toString(),
-                    event.getMessage()
-            ), true);
+                log.info("{} command triggered by {}, source: {}, args: {}", commandStr, user.getNick(), source, args);
 
-            BotCommandProxy.newInstance(botCommand).execute();
+                dccManager.dispatchMessage(String.format("*** %s command triggered by %s (%s): %s",
+                        commandStr,
+                        user.getNick(),
+                        source == PUBLIC ? ((MessageEvent) event).getChannel().getName() : source.toString(),
+                        event.getMessage()
+                ), true);
+
+                CommandProxy.newInstance(command).execute();
+
+            } else {
+                log.info("Invalid command {} from {}", commandStr, user.getNick());
+            }
 
         } catch (IllegalArgumentException e) {
             log.warn("Invalid command {} from {}", commandStr, user.getNick());

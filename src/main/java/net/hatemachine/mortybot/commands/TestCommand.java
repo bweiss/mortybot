@@ -17,13 +17,18 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;
 
-public class TestCommand implements BotCommand {
+@BotCommand(name="TEST", clazz=TestCommand.class , help={
+        "Used for testing",
+        "Usage: TEST <args>"
+})
+public class TestCommand implements Command {
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;

@@ -43,19 +43,19 @@ import static net.hatemachine.mortybot.exception.BotCommandException.Reason.*;
  *
  * @see net.hatemachine.mortybot.listeners.CommandListener
  */
-public class BotCommandProxy implements InvocationHandler {
+public class CommandProxy implements InvocationHandler {
 
-    private final BotCommand command;
+    private final Command command;
 
-    private BotCommandProxy(BotCommand command) {
+    private CommandProxy(Command command) {
         this.command = command;
     }
 
-    public static BotCommand newInstance(BotCommand cmd) {
-        return (BotCommand) java.lang.reflect.Proxy.newProxyInstance(
+    public static Command newInstance(Command cmd) {
+        return (Command) java.lang.reflect.Proxy.newProxyInstance(
                 cmd.getClass().getClassLoader(),
                 cmd.getClass().getInterfaces(),
-                new BotCommandProxy(cmd)
+                new CommandProxy(cmd)
         );
     }
 

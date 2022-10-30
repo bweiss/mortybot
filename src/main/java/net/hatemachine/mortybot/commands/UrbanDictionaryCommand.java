@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
@@ -28,7 +29,15 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;
 
-public class UrbCommand implements BotCommand {
+@BotCommand(name="URB", clazz= UrbanDictionaryCommand.class, help={
+        "Looks up definitions on urbandictionary.com",
+        "Usage: URB [term] [defnum]"
+})
+@BotCommand(name="URBAN", clazz= UrbanDictionaryCommand.class, help={
+        "Looks up definitions on urbandictionary.com",
+        "Usage: URBAN [term] [defnum]"
+})
+public class UrbanDictionaryCommand implements Command {
 
     private static final String RESPONSE_PREFIX = "[" + Colors.BOLD + "urb" + Colors.BOLD + "] ";
 
@@ -36,7 +45,7 @@ public class UrbCommand implements BotCommand {
     private final CommandListener.CommandSource source;
     private final List<String> args;
 
-    public UrbCommand(GenericMessageEvent event, CommandListener.CommandSource source, List<String> args) {
+    public UrbanDictionaryCommand(GenericMessageEvent event, CommandListener.CommandSource source, List<String> args) {
         this.event = event;
         this.source = source;
         this.args = args;

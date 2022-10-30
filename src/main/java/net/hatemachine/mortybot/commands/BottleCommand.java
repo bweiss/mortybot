@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.bbb.Bottle;
 import net.hatemachine.mortybot.bbb.BottleBlueBook;
@@ -29,7 +30,11 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import java.util.List;
 import java.util.Optional;
 
-public class BottleCommand implements BotCommand {
+@BotCommand(name="BOTTLE", clazz=BottleCommand.class, help={
+        "Searches Bottle Blue Book for bottles",
+        "Usage: BOTTLE <query>"
+})
+public class BottleCommand implements Command {
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;

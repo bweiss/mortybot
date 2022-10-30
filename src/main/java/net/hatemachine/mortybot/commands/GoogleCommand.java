@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.jsoup.Jsoup;
@@ -35,7 +36,19 @@ import java.util.List;
 /**
  * Performs a Google search and displays the title and link for the top result.
  */
-public class GoogleCommand implements BotCommand {
+@BotCommand(name="G", clazz= GoogleCommand.class, help={
+        "Performs a Google search and displays the top result",
+        "Usage: G <query>"
+})
+@BotCommand(name="GOO", clazz= GoogleCommand.class, help={
+        "Performs a Google search and displays the top result",
+        "Usage: GOO <query>"
+})
+@BotCommand(name="GOOGLE", clazz= GoogleCommand.class, help={
+        "Performs a Google search and displays the top result",
+        "Usage: GOOGLE <query>"
+})
+public class GoogleCommand implements Command {
 
     private static final String RESPONSE_PREFIX = "[" + Colors.BOLD + "google" + Colors.BOLD + "] ";
     private static final String SEARCH_URL = "https://www.google.com/search?q=";

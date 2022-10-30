@@ -25,6 +25,7 @@ import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.json.JsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import com.jayway.jsonpath.spi.mapper.MappingProvider;
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
@@ -51,7 +52,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-public class StockCommand implements BotCommand {
+@BotCommand(name="STOCK", clazz= StockCommand.class , help={
+        "Looks up the current price of stock symbols",
+        "Usage: STOCK <symbol1> [symbol2] ..."
+})
+public class StockCommand implements Command {
 
     private static final String BASE_URL = "https://query1.finance.yahoo.com/v7/finance/chart/";
 

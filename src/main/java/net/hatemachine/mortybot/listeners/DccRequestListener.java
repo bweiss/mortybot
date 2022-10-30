@@ -17,13 +17,12 @@
  */
 package net.hatemachine.mortybot.listeners;
 
-import net.hatemachine.mortybot.custom.entity.BotUserFlag;
-import net.hatemachine.mortybot.dao.BotUserDao;
-import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
+import net.hatemachine.mortybot.custom.entity.BotUserFlag;
 import net.hatemachine.mortybot.dcc.DccManager;
+import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.util.BotUserHelper;
 import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.User;

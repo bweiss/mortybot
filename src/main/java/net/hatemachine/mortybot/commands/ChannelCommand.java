@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.custom.entity.ManagedChannelFlag;
 import net.hatemachine.mortybot.dao.ManagedChannelDao;
@@ -43,7 +44,12 @@ import java.util.stream.Collectors;
  * Usage: CHANNEL &lt;subcommand&gt; [arguments] <br/>
  * Supported subcommands: ADD, ADDBAN, ADDFLAG, LIST, MODES, REMOVE, REMOVEBAN, REMOVEFLAG, SHOW, SHOWBANS <br/>
  */
-public class ChannelCommand implements BotCommand {
+@BotCommand(name="CHANNEL", clazz=ChannelCommand.class, help={
+        "Manages the bot's channels",
+        "Usage: CHANNEL <subcommand> [args]",
+        "Subcommands: ADD, ADDBAN, ADDFLAG, LIST, MODES, REMOVE, REMOVEBAN, REMOVEFLAG, SHOW, SHOWBANS"
+})
+public class ChannelCommand implements Command {
 
     private static final Logger log = LoggerFactory.getLogger(ChannelCommand.class);
 

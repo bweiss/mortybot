@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
@@ -40,7 +41,31 @@ import static org.pircbotx.exception.DaoException.Reason.*;
 /**
  * Implements the BAN, BANKICK, KICK, and KICKBAN bot commands.
  */
-public class BanKickCommand implements BotCommand {
+@BotCommand(name="BAN", clazz=BanKickCommand.class, help={
+        "Bans a user from a channel",
+        "Usage: BAN <nick|hostmask>",
+        "Usage: BAN <nick|hostmask> <channel>",
+        "You must specify the channel if command is not from a public source"
+})
+@BotCommand(name="BANKICK", clazz=BanKickCommand.class, help={
+        "Bans and kicks a user from a channel",
+        "Usage: BANKICK <nick> [reason]",
+        "Usage: BANKICK <nick> <channel> [reason]",
+        "You must specify the channel if command is not from a public source"
+})
+@BotCommand(name="KICK", clazz=BanKickCommand.class, help={
+        "Kicks a user from a channel",
+        "Usage: KICK <user> [reason]",
+        "Usage: KICK <user> <channel> [reason]",
+        "You must specify the channel if command is not from a public source"
+})
+@BotCommand(name="KICKBAN", clazz=BanKickCommand.class, help={
+        "Kicks and bans a user from a channel",
+        "Usage: KICKBAN <user> [reason]",
+        "Usage: KICKBAN <user> <channel> [reason]",
+        "You must specify the channel if command is not from a public source"
+})
+public class BanKickCommand implements Command {
 
     private static final Logger log = LoggerFactory.getLogger(BanKickCommand.class);
 

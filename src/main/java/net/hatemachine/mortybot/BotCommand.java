@@ -17,26 +17,13 @@
  */
 package net.hatemachine.mortybot;
 
-import net.hatemachine.mortybot.config.BotProperties;
-import net.hatemachine.mortybot.listeners.CommandListener;
-import org.pircbotx.hooks.types.GenericMessageEvent;
+import java.lang.annotation.*;
 
-import java.util.Arrays;
-import java.util.List;
-
-public interface BotCommand {
-    void execute();
-    GenericMessageEvent getEvent();
-    CommandListener.CommandSource getSource();
-    List<String> getArgs();
-
-    default String getName() {
-        return this.getClass().getSimpleName();
-    }
-
-    default boolean isEnabled() {
-        String prop = BotProperties.getBotProperties().getStringProperty("commands.enabled");
-        List<String> enabled = Arrays.asList(prop.split(","));
-        return (enabled.contains(this.getClass().getSimpleName()));
-    }
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Repeatable(BotCommands.class)
+public @interface BotCommand {
+    String name();
+    Class<?> clazz();
+    String[] help();
 }

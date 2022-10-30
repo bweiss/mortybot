@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.dict.DictionaryEntry;
 import net.hatemachine.mortybot.dict.MerriamWebster;
@@ -26,7 +27,11 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import java.util.List;
 import java.util.Optional;
 
-public class WotdCommand implements BotCommand {
+@BotCommand(name="WOTD", clazz=WotdCommand.class, help={
+        "Fetch the word of the day from Merriam-Webster",
+        "Usage: WOTD"
+})
+public class WotdCommand implements Command {
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;

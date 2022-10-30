@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.dict.DictionaryEntry;
 import net.hatemachine.mortybot.dict.MerriamWebster;
@@ -25,7 +26,11 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;
 
-public class DictionaryCommand implements BotCommand {
+@BotCommand(name="DICT", clazz= DictionaryCommand.class, help={
+        "Gets the dictionary definition for a word",
+        "Usage: DICT <word>"
+})
+public class DictionaryCommand implements Command {
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;
