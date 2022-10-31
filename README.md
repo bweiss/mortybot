@@ -29,8 +29,7 @@ Requirements:
 
 * JDK 17+
 * Maven
-* pircbotx-2.3.jar in lib/
-* ds-generator-core-1.2.0.jar in lib/
+* ds-generator-core-1.2.0.jar in lib/ (I had to build a jar from [ds-generator-core on github](https://github.com/yuchengxin/mybatis-ds-generator))
 
 To build and package the bot, use maven:
 
