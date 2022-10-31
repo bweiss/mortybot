@@ -32,6 +32,6 @@ Class-Path: lib/slf4j-api-2.0.3.jar lib/logback-core-1.4.4.jar lib/logba
  r lib/jsr305-3.0.2.jar lib/checker-qual-3.12.0.jar lib/error_prone_anno
  tations-2.11.0.jar lib/j2objc-annotations-1.3.jar lib/mybatis-3.5.11.ja
  r lib/mybatis-dynamic-sql-1.4.1.jar lib/mybatis-migrations-3.3.11.jar l
- ib/sqlite-jdbc-3.39.3.0.jar lib/pircbotx-2.3.jar lib/ds-generator-core-
- 1.2.0.jar
+ ib/sqlite-jdbc-3.39.3.0.jar lib/reflections-0.10.2.jar lib/javassist-3.
+ 28.0-GA.jar lib/pircbotx-2.3.jar lib/ds-generator-core-1.2.0.jar
 Main-Class: net.hatemachine.mortybot.Main

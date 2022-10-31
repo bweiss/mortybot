@@ -208,6 +208,12 @@
             <scope>system</scope>
             <systemPath>${basedir}/lib/ds-generator-core-1.2.0.jar</systemPath>
         </dependency>
+
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.10.2</version>
+        </dependency>
     </dependencies>
 
     <build>

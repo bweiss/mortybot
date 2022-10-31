@@ -24,6 +24,8 @@ import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.util.BotUserHelper;
 import org.pircbotx.User;
 import org.pircbotx.hooks.types.GenericMessageEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -41,9 +43,12 @@ import static net.hatemachine.mortybot.exception.BotCommandException.Reason.*;
  * - the command is restricted and, if so, whether the user is authorized to execute it.<br/>
  * - the user is being ignored by the bot.<br/>
  *
+ * @see Command
  * @see net.hatemachine.mortybot.listeners.CommandListener
  */
 public class CommandProxy implements InvocationHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(CommandProxy.class);
 
     private final Command command;
 
@@ -78,14 +83,11 @@ public class CommandProxy implements InvocationHandler {
      *             {@code java.lang.Integer} or {@code java.lang.Boolean}.
      *
      * @return the result of dispatching the method
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
      * @throws BotCommandException
      */
     @Override
-    public Object invoke(Object proxy, Method m, Object[] args)
-            throws IllegalAccessException, InvocationTargetException, BotCommandException {
-        Object result;
+    public Object invoke(Object proxy, Method m, Object[] args) throws BotCommandException {
+        Object result = new Object();
         BotProperties props = BotProperties.getBotProperties();
         List<String> enabled = Arrays.asList(props.getStringProperty("commands.enabled").split(","));
         List<String> adminOnly = Arrays.asList(props.getStringProperty("commands.restricted").split(","));
@@ -94,15 +96,20 @@ public class CommandProxy implements InvocationHandler {
         List<BotUser> botUsers = BotUserHelper.findByHostmask(user.getHostmask());
         boolean ignoredFlag = botUsers.stream().anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.IGNORE));
         boolean adminFlag = botUsers.stream().anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.ADMIN));
+        String className = command.getClass().getSimpleName();
 
         if (ignoredFlag) {
             throw new BotCommandException(USER_IGNORED, user.toString());
-        } else if (!enabled.contains(command.getName())) {
-            throw new BotCommandException(COMMAND_NOT_ENABLED, command.getName());
-        } else if (adminOnly.contains(command.getName()) && !adminFlag) {
-            throw new BotCommandException(USER_UNAUTHORIZED, command.getName() + " " + user);
+        } else if (!enabled.contains(className)) {
+            throw new BotCommandException(COMMAND_NOT_ENABLED, className);
+        } else if (adminOnly.contains(className) && !adminFlag) {
+            throw new BotCommandException(USER_UNAUTHORIZED, className + " " + user);
         } else {
-            result = m.invoke(command, args);
+            try {
+                result = m.invoke(command, args);
+            } catch (InvocationTargetException | IllegalAccessException e) {
+                log.error("Exception encountered during command invocation ({})", className, e);
+            }
         }
 
         return result;

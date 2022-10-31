@@ -75,7 +75,7 @@ public class HelpCommand implements Command {
     }
 
     private void respondWithAllCommands() {
-        Map<String, BotCommand> commandMap = BotCommandHelper.getCommandMap();
+        Map<String, BotCommand> commandMap = BotCommandHelper.getBotCommandMap();
         List<String> enabledCommands = new ArrayList<>();
 
         commandMap.forEach((k, v) -> {
@@ -99,7 +99,7 @@ public class HelpCommand implements Command {
 
     private void respondWithCommandHelp() {
         String commandStr = args.get(0).toUpperCase(Locale.ROOT);
-        Map<String, BotCommand> commandMap = BotCommandHelper.getCommandMap();
+        Map<String, BotCommand> commandMap = BotCommandHelper.getBotCommandMap();
 
         if (commandMap.containsKey(commandStr)) {
             var cmd = commandMap.get(commandStr);

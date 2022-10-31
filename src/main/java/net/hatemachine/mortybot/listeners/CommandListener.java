@@ -29,12 +29,13 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.*;
 
 /**
- * Listen for commands from users.
+ * Listens for commands from users.
  * These can come from a number of different sources (e.g. channel messages, private messages, or DCC chat).
  */
 public class CommandListener extends ExtendedListenerAdapter {
@@ -82,8 +83,7 @@ public class CommandListener extends ExtendedListenerAdapter {
     }
 
     /**
-     * Handle a command from a user.
-     * This can come from a number of sources including a channel, private message, or DCC chat.
+     * Handles a command from a user.
      *
      * @param event the event that contained a command
      * @param source the source of the command, public or private message
@@ -96,11 +96,11 @@ public class CommandListener extends ExtendedListenerAdapter {
         DccManager dccManager = DccManager.getManager();
 
         try {
-            Map<String, BotCommand> commandMap = BotCommandHelper.getCommandMap();
+            Map<String, BotCommand> commandMap = BotCommandHelper.getBotCommandMap();
 
             if (commandMap.containsKey(commandStr)) {
                 Command command = (Command) commandMap.get(commandStr).clazz()
-                        .getDeclaredConstructor(GenericMessageEvent.class, CommandListener.CommandSource.class, List.class)
+                        .getDeclaredConstructor(GenericMessageEvent.class, CommandSource.class, List.class)
                         .newInstance(event, source, args);
 
                 log.info("{} command triggered by {}, source: {}, args: {}", commandStr, user.getNick(), source, args);
@@ -122,8 +122,8 @@ public class CommandListener extends ExtendedListenerAdapter {
             log.warn("Invalid command {} from {}", commandStr, user.getNick());
         } catch (BotCommandException e) {
             log.warn(e.getMessage());
-        } catch (Exception e) {
-            log.error("Exception encountered during command invocation", e);
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            log.error("Exception encountered trying to execute command: {}", commandStr, e);
         }
     }
 

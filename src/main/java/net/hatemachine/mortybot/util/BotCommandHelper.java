@@ -19,12 +19,22 @@ package net.hatemachine.mortybot.util;
 
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.BotCommands;
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.config.BotProperties;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+import static org.reflections.scanners.Scanners.SubTypes;
+
+/**
+ * Helper class for working with bot commands and BotCommand annotations.
+ *
+ * @see BotCommand
+ * @see BotCommands
+ */
 public class BotCommandHelper {
 
     private static final Logger log = LoggerFactory.getLogger(BotCommandHelper.class);
@@ -33,38 +43,47 @@ public class BotCommandHelper {
         throw new IllegalStateException("Utility class");
     }
 
-    public static List<BotCommand> getCommandAnnotations(Class<?> clazz) {
-        List<BotCommand> cmdAnnotations = new ArrayList<>();
+    /**
+     * Gets a list of {@link BotCommand} annotations for a class.
+     *
+     * @param clazz the class to retrieve annotations for
+     * @return a list of BotCommand annotations
+     */
+    public static List<BotCommand> getBotCommandAnnotations(Class<?> clazz) {
+        List<BotCommand> annotations = new ArrayList<>();
         var repeatedAnnotations = clazz.getAnnotation(BotCommands.class);
 
         if (repeatedAnnotations != null) {
-            cmdAnnotations.addAll(Arrays.asList(repeatedAnnotations.value()));
+            annotations.addAll(Arrays.asList(repeatedAnnotations.value()));
         } else {
             var annotation = clazz.getAnnotation(BotCommand.class);
             if (annotation != null) {
-                cmdAnnotations.add(annotation);
+                annotations.add(annotation);
             }
         }
 
-        return cmdAnnotations;
+        return annotations;
     }
 
-    public static Map<String, BotCommand> getCommandMap() {
+    /**
+     * Gets a map of bot commands and their BotCommand annotations.
+     *
+     * @return a map of bot commands
+     */
+    public static Map<String, BotCommand> getBotCommandMap() {
         Map<String, BotCommand> commandMap = new TreeMap<>();
         BotProperties props = BotProperties.getBotProperties();
         List<String> enabledCmdClasses = Arrays.asList(props.getStringProperty("commands.enabled").split(","));
-        String pkgPrefix = "net.hatemachine.mortybot.commands.";
+        Reflections reflections = new Reflections("net.hatemachine.mortybot.commands");
+        Set<Class<?>> cmdClasses = reflections.get(SubTypes.of(Command.class).asClass());
 
-        for (String className : enabledCmdClasses) {
-            try {
-                Class<?> clazz = Class.forName(pkgPrefix + className);
-                var annotations = BotCommandHelper.getCommandAnnotations(clazz);
-                annotations.forEach(c -> {
+        for (var clazz : cmdClasses) {
+            List<BotCommand> botCommands = BotCommandHelper.getBotCommandAnnotations(clazz);
+            botCommands.forEach(c -> {
+                if (enabledCmdClasses.contains(clazz.getSimpleName())) {
                     commandMap.put(c.name(), c);
-                });
-            } catch (ClassNotFoundException e) {
-                log.error("Invalid class: {}", enabledCmdClasses);
-            }
+                }
+            });
         }
 
         return commandMap;
