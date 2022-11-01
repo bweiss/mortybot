@@ -40,9 +40,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * CHANNEL command that allows you to view and manipulate the bot's managed channels. <br/>
- * Usage: CHANNEL &lt;subcommand&gt; [arguments] <br/>
- * Supported subcommands: ADD, ADDBAN, ADDFLAG, LIST, MODES, REMOVE, REMOVEBAN, REMOVEFLAG, SHOW, SHOWBANS <br/>
+ * CHANNEL command that allows you to view and manipulate the bot's managed channels.
  */
 @BotCommand(name="CHANNEL", clazz=ChannelCommand.class, help={
         "Manages the bot's channels",
@@ -88,15 +86,14 @@ public class ChannelCommand implements Command {
             }
         } catch (IllegalArgumentException | ManagedChannelException ex) {
             event.respondWith(ex.getMessage());
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
             log.error("Exception encountered: {}", ex.getMessage(), ex);
             event.respondWith("Something went wrong");
         }
     }
 
     /**
-     * Adds a new channel to be managed. <br/>
-     * Usage: CHANNEL ADD &lt;channel_name&gt; <br/>
+     * Adds a new channel to be managed.
      *
      * @param args the remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -111,14 +108,13 @@ public class ChannelCommand implements Command {
             event.respondWith("Channel is already managed");
         } else {
             ManagedChannel managedChannel = ManagedChannelHelper.createManagedChannel(channelName);
-            event.respondWith(String.format("Added channel %s with flags [%s]",
+            event.respondWith(String.format("Added channel %s with flags %s",
                     managedChannel.getName(), formatFlags(managedChannel.getManagedChannelFlags())));
         }
     }
 
     /**
-     * Adds a new ban to a managed channel. <br/>
-     * Usage: CHANNEL ADDBAN &lt;channel_name&gt; &lt;hostmask&gt; <br/>
+     * Adds a new ban to a managed channel.
      *
      * @param args the remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -150,8 +146,7 @@ public class ChannelCommand implements Command {
     }
 
     /**
-     * Adds flags to a managed channel. <br/>
-     * Usage: CHANNEL ADDFLAG &lt;channel_name&gt; &lt;flags&gt; <br/>
+     * Adds flags to a managed channel.
      *
      * @param args the remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -183,8 +178,7 @@ public class ChannelCommand implements Command {
     }
 
     /**
-     * Lists all managed channels. <br/>
-     * Usage: CHANNEL LIST <br/>
+     * Lists all managed channels.
      */
     private void listCommand() {
         List<ManagedChannel> channels = managedChannelDao.getAll();
@@ -228,8 +222,7 @@ public class ChannelCommand implements Command {
     }
     
     /**
-     * Removes a channel from management. <br/>
-     * Usage: CHANNEL REMOVE &lt;channel_name&gt; <br/>
+     * Removes a channel from management.
      *
      * @param args the remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -248,8 +241,7 @@ public class ChannelCommand implements Command {
     }
 
     /**
-     * Removes a ban from a managed channel. <br/>
-     * Usage: CHANNEL REMOVEBAN &lt;channel_name&gt; &lt;hostmask&gt; <br/>
+     * Removes a ban from a managed channel.
      *
      * @param args the remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -281,8 +273,7 @@ public class ChannelCommand implements Command {
     }
 
     /**
-     * Removes flags from a managed channel. <br/>
-     * Usage: CHANNEL REMOVEFLAG &lt;channel_name&gt; &lt;flags&gt; <br/>
+     * Removes flags from a managed channel.
      *
      * @param args the remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -309,8 +300,7 @@ public class ChannelCommand implements Command {
     }
 
     /**
-     * Shows the details of a managed channel. <br/>
-     * Usage: CHANNEL SHOW &lt;channel_name&gt; <br/>
+     * Shows the details of a managed channel.
      *
      * @param args the remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -322,14 +312,13 @@ public class ChannelCommand implements Command {
         String channelName = Validate.channelName(args.get(0), event.getBot().getServerInfo().getChannelTypes());
         ManagedChannel managedChannel = managedChannelDao.getWithName(channelName)
                 .orElseThrow(() -> new ManagedChannelException(ManagedChannelException.Reason.UNKNOWN_CHANNEL, channelName));
-        String flagListStr = managedChannel.getManagedChannelFlags() == null ? "" : managedChannel.getManagedChannelFlags()
-                .stream().map(ManagedChannelFlag::name).collect(Collectors.joining(", "));
+        List<ManagedChannelFlag> flagList = managedChannel.getManagedChannelFlags() == null ? new ArrayList<>() : managedChannel.getManagedChannelFlags();
         ManagedChannelUserDao mcuDao = new ManagedChannelUserDao();
         List<ManagedChannelUser> mcuList = mcuDao.getMultipleWithManagedChannelId(managedChannel.getId());
 
         event.respondWith(String.format("%s -> flags[%s] modes[%s]",
                 managedChannel.getName(),
-                flagListStr,
+                formatFlags(flagList),
                 managedChannel.getModes() == null ? "" : managedChannel.getModes()));
 
         if (mcuList != null && !mcuList.isEmpty()) {

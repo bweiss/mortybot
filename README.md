@@ -54,9 +54,14 @@ Note: You can change the location of the config directory by passing the -Dmorty
 
 After starting the bot for the first time, it is highly recommended that you issue a REGISTER command in a private message to the bot. This will register you with the bot using your current hostmask and admin rights.
 
-Further users can be added by an admin user via the USER ADD command (see HELP USER) or a user can register themselves by issuing a REGISTER command in a public or private message to the bot, via the use of flags.
+Further users can be added by an admin via the USER ADD command (see HELP USER), or a user can register themselves by issuing a REGISTER command in a public or private message to the bot. Access is controlled by setting flags with the USER ADDFLAG and USER REMOVEFLAG commands.
 
-Supported flags:
+For example:
+
+> &lt;rick&gt; .user addflag beth admin,dcc<br/>
+> &lt;morty&gt; Flags for beth: ADMIN, DCC<br/>
+
+Bot User Flags:
 
 | Flag   | Description                                                                       |
 |--------|-----------------------------------------------------------------------------------|
@@ -64,18 +69,27 @@ Supported flags:
 | DCC    | Allows the user to establish a DCC CHAT connection with the bot                   |
 | IGNORE | Ignore everything from this user (good for assholes or other bots)                |
 
-Admin users can add or remove flags from a user via the USER ADDFLAG/REMOVEFLAG commands.
+Per-channel user flags can be set for your managed channels via the USER ADDCHANFLAG and USER REMOVECHANFLAG commands.
+
+Managed Channel User Flags:
+
+| Flag       | Description                                                                       |
+|------------|-----------------------------------------------------------------------------------|
+| AUTO_OP    | The user should automatically receive operator status (+o) in the channel on join |
+| AUTO_VOICE | The user should automatically receive voice status (+v) in the channel on join    |
 
 ### Managed Channels
 
-Once registered with admin rights, you can also add a channel as a "managed channel" via the CHANNEL command. This allows you to set channel-specific settings to control how the bot behaves in that channel.
+You can also add a channel as a "managed channel" via the CHANNEL command. This allows you to set channel-specific settings to control how the bot behaves in that channel.
 
 For example:
 
-> CHANNEL ADD #yourchan<br/>
-> CHANNEL ADDFLAG #yourchan AUTO_JOIN<br/>
+> &lt;rick&gt; .channel add #blipsandchitz<br/>
+> &lt;morty&gt; Added channel #blipsandchitz with flags AUTO_JOIN, SHORTEN_LINKS<br/>
+> &lt;rick&gt; .channel addflag #blipsandchitz show_titles,show_tweets<br/>
+> &lt;morty&gt; Flags for #blipsandchitz: AUTO_JOIN, SHORTEN_LINKS, SHOW_TITLES, SHOW_TWEETS<br/>
 
-A full list of managed channel flags is shown below.
+Managed Channel Flags:
 
 | Flag          | Description                                 |
 |---------------|---------------------------------------------|

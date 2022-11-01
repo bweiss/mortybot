@@ -17,8 +17,8 @@
  */
 package net.hatemachine.mortybot.commands;
 
-import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
@@ -41,21 +41,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 import static net.hatemachine.mortybot.config.BotDefaults.USER_ADD_MASK_TYPE;
 import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.DCC;
 
 /**
- * <p>USER command that allows you to view and manipulate bot users.</p>
- * <p>Usage: USER &lt;subcommand&gt; [arguments]</p>
- * <p>Supported subcommands: ADD, ADDHOSTMASK, ADDFLAG, LIST, LOCATION, REMOVE, REMOVEHOSTMASK, REMOVEFLAG, SHOW</p>
+ * USER command that allows you to view and manipulate bot users.
  */
 @BotCommand(name="USER", clazz= UserCommand.class, help={
         "Manages bot users",
         "Usage: USER <subcommand> [target] [args]",
-        "Subcommands: LIST, SHOW, ADD, REMOVE, ADDHOSTMASK, REMOVEHOSTMASK, ADDFLAG, REMOVEFLAG, SETLOCATION",
-        "Available user flags: ADMIN, AOP, DCC, IGNORE"
+        "Usage: USER <ADDCHANFLAG|REMOVECHANFLAG> <user> <channel> <flag>",
+        "Subcommands: ADD, ADDCHANFLAG, ADDFLAG, ADDHOSTMASK, LIST, LOCATION, REMOVE, REMOVECHANFLAG, REMOVEFLAG, REMOVEHOSTMASK, SHOW",
+        "Available user flags: ADMIN, DCC, IGNORE",
+        "Available managed channel user flags: AUTO_OP, AUTO_VOICE"
 })
 public class UserCommand implements Command {
 
@@ -102,15 +103,14 @@ public class UserCommand implements Command {
             }
         } catch (IllegalArgumentException | BotUserException | ManagedChannelException | ManagedChannelUserException ex) {
             event.respondWith(ex.getMessage());
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
             log.error("Exception encountered: {}", ex.getMessage(), ex);
             event.respondWith("Something went wrong");
         }
     }
 
     /**
-     * <p>Adds a user to the bot.</p
-     * <p>Usage: USER ADD &lt;username&gt; [hostmask] [flags]</p>
+     * Adds a user to the bot.
      *
      * @param args the remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -163,14 +163,13 @@ public class UserCommand implements Command {
             botUser = botUserDao.create(botUser);
 
             event.respondWith(String.format("User added with hostmask %s and flags %s",
-                    botUser.getBotUserHostmasks().get(0), botUser.getBotUserFlags()));
+                    botUser.getBotUserHostmasks().get(0), formatFlags(botUser.getBotUserFlags())));
         }
     }
 
     /**
-     * <p>Adds managed channel user flags to a bot user on the specified channel. If the channel is not yet managed
-     * then an entry will be created.</p>
-     * <p>Usage: USER ADDCHANFLAG &lt;username&gt; &lt;channel&gt; &lt;flags&gt;</p>
+     * Adds managed channel user flags to a bot user on the specified channel. If the channel is not yet managed
+     * then an entry will be created.
      *
      * @param args the remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -201,8 +200,8 @@ public class UserCommand implements Command {
             return Optional.of(mcuDao.create(mcu));
         }).orElseThrow(() -> new ManagedChannelUserException(ManagedChannelUserException.Reason.NO_SUCH_RECORD, managedChannel.getName() + " " + botUser.getName()));
 
-        var flags = managedChannelUser.getManagedChannelUserFlags();
-        var newFlags = ManagedChannelUserHelper.parseFlags(flagStr);
+        List<ManagedChannelUserFlag> flags = managedChannelUser.getManagedChannelUserFlags();
+        List<ManagedChannelUserFlag> newFlags = ManagedChannelUserHelper.parseFlags(flagStr);
 
         if (flags == null) {
             flags = newFlags;
@@ -218,12 +217,11 @@ public class UserCommand implements Command {
         managedChannelUser = mcuDao.update(managedChannelUser);
 
         event.respondWith(String.format("Flags for %s on %s: %s",
-                botUser.getName(), managedChannel.getName(), managedChannelUser.getManagedChannelUserFlags()));
+                botUser.getName(), managedChannel.getName(), formatChanFlags(managedChannelUser.getManagedChannelUserFlags())));
     }
 
     /**
-     * <p>Adds flags to a bot user.</p>
-     * <p>Usage: USER ADDFLAG &lt;username&gt; &lt;flags&gt;</p>
+     * Adds flags to a bot user.
      *
      * @param args the remaining arguments to the subcommand
      * @throws BotUserException if no user with the provided name exists
@@ -234,7 +232,7 @@ public class UserCommand implements Command {
         String userName = Validate.botUserName(args.get(0));
         BotUser botUser = botUserDao.getWithName(userName)
                 .orElseThrow(() -> new BotUserException(BotUserException.Reason.UNKNOWN_USER, userName));
-        List<BotUserFlag> flags = botUser.getBotUserFlags();
+        List<BotUserFlag> flags = botUser.getBotUserFlags() == null ? new ArrayList<>() : botUser.getBotUserFlags();
         List<BotUserFlag> newFlags = BotUserHelper.parseFlags(args.get(1));
 
         for (BotUserFlag flag : newFlags) {
@@ -246,12 +244,11 @@ public class UserCommand implements Command {
         botUser.setBotUserFlags(flags);
         botUser = botUserDao.update(botUser);
 
-        event.respondWith(String.format("Flags for %s: %s", botUser.getName(), botUser.getBotUserFlags()));
+        event.respondWith(String.format("Flags for %s: %s", botUser.getName(), formatFlags(botUser.getBotUserFlags())));
     }
 
     /**
-     * <p>Adds a hostmask to a bot user.</p>
-     * <p>Usage: USER ADDHOSTMASK &lt;username&gt; &lt;hostmask&gt;</p>
+     * Adds a hostmask to a bot user.
      *
      * @param args the remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -269,7 +266,7 @@ public class UserCommand implements Command {
         } else {
             BotUser botUser = botUserDao.getWithName(userName)
                     .orElseThrow(() -> new BotUserException(BotUserException.Reason.UNKNOWN_USER, userName));
-            List<String> hostmasks = botUser.getBotUserHostmasks();
+            List<String> hostmasks = botUser.getBotUserHostmasks() == null ? new ArrayList<>() : botUser.getBotUserHostmasks();
             hostmasks.add(hostmask);
             botUser.setBotUserHostmasks(hostmasks);
             botUser = botUserDao.update(botUser);
@@ -278,9 +275,8 @@ public class UserCommand implements Command {
     }
 
     /**
-     * <p>Lists all bot users. If the source is anything but DCC then it will show the users on multiple
-     * lines according to LIST_COMMAND_MAX_USERS_PER_LINE.</p>
-     * <p>Usage: USER LIST</p>
+     * Lists all bot users. If the source is anything but DCC then it will show the users on multiple
+     * lines according to LIST_COMMAND_MAX_USERS_PER_LINE.
      */
     private void listCommand() {
         List<BotUser> botUsers = botUserDao.getAll();
@@ -314,8 +310,7 @@ public class UserCommand implements Command {
     }
 
     /**
-     * <p>Sets the location for a bot user (used by the WEATHER command).</p>
-     * <p>Usage: USER LOCATION &lt;username&gt; &lt;location&gt;</p>
+     * Sets the location for a bot user (used by the WEATHER command).
      *
      * @param args the remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -337,8 +332,7 @@ public class UserCommand implements Command {
     }
 
     /**
-     * <p>Removes a user from the bot.</p>
-     * <p>Usage: USER REMOVE &lt;username&gt;</p>
+     * Removes a user from the bot.
      *
      * @param args the remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -357,8 +351,7 @@ public class UserCommand implements Command {
     }
 
     /**
-     * <p>Removes managed channel user flags for a bot user on a managed channel.</p>
-     * <p>Usage: USER REMOVECHANFLAG &lt;username&gt; &lt;channel&gt; &lt;flags&gt;</p>
+     * Removes managed channel user flags for a bot user on a managed channel.
      *
      * @param args the remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -381,19 +374,18 @@ public class UserCommand implements Command {
                 .orElseThrow(() -> new ManagedChannelException(ManagedChannelException.Reason.UNKNOWN_CHANNEL, channelName));
         ManagedChannelUser managedChannelUser = mcuDao.getWithManagedChannelIdAndBotUserId(managedChannel.getId(), botUser.getId())
                 .orElseThrow(() -> new ManagedChannelUserException(ManagedChannelUserException.Reason.NO_SUCH_RECORD, managedChannel.getName() + " " + botUser.getName()));
-        List<ManagedChannelUserFlag> flags = managedChannelUser.getManagedChannelUserFlags();
+        List<ManagedChannelUserFlag> flags = managedChannelUser.getManagedChannelUserFlags() == null ? new ArrayList<>() : managedChannelUser.getManagedChannelUserFlags();
 
         flags.removeAll(ManagedChannelUserHelper.parseFlags(flagStr));
         managedChannelUser.setManagedChannelUserFlags(flags);
         managedChannelUser = mcuDao.update(managedChannelUser);
 
         event.respondWith(String.format("Flags for %s on %s: %s",
-                botUser.getName(), managedChannel.getName(), managedChannelUser.getManagedChannelUserFlags()));
+                botUser.getName(), managedChannel.getName(), formatChanFlags(managedChannelUser.getManagedChannelUserFlags())));
     }
 
     /**
-     * <p>Removes flags from a bot user.</p>
-     * <p>Usage: USER REMOVEFLAG &lt;username&gt; &lt;flags&gt;</p>
+     * Removes flags from a bot user.
      *
      * @param args the remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -406,18 +398,17 @@ public class UserCommand implements Command {
         String flagStr = args.get(1);
         BotUser botUser = botUserDao.getWithName(userName)
                 .orElseThrow(() -> new BotUserException(BotUserException.Reason.UNKNOWN_USER, userName));
-        List<BotUserFlag> flags = botUser.getBotUserFlags();
+        List<BotUserFlag> flags = botUser.getBotUserFlags() == null ? new ArrayList<>() : botUser.getBotUserFlags();
 
         flags.removeAll(BotUserHelper.parseFlags(flagStr));
         botUser.setBotUserFlags(flags);
         botUser = botUserDao.update(botUser);
 
-        event.respondWith("Flags: " + botUser.getBotUserFlags());
+        event.respondWith(String.format("Flags for %s: %s", botUser.getName(), formatFlags(botUser.getBotUserFlags())));
     }
 
     /**
-     * <p>Removes a hostmask from a bot user.</p>
-     * <p>Usage: USER REMOVEHOSTMASK &lt;username&gt; &lt;hostmask&gt;</p>
+     * Removes a hostmask from a bot user.
      *
      * @param args remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -430,7 +421,7 @@ public class UserCommand implements Command {
         String hostmask = args.get(1);
         BotUser botUser = botUserDao.getWithName(userName)
                 .orElseThrow(() -> new BotUserException(BotUserException.Reason.UNKNOWN_USER, userName));
-        List<String> hostmasks = botUser.getBotUserHostmasks();
+        List<String> hostmasks = botUser.getBotUserHostmasks() == null ? new ArrayList<>() : botUser.getBotUserHostmasks();
 
         hostmasks.remove(hostmask);
         botUser.setBotUserHostmasks(hostmasks);
@@ -440,8 +431,7 @@ public class UserCommand implements Command {
     }
 
     /**
-     * <p>Shows the details of a bot user.</p>
-     * <p>Usage: USER SHOW &lt;username&gt;</p>
+     * Shows the details of a bot user.
      *
      * @param args the remaining arguments to the subcommand
      * @throws IllegalArgumentException if any arguments are missing or invalid
@@ -458,10 +448,30 @@ public class UserCommand implements Command {
         event.respondWith(String.format("%s -> hostmasks[%s] flags[%s] location[%s]",
                 botUser.getName(),
                 botUser.getBotUserHostmasks() == null ? "" : String.join(", ", botUser.getBotUserHostmasks()),
-                botUser.getBotUserFlags() == null ? "" : botUser.getBotUserFlags().stream().map(Enum::name).collect(joining(", ")),
+                formatFlags(botUser.getBotUserFlags()),
                 botUser.getLocation() == null ? "" : botUser.getLocation()));
 
         channelFlagMap.forEach((k, v) -> event.respondWith(String.format("%s -> %s", k.getName(), v.toString())));
+    }
+
+    /**
+     * Formats a list of bot user flags into a string.
+     *
+     * @param flagList the list of bot user flags
+     * @return a string of bot user flags joined by commas, or an empty string if the list was null
+     */
+    private String formatFlags(List<BotUserFlag> flagList) {
+        return flagList == null ? "" : flagList.stream().map(BotUserFlag::name).collect(Collectors.joining(", "));
+    }
+
+    /**
+     * Formats a list of managed channel user flags into a string.
+     *
+     * @param flagList the list of managed channel user flags
+     * @return a string of managed channel user flags joined by commas, or an empty string if the list was null
+     */
+    private String formatChanFlags(List<ManagedChannelUserFlag> flagList) {
+        return flagList == null ? "" : flagList.stream().map(ManagedChannelUserFlag::name).collect(Collectors.joining(", "));
     }
 
     @Override
