@@ -31,7 +31,7 @@
     <name>MortyBot</name>
     <description>An IRC bot built on the PircBotX framework.</description>
     <url>https://github.com/bweiss/mortybot</url>
-    <inceptionYear>2022</inceptionYear>
+    <inceptionYear>2022</inceptionYear> <!-- Year the project was made public. Used by the license plugin when creating copyright headers. -->
 
     <licenses>
         <license>
@@ -101,7 +101,7 @@
         <dependency>
             <groupId>com.maxmind.geoip2</groupId>
             <artifactId>geoip2</artifactId>
-            <version>3.0.1</version>
+            <version>3.0.2</version>
         </dependency>
 
         <dependency>
