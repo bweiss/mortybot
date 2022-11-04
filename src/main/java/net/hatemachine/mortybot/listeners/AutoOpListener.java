@@ -37,6 +37,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+/**
+ * Listener that handles automatically granting channel operator status to bot users that have
+ * the AUTO_OP managed channel flag.
+ */
 public class AutoOpListener extends ListenerAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(AutoOpListener.class);
@@ -64,8 +68,10 @@ public class AutoOpListener extends ListenerAdapter {
 
     /**
      * Handles a join event to a channel that the bot is on. This will check to see if the user's hostmask
-     * matches that of a bot user that has the AOP flag. If a match is found it will add that user to the
-     * pending op queue for that channel and spin up a separate thread to process any modes for that channel.
+     * matches that of a bot user that has the AUTO_OP flag for that channel. If a match is found it will add
+     * that user to the pending op queue for the channel and spin up a separate thread to process any modes
+     * after a short delay. This allows us to op multiple users in a single command to the server and eliminates
+     * redundant modes when a user has already received operator status.
      *
      * @param event the join event
      */
@@ -103,10 +109,13 @@ public class AutoOpListener extends ListenerAdapter {
                         pending.put(channel.getName(), queue);
 
                         new Thread(() -> {
+                            log.debug("Created new thread");
                             try {
                                 int delay = BotProperties.getBotProperties()
                                         .getIntProperty("aop.delay", BotDefaults.AUTO_OP_DELAY);
+                                log.debug("Sleeping for {}ms", delay);
                                 Thread.sleep(delay);
+                                log.debug("Processing queue");
                                 processQueue(event, channel);
                             } catch (InterruptedException e) {
                                 log.warn("Thread interrupted", e);
@@ -120,13 +129,16 @@ public class AutoOpListener extends ListenerAdapter {
     }
 
     /**
-     * Handle a nick change event and update any queues containing that user's nick.
+     * Handles a nick change event and updates any queues containing that user's nick.
      *
      * @param event the nick change event
      */
     private synchronized void handleNickChange(final NickChangeEvent event) {
+        log.debug("Nick change detected: {} -> {}", event.getOldNick(), event.getNewNick());
+
         pending.forEach((chan, queue) -> {
             if (queue.contains(event.getOldNick())) {
+                log.debug("Updating queue for {}", chan);
                 queue.remove(event.getOldNick());
                 queue.add(event.getNewNick());
             }
@@ -134,7 +146,7 @@ public class AutoOpListener extends ListenerAdapter {
     }
 
     /**
-     * Process the op queue for a particular channel.
+     * Processes the op queue for a particular channel.
      *
      * @param event the join event that triggered the auto-op action
      * @param channel the channel it occurred on
@@ -147,6 +159,8 @@ public class AutoOpListener extends ListenerAdapter {
             int sInfoMaxModes = bot.getServerInfo().getMaxModes();
             maxModes = sInfoMaxModes == -1 ? BotDefaults.AUTO_OP_MAX_MODES : sInfoMaxModes;
         }
+
+        log.debug("Inside processQueue() - pending: {}", pending);
 
         if (pending.containsKey(channel.getName())) {
             Queue<String> queue = pending.get(channel.getName());
