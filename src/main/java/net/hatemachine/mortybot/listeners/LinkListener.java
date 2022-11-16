@@ -272,6 +272,6 @@ public class LinkListener extends ListenerAdapter {
      */
     private boolean isTweet(String url) {
         Matcher m = TWEET_PATTERN.matcher(url);
-        return m.matches();
+        return m.find();
     }
 }
