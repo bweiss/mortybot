@@ -25,7 +25,7 @@ import net.hatemachine.mortybot.custom.entity.BotUserFlag;
 import net.hatemachine.mortybot.dao.BotUserDao;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.model.BotUser;
-import net.hatemachine.mortybot.util.BotUserHelper;
+import net.hatemachine.mortybot.helpers.BotUserHelper;
 import net.hatemachine.mortybot.util.IrcUtils;
 import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.User;
@@ -72,8 +72,9 @@ public class RegisterCommand implements Command {
         String normalFlags = props.getStringProperty("register.normal.flags", BotDefaults.REGISTER_NORMAL_FLAGS);
         String ownerFlags = props.getStringProperty("register.owner.flags", BotDefaults.REGISTER_OWNER_FLAGS);
         String flagStr = botUserDao.count() > 0 ? normalFlags : ownerFlags;
-        List<BotUserFlag> flagList = BotUserHelper.parseFlags(flagStr);
-        List<BotUser> matchingBotUsers = BotUserHelper.findByHostmask(user.getHostmask());
+        BotUserHelper botUserHelper = new BotUserHelper();
+        List<BotUserFlag> flagList = botUserHelper.parseFlags(flagStr);
+        List<BotUser> matchingBotUsers = botUserHelper.findByHostmask(user.getHostmask());
 
         if (!matchingBotUsers.isEmpty()) {
             String userNames = matchingBotUsers.stream()

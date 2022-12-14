@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.hatemachine.mortybot.util;
+package net.hatemachine.mortybot.helpers;
 
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
@@ -26,6 +26,7 @@ import net.hatemachine.mortybot.dao.ManagedChannelUserDao;
 import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.model.ManagedChannel;
 import net.hatemachine.mortybot.model.ManagedChannelUser;
+import net.hatemachine.mortybot.util.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

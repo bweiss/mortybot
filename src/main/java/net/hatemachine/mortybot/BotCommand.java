@@ -24,7 +24,6 @@ import java.lang.annotation.*;
  * additional aliases for the command.
  *
  * @see BotCommands
- * @see net.hatemachine.mortybot.util.BotCommandHelper
  * @see Command
  */
 @Target(ElementType.TYPE)

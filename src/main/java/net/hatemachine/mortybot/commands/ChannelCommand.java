@@ -27,7 +27,7 @@ import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.model.ManagedChannel;
 import net.hatemachine.mortybot.model.ManagedChannelUser;
-import net.hatemachine.mortybot.util.ManagedChannelHelper;
+import net.hatemachine.mortybot.helpers.ManagedChannelHelper;
 import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.Channel;
 import org.pircbotx.hooks.types.GenericMessageEvent;
@@ -207,7 +207,6 @@ public class ChannelCommand implements Command {
                 .orElseThrow(() -> new ManagedChannelException(ManagedChannelException.Reason.UNKNOWN_CHANNEL, channelName));
 
         if (args.size() > 1) {
-//            newModes = Optional.of(Validate.channelModes(args.get(1)));
             newModes = Optional.of(args.get(1));
         }
 

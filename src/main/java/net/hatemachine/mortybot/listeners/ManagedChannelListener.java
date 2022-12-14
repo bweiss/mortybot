@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
-import static net.hatemachine.mortybot.util.ManagedChannelHelper.getAutoJoinChannels;
+import static net.hatemachine.mortybot.helpers.ManagedChannelHelper.getAutoJoinChannels;
 
 public class ManagedChannelListener extends ListenerAdapter {
 

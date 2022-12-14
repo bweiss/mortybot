@@ -26,7 +26,7 @@ import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.model.ManagedChannel;
 import net.hatemachine.mortybot.model.ManagedChannelUser;
-import net.hatemachine.mortybot.util.BotUserHelper;
+import net.hatemachine.mortybot.helpers.BotUserHelper;
 import org.pircbotx.Channel;
 import org.pircbotx.UserHostmask;
 import org.pircbotx.hooks.ListenerAdapter;
@@ -81,7 +81,8 @@ public class AutoOpListener extends ListenerAdapter {
         String nick = uh.getNick();
         var mcDao = new ManagedChannelDao();
         var mcuDao = new ManagedChannelUserDao();
-        List<BotUser> botUsers = BotUserHelper.findByHostmask(uh.getHostmask());
+        BotUserHelper botUserHelper = new BotUserHelper();
+        List<BotUser> botUsers = botUserHelper.findByHostmask(uh.getHostmask());
         Optional<ManagedChannel> optionalManagedChannel = mcDao.getWithName(channel.getName());
 
         // check that we have a matching bot user and that this is a managed channel
@@ -96,33 +97,31 @@ public class AutoOpListener extends ListenerAdapter {
 
                 // does this user have the AUTO_OP flag on this channel?
                 if (managedChannelUser.getManagedChannelUserFlags().contains(ManagedChannelUserFlag.AUTO_OP)) {
-                    log.debug("Adding {} to auto-op queue for {}", nick, channel.getName());
+                    log.info("Adding {} to auto-op queue for {}", nick, channel.getName());
 
-                    if (pending.containsKey(channel.getName())) {
-                        Queue<String> queue = pending.get(channel.getName());
-                        if (!queue.contains(nick)) {
-                            queue.add(nick);
-                        }
-                    } else {
-                        Queue<String> queue = new LinkedList<>();
+                    Queue<String> queue = pending.containsKey(channel.getName()) ? pending.get(channel.getName()) : new LinkedList<>();
+
+                    if (!queue.contains(nick)) {
                         queue.add(nick);
-                        pending.put(channel.getName(), queue);
-
-                        new Thread(() -> {
-                            log.debug("Created new thread");
-                            try {
-                                int delay = BotProperties.getBotProperties()
-                                        .getIntProperty("aop.delay", BotDefaults.AUTO_OP_DELAY);
-                                log.debug("Sleeping for {}ms", delay);
-                                Thread.sleep(delay);
-                                log.debug("Processing queue");
-                                processQueue(event, channel);
-                            } catch (InterruptedException e) {
-                                log.warn("Thread interrupted", e);
-                                Thread.currentThread().interrupt();
-                            }
-                        }).start();
                     }
+
+                    pending.put(channel.getName(), queue);
+
+                    // start a new thread to process this queue after a delay
+                    new Thread(() -> {
+                        log.debug("Created new thread");
+                        try {
+                            int delay = BotProperties.getBotProperties()
+                                    .getIntProperty("aop.delay", BotDefaults.AUTO_OP_DELAY);
+                            log.debug("Sleeping for {}ms", delay);
+                            Thread.sleep(delay);
+                            log.debug("Processing queue");
+                            processQueue(event, channel);
+                        } catch (InterruptedException e) {
+                            log.warn("Thread interrupted", e);
+                            Thread.currentThread().interrupt();
+                        }
+                    }).start();
                 }
             }
         }

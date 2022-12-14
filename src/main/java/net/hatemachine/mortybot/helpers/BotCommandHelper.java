@@ -15,15 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.hatemachine.mortybot.util;
+package net.hatemachine.mortybot.helpers;
 
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.BotCommands;
 import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.config.BotProperties;
 import org.reflections.Reflections;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -37,19 +35,13 @@ import static org.reflections.scanners.Scanners.SubTypes;
  */
 public class BotCommandHelper {
 
-    private static final Logger log = LoggerFactory.getLogger(BotCommandHelper.class);
-
-    public BotCommandHelper() {
-        throw new IllegalStateException("Utility class");
-    }
-
     /**
      * Gets a list of {@link BotCommand} annotations for a class.
      *
      * @param clazz the class to retrieve annotations for
      * @return a list of BotCommand annotations
      */
-    public static List<BotCommand> getBotCommandAnnotations(Class<?> clazz) {
+    public List<BotCommand> getBotCommandAnnotations(Class<?> clazz) {
         List<BotCommand> annotations = new ArrayList<>();
         var repeatedAnnotations = clazz.getAnnotation(BotCommands.class);
 
@@ -70,7 +62,7 @@ public class BotCommandHelper {
      *
      * @return a map of bot commands
      */
-    public static Map<String, BotCommand> getBotCommandMap() {
+    public Map<String, BotCommand> getBotCommandMap() {
         Map<String, BotCommand> commandMap = new TreeMap<>();
         BotProperties props = BotProperties.getBotProperties();
         List<String> enabledCmdClasses = Arrays.asList(props.getStringProperty("commands.enabled").split(","));
@@ -78,7 +70,7 @@ public class BotCommandHelper {
         Set<Class<?>> cmdClasses = reflections.get(SubTypes.of(Command.class).asClass());
 
         for (var clazz : cmdClasses) {
-            List<BotCommand> botCommands = BotCommandHelper.getBotCommandAnnotations(clazz);
+            List<BotCommand> botCommands = getBotCommandAnnotations(clazz);
             botCommands.forEach(c -> {
                 if (enabledCmdClasses.contains(clazz.getSimpleName())) {
                     commandMap.put(c.name(), c);

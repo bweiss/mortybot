@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.hatemachine.mortybot.util;
+package net.hatemachine.mortybot.helpers;
 
 import net.hatemachine.mortybot.custom.entity.BotUserFlag;
 import net.hatemachine.mortybot.custom.entity.ManagedChannelUserFlag;
@@ -36,17 +36,13 @@ public class BotUserHelper {
 
     private static final Logger log = LoggerFactory.getLogger(BotUserHelper.class);
 
-    public BotUserHelper() {
-        throw new IllegalStateException("Utility class");
-    }
-
     /**
      * Finds bot users by hostmask. Supports wildcards.
      *
      * @param hostmask a string representing the hostmask, or IRC address, to match against (e.g. nick!user@domain.tld)
      * @return a list of bot users with matching hostmasks
      */
-    public static List<BotUser> findByHostmask(String hostmask) {
+    public List<BotUser> findByHostmask(String hostmask) {
         var botUserDao = new BotUserDao();
         return botUserDao.getAll()
                 .stream()
@@ -66,7 +62,7 @@ public class BotUserHelper {
      * @param botUser the bot user
      * @return a map of managed channel user flags with the channel name as the key
      */
-    public static Map<ManagedChannel, List<ManagedChannelUserFlag>> getChannelFlagMap(BotUser botUser) {
+    public Map<ManagedChannel, List<ManagedChannelUserFlag>> getChannelFlagMap(BotUser botUser) {
         Map<ManagedChannel, List<ManagedChannelUserFlag>> channelFlagMap = new HashMap<>();
         ManagedChannelUserDao mcuDao = new ManagedChannelUserDao();
 
@@ -83,7 +79,7 @@ public class BotUserHelper {
      * @param flagStr a comma-delimited string representing one or more flags
      * @return a list of bot user flags
      */
-    public static List<BotUserFlag> parseFlags(String flagStr) {
+    public List<BotUserFlag> parseFlags(String flagStr) {
         List<BotUserFlag> flags = new ArrayList<>();
 
         for (String s : flagStr.split(",")) {

@@ -25,7 +25,7 @@ import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.dao.BotUserDao;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.model.BotUser;
-import net.hatemachine.mortybot.util.BotUserHelper;
+import net.hatemachine.mortybot.helpers.BotUserHelper;
 import org.pircbotx.User;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
@@ -69,7 +69,8 @@ public class WeatherCommand implements Command {
         this.args = args;
 
         User user = event.getUser();
-        List<BotUser> matchingBotUsers = BotUserHelper.findByHostmask(user.getHostmask());
+        BotUserHelper botUserHelper = new BotUserHelper();
+        List<BotUser> matchingBotUsers = botUserHelper.findByHostmask(user.getHostmask());
 
         if (!matchingBotUsers.isEmpty()) {
             botUser = matchingBotUsers.get(0);

@@ -21,7 +21,7 @@ import net.hatemachine.mortybot.*;
 import net.hatemachine.mortybot.dcc.DccManager;
 import net.hatemachine.mortybot.events.DccChatMessageEvent;
 import net.hatemachine.mortybot.exception.BotCommandException;
-import net.hatemachine.mortybot.util.BotCommandHelper;
+import net.hatemachine.mortybot.helpers.BotCommandHelper;
 import org.pircbotx.User;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
@@ -94,9 +94,10 @@ public class CommandListener extends ExtendedListenerAdapter {
         List<String> args = tokens.subList(1, tokens.size());
         User user = event.getUser();
         DccManager dccManager = DccManager.getManager();
+        BotCommandHelper cmdHelper = new BotCommandHelper();
 
         try {
-            Map<String, BotCommand> commandMap = BotCommandHelper.getBotCommandMap();
+            Map<String, BotCommand> commandMap = cmdHelper.getBotCommandMap();
 
             if (commandMap.containsKey(commandStr)) {
                 Command command = (Command) commandMap.get(commandStr).clazz()
@@ -105,7 +106,7 @@ public class CommandListener extends ExtendedListenerAdapter {
 
                 log.info("{} command triggered by {}, source: {}, args: {}", commandStr, user.getNick(), source, args);
 
-                dccManager.dispatchMessage(String.format("*** %s command triggered by %s (%s): %s",
+                dccManager.dispatchMessage(String.format("*** %s command triggered by %s [%s]: %s",
                         commandStr,
                         user.getNick(),
                         source == PUBLIC ? ((MessageEvent) event).getChannel().getName() : source.toString(),

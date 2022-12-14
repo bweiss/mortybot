@@ -17,11 +17,11 @@
  */
 package net.hatemachine.mortybot.commands;
 
+import net.hatemachine.mortybot.helpers.BotCommandHelper;
 import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
-import net.hatemachine.mortybot.util.BotCommandHelper;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-@BotCommand(name="HELP", clazz= HelpCommand.class, help={
+@BotCommand(name="HELP", clazz=HelpCommand.class, help={
         "Shows help and usage information for bot commands",
         "Usage: HELP [command]"
 })
@@ -75,7 +75,8 @@ public class HelpCommand implements Command {
     }
 
     private void respondWithAllCommands() {
-        Map<String, BotCommand> commandMap = BotCommandHelper.getBotCommandMap();
+        BotCommandHelper cmdHelper = new BotCommandHelper();
+        Map<String, BotCommand> commandMap = cmdHelper.getBotCommandMap();
         List<String> enabledCommands = new ArrayList<>();
 
         commandMap.forEach((k, v) -> {
@@ -99,7 +100,8 @@ public class HelpCommand implements Command {
 
     private void respondWithCommandHelp() {
         String commandStr = args.get(0).toUpperCase(Locale.ROOT);
-        Map<String, BotCommand> commandMap = BotCommandHelper.getBotCommandMap();
+        BotCommandHelper cmdHelper = new BotCommandHelper();
+        Map<String, BotCommand> commandMap = cmdHelper.getBotCommandMap();
 
         if (commandMap.containsKey(commandStr)) {
             var cmd = commandMap.get(commandStr);

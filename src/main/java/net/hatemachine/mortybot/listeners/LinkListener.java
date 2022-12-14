@@ -27,7 +27,7 @@ import net.hatemachine.mortybot.custom.entity.BotUserFlag;
 import net.hatemachine.mortybot.custom.entity.ManagedChannelFlag;
 import net.hatemachine.mortybot.dao.ManagedChannelDao;
 import net.hatemachine.mortybot.model.ManagedChannel;
-import net.hatemachine.mortybot.util.BotUserHelper;
+import net.hatemachine.mortybot.helpers.BotUserHelper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.pircbotx.Colors;
@@ -87,7 +87,8 @@ public class LinkListener extends ListenerAdapter {
         boolean showTitlesFlag = props.getBooleanProperty("links.show.titles", BotDefaults.LINKS_SHOW_TITLES);
         boolean showTweetsFlag = props.getBooleanProperty("links.show.tweets", BotDefaults.LINKS_SHOW_TWEETS);
         String commandPrefix = props.getStringProperty("command.prefix", BotDefaults.BOT_COMMAND_PREFIX);
-        boolean ignoreFlag = BotUserHelper.findByHostmask(event.getUser().getHostmask())
+        BotUserHelper botUserHelper = new BotUserHelper();
+        boolean ignoreFlag = botUserHelper.findByHostmask(event.getUser().getHostmask())
                 .stream()
                 .anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.IGNORE));
 

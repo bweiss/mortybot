@@ -26,7 +26,7 @@ import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.dcc.DccManager;
 import net.hatemachine.mortybot.listeners.CommandListener;
-import net.hatemachine.mortybot.util.BotUserHelper;
+import net.hatemachine.mortybot.helpers.BotUserHelper;
 import org.pircbotx.User;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
@@ -71,7 +71,8 @@ public class ChatCommand implements Command {
             }
 
             if (user != null) {
-                List<BotUser> botUsers = BotUserHelper.findByHostmask(user.getHostmask());
+                BotUserHelper botUserHelper = new BotUserHelper();
+                List<BotUser> botUsers = botUserHelper.findByHostmask(user.getHostmask());
                 boolean dccFlag = botUsers.stream().anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.DCC));
 
                 if (dccFlag) {

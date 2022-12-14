@@ -17,9 +17,7 @@
  */
 package net.hatemachine.mortybot.commands;
 
-import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.Command;
-import net.hatemachine.mortybot.MortyBot;
+import net.hatemachine.mortybot.*;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.custom.entity.BotUserFlag;
@@ -30,6 +28,9 @@ import net.hatemachine.mortybot.dao.ManagedChannelUserDao;
 import net.hatemachine.mortybot.exception.BotUserException;
 import net.hatemachine.mortybot.exception.ManagedChannelException;
 import net.hatemachine.mortybot.exception.ManagedChannelUserException;
+import net.hatemachine.mortybot.helpers.BotUserHelper;
+import net.hatemachine.mortybot.helpers.ManagedChannelHelper;
+import net.hatemachine.mortybot.helpers.ManagedChannelUserHelper;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.model.ManagedChannel;
@@ -50,7 +51,7 @@ import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.D
 /**
  * USER command that allows you to view and manipulate bot users.
  */
-@BotCommand(name="USER", clazz= UserCommand.class, help={
+@BotCommand(name="USER", clazz=UserCommand.class, help={
         "Manages bot users",
         "Usage: USER <subcommand> [target] [args]",
         "Usage: USER <ADDCHANFLAG|REMOVECHANFLAG> <user> <channel> <flag>",
@@ -68,12 +69,14 @@ public class UserCommand implements Command {
     private final CommandListener.CommandSource source;
     private final List<String> args;
     private final BotUserDao botUserDao;
+    private final BotUserHelper botUserHelper;
 
     public UserCommand(GenericMessageEvent event, CommandListener.CommandSource source, List<String> args) {
         this.event = event;
         this.source = source;
         this.args = args;
         this.botUserDao = new BotUserDao();
+        this.botUserHelper = new BotUserHelper();
     }
 
     @Override
@@ -142,14 +145,15 @@ public class UserCommand implements Command {
         }
 
         if (args.size() > 2) {
-            flags = BotUserHelper.parseFlags(args.get(2));
+            flags = botUserHelper.parseFlags(args.get(2));
         } else {
-            flags = BotUserHelper.parseFlags(BotProperties.getBotProperties()
+            flags = botUserHelper.parseFlags(BotProperties.getBotProperties()
                     .getStringProperty("bot.user.default.flags", BotDefaults.BOT_USER_DEFAULT_FLAGS));
         }
 
         Optional<BotUser> optionalBotUser = botUserDao.getWithName(userName);
-        List<BotUser> matchingUsers = BotUserHelper.findByHostmask(hostmask);
+        BotUserHelper botUserHelper = new BotUserHelper();
+        List<BotUser> matchingUsers = botUserHelper.findByHostmask(hostmask);
 
         if (optionalBotUser.isPresent()) {
             event.respondWith("Another user already has that name");
@@ -201,7 +205,8 @@ public class UserCommand implements Command {
         }).orElseThrow(() -> new ManagedChannelUserException(ManagedChannelUserException.Reason.NO_SUCH_RECORD, managedChannel.getName() + " " + botUser.getName()));
 
         List<ManagedChannelUserFlag> flags = managedChannelUser.getManagedChannelUserFlags();
-        List<ManagedChannelUserFlag> newFlags = ManagedChannelUserHelper.parseFlags(flagStr);
+        var mcuHelper = new ManagedChannelUserHelper();
+        List<ManagedChannelUserFlag> newFlags = mcuHelper.parseFlags(flagStr);
 
         if (flags == null) {
             flags = newFlags;
@@ -233,7 +238,7 @@ public class UserCommand implements Command {
         BotUser botUser = botUserDao.getWithName(userName)
                 .orElseThrow(() -> new BotUserException(BotUserException.Reason.UNKNOWN_USER, userName));
         List<BotUserFlag> flags = botUser.getBotUserFlags() == null ? new ArrayList<>() : botUser.getBotUserFlags();
-        List<BotUserFlag> newFlags = BotUserHelper.parseFlags(args.get(1));
+        List<BotUserFlag> newFlags = botUserHelper.parseFlags(args.get(1));
 
         for (BotUserFlag flag : newFlags) {
             if (!flags.contains(flag)) {
@@ -259,7 +264,7 @@ public class UserCommand implements Command {
 
         String userName = Validate.botUserName(args.get(0));
         String hostmask = Validate.hostmask(args.get(1));
-        List<BotUser> matchingUsers = BotUserHelper.findByHostmask(hostmask);
+        List<BotUser> matchingUsers = botUserHelper.findByHostmask(hostmask);
 
         if (!matchingUsers.isEmpty()) {
             event.respondWith("There is already a user with a matching hostmask");
@@ -362,22 +367,26 @@ public class UserCommand implements Command {
     private void removeChannelFlagCommand(List<String> args) throws IllegalArgumentException, BotUserException, ManagedChannelException, ManagedChannelUserException {
         Validate.arguments(args, 3);
 
+        var mcDao = new ManagedChannelDao();
+        var mcuDao = new ManagedChannelUserDao();
+        var mcuHelper = new ManagedChannelUserHelper();
+
         MortyBot bot = event.getBot();
-        ManagedChannelDao mcDao = new ManagedChannelDao();
-        ManagedChannelUserDao mcuDao = new ManagedChannelUserDao();
+
         String userName = Validate.botUserName(args.get(0));
         String channelName = Validate.channelName(args.get(1), bot.getServerInfo().getChannelTypes());
         String flagStr = args.get(2);
+
         BotUser botUser = botUserDao.getWithName(userName)
                 .orElseThrow(() -> new BotUserException(BotUserException.Reason.UNKNOWN_USER, userName));
         ManagedChannel managedChannel = mcDao.getWithName(channelName)
                 .orElseThrow(() -> new ManagedChannelException(ManagedChannelException.Reason.UNKNOWN_CHANNEL, channelName));
         ManagedChannelUser managedChannelUser = mcuDao.getWithManagedChannelIdAndBotUserId(managedChannel.getId(), botUser.getId())
                 .orElseThrow(() -> new ManagedChannelUserException(ManagedChannelUserException.Reason.NO_SUCH_RECORD, managedChannel.getName() + " " + botUser.getName()));
-        List<ManagedChannelUserFlag> flags = managedChannelUser.getManagedChannelUserFlags() == null ? new ArrayList<>() : managedChannelUser.getManagedChannelUserFlags();
 
-        flags.removeAll(ManagedChannelUserHelper.parseFlags(flagStr));
-        managedChannelUser.setManagedChannelUserFlags(flags);
+        List<ManagedChannelUserFlag> flagList = managedChannelUser.getManagedChannelUserFlags() == null ? new ArrayList<>() : managedChannelUser.getManagedChannelUserFlags();
+        flagList.removeAll(mcuHelper.parseFlags(flagStr));
+        managedChannelUser.setManagedChannelUserFlags(flagList);
         managedChannelUser = mcuDao.update(managedChannelUser);
 
         event.respondWith(String.format("Flags for %s on %s: %s",
@@ -400,7 +409,7 @@ public class UserCommand implements Command {
                 .orElseThrow(() -> new BotUserException(BotUserException.Reason.UNKNOWN_USER, userName));
         List<BotUserFlag> flags = botUser.getBotUserFlags() == null ? new ArrayList<>() : botUser.getBotUserFlags();
 
-        flags.removeAll(BotUserHelper.parseFlags(flagStr));
+        flags.removeAll(botUserHelper.parseFlags(flagStr));
         botUser.setBotUserFlags(flags);
         botUser = botUserDao.update(botUser);
 
@@ -443,7 +452,7 @@ public class UserCommand implements Command {
         String userName = Validate.botUserName(args.get(0));
         BotUser botUser = botUserDao.getWithName(userName)
                 .orElseThrow(() -> new BotUserException(BotUserException.Reason.UNKNOWN_USER, userName));
-        var channelFlagMap = BotUserHelper.getChannelFlagMap(botUser);
+        var channelFlagMap = botUserHelper.getChannelFlagMap(botUser);
 
         event.respondWith(String.format("%s -> hostmasks[%s] flags[%s] location[%s]",
                 botUser.getName(),

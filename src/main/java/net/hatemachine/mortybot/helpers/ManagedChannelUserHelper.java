@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.hatemachine.mortybot.util;
+package net.hatemachine.mortybot.helpers;
 
 import net.hatemachine.mortybot.custom.entity.ManagedChannelUserFlag;
 import org.slf4j.Logger;
@@ -28,17 +28,13 @@ public class ManagedChannelUserHelper {
 
     private static final Logger log = LoggerFactory.getLogger(ManagedChannelHelper.class);
 
-    public ManagedChannelUserHelper() {
-        throw new IllegalStateException("Utility class");
-    }
-
     /**
      * Parses a comma-delimited list of managed channel user flags into a list, removing any duplicate or invalid flags.
      *
      * @param flagStr a comma-delimited string representing one or more flags
      * @return a list of managed channel user flags
      */
-    public static List<ManagedChannelUserFlag> parseFlags(String flagStr) {
+    public List<ManagedChannelUserFlag> parseFlags(String flagStr) {
         List<ManagedChannelUserFlag> flags = new ArrayList<>();
 
         for (String s : flagStr.split(",")) {
