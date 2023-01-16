@@ -22,6 +22,7 @@ import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.dict.DictionaryEntry;
 import net.hatemachine.mortybot.dict.MerriamWebster;
 import net.hatemachine.mortybot.listeners.CommandListener;
+import org.junit.runner.manipulation.Alphanumeric;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;
@@ -45,7 +46,8 @@ public class WotdCommand implements Command {
 
     @Override
     public void execute() {
-        Optional<DictionaryEntry> optEntry = MerriamWebster.wotd();
+        MerriamWebster mw = new MerriamWebster();
+        Optional<DictionaryEntry> optEntry = mw.wotd();
 
         if (optEntry.isPresent()) {
             DictionaryEntry entry = optEntry.get();

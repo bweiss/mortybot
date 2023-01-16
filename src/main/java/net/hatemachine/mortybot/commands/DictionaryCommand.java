@@ -19,18 +19,24 @@ package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
+import net.hatemachine.mortybot.config.BotDefaults;
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.dict.DictionaryEntry;
 import net.hatemachine.mortybot.dict.MerriamWebster;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.hooks.types.GenericMessageEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-@BotCommand(name="DICT", clazz= DictionaryCommand.class, help={
+@BotCommand(name="DICT", clazz=DictionaryCommand.class, help={
         "Gets the dictionary definition for a word",
-        "Usage: DICT <word>"
+        "Usage: DICT [-a] <word>"
 })
 public class DictionaryCommand implements Command {
+
+    private static final Logger log = LoggerFactory.getLogger(DictionaryCommand.class);
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;
@@ -48,7 +54,16 @@ public class DictionaryCommand implements Command {
             throw new IllegalArgumentException("Not enough arguments");
         }
 
-        List<DictionaryEntry> entries = MerriamWebster.dictionary(String.join(" ", args));
+        List<String> newArgs = args;
+        boolean showAllDefs = false;
+        if (args.get(0).equalsIgnoreCase("-a")) {
+            showAllDefs = true;
+            newArgs = args.subList(1, args.size());
+        }
+
+        int maxDefs = BotProperties.getBotProperties().getIntProperty("dict.max.defs", BotDefaults.DICT_MAX_DEFS);
+        MerriamWebster mw = new MerriamWebster();
+        List<DictionaryEntry> entries = mw.lookup(String.join(" ", newArgs));
 
         if (entries.isEmpty()) {
             event.respondWith("No results found");
@@ -56,11 +71,15 @@ public class DictionaryCommand implements Command {
             for (DictionaryEntry entry : entries) {
                 List<String> defs = entry.definitions();
 
+                log.debug("Dictionary entry for {} has {} definitions", entry.word(), defs.size());
                 event.respondWith(entry.toString());
 
-                for (int i = 0; i < defs.size(); i++) {
-                    String def = defs.get(i);
-                    event.respondWith("#" + (i + 1) + def);
+                for (int i = 0; i < defs.size() && (showAllDefs || i < maxDefs); i++) {
+                    event.respondWith("#" + (i + 1) + defs.get(i));
+                }
+
+                if (!showAllDefs && defs.size() > maxDefs) {
+                    event.respondWith(String.format("Max definitions reached (%s of %s shown). Pass the -a option to show all.", maxDefs, defs.size()));
                 }
             }
         }

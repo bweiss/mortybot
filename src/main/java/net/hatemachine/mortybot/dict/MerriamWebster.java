@@ -39,11 +39,13 @@ public class MerriamWebster {
 
     private static final Logger log = LoggerFactory.getLogger(MerriamWebster.class);
 
-    private MerriamWebster() {
-        throw new IllegalStateException("Utility class");
-    }
-
-    public static List<DictionaryEntry> dictionary(String term) {
+    /**
+     * Performs a Merriam-Webster dictionary lookup and returns any definitions found.
+     *
+     * @param term the term to search for
+     * @return a dictionary entry object containing any definitions for the given term
+     */
+    public List<DictionaryEntry> lookup(String term) {
         String url = DICTIONARY_URL + URLEncoder.encode(Validate.notNullOrBlank(term), StandardCharsets.UTF_8);
         List<DictionaryEntry> entries = new ArrayList<>();
 
@@ -122,7 +124,12 @@ public class MerriamWebster {
         return entries;
     }
 
-    public static Optional<DictionaryEntry> wotd() {
+    /**
+     * Retrieves the Word of the Day from Merriam-Webster.
+     *
+     * @return a dictionary entry object containing the definition of the current word of the day
+     */
+    public Optional<DictionaryEntry> wotd() {
         Optional<DictionaryEntry> optEntry = Optional.empty();
 
         log.info("Fetching word of the day");

@@ -72,6 +72,9 @@ public class BotDefaults {
     // BottleCommand
     public static final int     BOTTLE_MAX_RESULTS = 5;
 
+    // DictionaryCommand
+    public static final int     DICT_MAX_DEFS = 4;
+
     // ImdbCommand
     public static final int     IMDB_MAX_RESULTS = 4;
 
