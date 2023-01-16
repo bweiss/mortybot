@@ -21,8 +21,9 @@ import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
+import net.hatemachine.mortybot.dict.Dictionary;
 import net.hatemachine.mortybot.dict.DictionaryEntry;
-import net.hatemachine.mortybot.dict.MerriamWebster;
+import net.hatemachine.mortybot.dict.MerriamWebsterWeb;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
@@ -62,8 +63,8 @@ public class DictionaryCommand implements Command {
         }
 
         int maxDefs = BotProperties.getBotProperties().getIntProperty("dict.max.defs", BotDefaults.DICT_MAX_DEFS);
-        MerriamWebster mw = new MerriamWebster();
-        List<DictionaryEntry> entries = mw.lookup(String.join(" ", newArgs));
+        Dictionary dict = new MerriamWebsterWeb();
+        List<DictionaryEntry> entries = dict.lookup(String.join(" ", newArgs));
 
         if (entries.isEmpty()) {
             event.respondWith("No results found");

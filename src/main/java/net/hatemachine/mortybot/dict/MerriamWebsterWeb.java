@@ -32,18 +32,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class MerriamWebster {
+public class MerriamWebsterWeb implements Dictionary {
 
     private static final String DICTIONARY_URL = "https://www.merriam-webster.com/dictionary/";
     private static final String WOTD_URL = "https://www.merriam-webster.com/word-of-the-day";
 
-    private static final Logger log = LoggerFactory.getLogger(MerriamWebster.class);
+    private static final Logger log = LoggerFactory.getLogger(MerriamWebsterWeb.class);
 
     /**
      * Performs a Merriam-Webster dictionary lookup and returns any definitions found.
      *
-     * @param term the term to search for
-     * @return a dictionary entry object containing any definitions for the given term
+     * @param term the term to lookup
+     * @return a list of dictionary entries containing any definitions for the given term
      */
     public List<DictionaryEntry> lookup(String term) {
         String url = DICTIONARY_URL + URLEncoder.encode(Validate.notNullOrBlank(term), StandardCharsets.UTF_8);
@@ -125,7 +125,7 @@ public class MerriamWebster {
     }
 
     /**
-     * Retrieves the Word of the Day from Merriam-Webster.
+     * Retrieves the Word of the Day from the Merriam-Webster website.
      *
      * @return a dictionary entry object containing the definition of the current word of the day
      */
@@ -143,6 +143,8 @@ public class MerriamWebster {
 
             if (wordH1 != null && typeAttrSpan != null && syllableAttrSpan != null && defContainerDiv != null) {
                 optEntry = Optional.of(new DictionaryEntry(wordH1.text(), typeAttrSpan.text(), syllableAttrSpan.text(), List.of(defContainerDiv.text())));
+            } else {
+                log.error("One or more elements were null");
             }
         } catch (IOException e) {
             log.error("Exception encountered fetching page", e);
