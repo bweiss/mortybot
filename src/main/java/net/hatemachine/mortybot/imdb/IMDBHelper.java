@@ -21,6 +21,7 @@ import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
+import com.uwyn.urlencoder.UrlEncoder;
 import net.hatemachine.mortybot.util.Validate;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -30,8 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -51,14 +50,15 @@ public class IMDBHelper {
     private static final Logger log = LoggerFactory.getLogger(IMDBHelper.class);
 
     /**
-     * Searches IMDB for a matching persons and titles.
+     * Searches IMDB for matching persons and titles.
      *
      * @param query the search string
      * @return list of the results
      */
     public static List<SearchResult> search(String query) {
         Validate.notNullOrBlank(query);
-        String searchUrl = SEARCH_URL + URLEncoder.encode(query, StandardCharsets.UTF_8);
+        String searchUrl = SEARCH_URL + UrlEncoder.encode(query);
+        log.debug("searchUrl: {}", searchUrl);
         List<SearchResult> results = new ArrayList<>();
         Document searchResultPage = null;
 

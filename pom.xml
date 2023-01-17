@@ -211,6 +211,12 @@
             <artifactId>reflections</artifactId>
             <version>0.10.2</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.uwyn</groupId>
+            <artifactId>urlencoder</artifactId>
+            <version>1.3.0</version>
+        </dependency>
     </dependencies>
 
     <build>

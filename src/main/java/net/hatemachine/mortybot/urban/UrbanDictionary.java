@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.urban;
 
+import com.uwyn.urlencoder.UrlEncoder;
 import net.hatemachine.mortybot.util.Validate;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -26,8 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +43,7 @@ public class UrbanDictionary {
     }
 
     public static List<Definition> lookup(String term) {
-        return doLookup(SEARCH_URL + URLEncoder.encode(term, StandardCharsets.UTF_8));
+        return doLookup(SEARCH_URL + UrlEncoder.encode(term));
     }
 
     private static List<Definition> doLookup(String url) {

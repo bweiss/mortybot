@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.rt;
 
+import com.uwyn.urlencoder.UrlEncoder;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -25,8 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,7 +47,7 @@ public class RTHelper {
 
         log.info("Searching Rotten Tomatoes for \"{}\"", query);
 
-        String searchUrl = SEARCH_URL + URLEncoder.encode(query, StandardCharsets.UTF_8);
+        String searchUrl = SEARCH_URL + UrlEncoder.encode(query);
         List<Movie> results = new ArrayList<>();
         Document resultsPage = null;
 

@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.bbb;
 
+import com.uwyn.urlencoder.UrlEncoder;
 import net.hatemachine.mortybot.util.Validate;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -26,8 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +43,7 @@ public class BottleBlueBook {
 
     public static List<SearchResult> search(String query) {
         Validate.notNullOrBlank(query);
-        String searchUrl = SEARCH_URL + URLEncoder.encode(query, StandardCharsets.UTF_8);
+        String searchUrl = SEARCH_URL + UrlEncoder.encode(query);
         List<SearchResult> results = new ArrayList<>();
         Document resultsPage = null;
 

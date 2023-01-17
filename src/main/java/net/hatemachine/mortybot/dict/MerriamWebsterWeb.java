@@ -17,6 +17,7 @@
  */
 package net.hatemachine.mortybot.dict;
 
+import com.uwyn.urlencoder.UrlEncoder;
 import net.hatemachine.mortybot.util.Validate;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -26,8 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -46,7 +45,7 @@ public class MerriamWebsterWeb implements Dictionary {
      * @return a list of dictionary entries containing any definitions for the given term
      */
     public List<DictionaryEntry> lookup(String term) {
-        String url = DICTIONARY_URL + URLEncoder.encode(Validate.notNullOrBlank(term), StandardCharsets.UTF_8);
+        String url = DICTIONARY_URL + UrlEncoder.encode(Validate.notNullOrBlank(term));
         List<DictionaryEntry> entries = new ArrayList<>();
 
         log.info("Fetching definition for \"{}\"", term);

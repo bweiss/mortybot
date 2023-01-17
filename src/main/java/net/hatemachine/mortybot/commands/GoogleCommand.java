@@ -17,8 +17,9 @@
  */
 package net.hatemachine.mortybot.commands;
 
-import net.hatemachine.mortybot.Command;
+import com.uwyn.urlencoder.UrlEncoder;
 import net.hatemachine.mortybot.BotCommand;
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -28,8 +29,6 @@ import org.pircbotx.Colors;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,7 +75,7 @@ public class GoogleCommand implements Command {
             throw new IllegalArgumentException("Not enough arguments");
         }
 
-        String searchUrl = SEARCH_URL + URLEncoder.encode(String.join(" ", args), StandardCharsets.UTF_8);
+        String searchUrl = SEARCH_URL + UrlEncoder.encode(String.join(" ", args));
         List<SearchResult> results = new ArrayList<>();
         Document page = null;
 
