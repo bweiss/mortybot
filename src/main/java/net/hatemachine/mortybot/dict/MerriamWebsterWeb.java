@@ -135,13 +135,13 @@ public class MerriamWebsterWeb implements Dictionary {
 
         try {
             Document doc = Jsoup.connect(WOTD_URL).get();
-            Element wordH1 = doc.select("div.word-and-pronunciation h1").first();
+            Element wordDiv = doc.select("div.word-and-pronunciation").first();
             Element typeAttrSpan = doc.select("div.word-attributes span.main-attr").first();
             Element syllableAttrSpan = doc.select("div.word-attributes span.word-syllables").first();
             Element defContainerDiv = doc.select("div.wod-definition-container p").first();
 
-            if (wordH1 != null && typeAttrSpan != null && syllableAttrSpan != null && defContainerDiv != null) {
-                optEntry = Optional.of(new DictionaryEntry(wordH1.text(), typeAttrSpan.text(), syllableAttrSpan.text(), List.of(defContainerDiv.text())));
+            if (wordDiv != null && typeAttrSpan != null && syllableAttrSpan != null && defContainerDiv != null) {
+                optEntry = Optional.of(new DictionaryEntry(wordDiv.child(0).text(), typeAttrSpan.text(), syllableAttrSpan.text(), List.of(defContainerDiv.text())));
             } else {
                 log.error("One or more elements were null");
             }
