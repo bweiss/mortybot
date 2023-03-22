@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 /**
  * CONFIG command that allows you to view and set bot properties.
  */
-@BotCommand(name="CONFIG", clazz= ConfigCommand.class, help={
+@BotCommand(name = "CONFIG", help = {
         "Allows you to view and change bot properties",
         "Usage: CONFIG <property> [value]"
 })

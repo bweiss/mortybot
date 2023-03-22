@@ -25,7 +25,7 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;
 
-@BotCommand(name="MSG", clazz= MessageCommand.class, help={
+@BotCommand(name = "MSG", help = {
         "Tells the bot to send a PRIVMSG to a user or channel",
         "Usage: MSG <user> <text>"
 })

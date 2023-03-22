@@ -31,7 +31,7 @@ import java.util.List;
  *
  * Inspired by vect0rx and https://twitter.com/year_progress.
  */
-@BotCommand(name="YEAR", clazz=YearCommand.class, help={
+@BotCommand(name = "YEAR", help = {
         "Shows progress through the current year",
         "Usage: YEAR"
 })

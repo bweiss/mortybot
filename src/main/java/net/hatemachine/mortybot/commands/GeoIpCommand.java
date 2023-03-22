@@ -45,7 +45,7 @@ import java.util.List;
  *
  * <a href="https://dev.maxmind.com/geoip/geolite2-free-geolocation-data">https://dev.maxmind.com/geoip/geolite2-free-geolocation-data</a>
  */
-@BotCommand(name="GEOIP", clazz= GeoIpCommand.class, help={
+@BotCommand(name = "GEOIP", help = {
         "Shows the geographic location of an IP address or hostname",
         "Usage: GEOIP <IP|hostname>"
 })

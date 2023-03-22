@@ -38,7 +38,7 @@ import java.util.List;
  * CHAT command
  * Instructs the bot to initiate a DCC CHAT session with the calling user.
  */
-@BotCommand(name="CHAT", clazz= ChatCommand.class, help={
+@BotCommand(name = "CHAT", help = {
         "Tells the bot to initiate a DCC chat request with you or [nick] if specified",
         "Usage: CHAT [nick]"
 })

@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 
 import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.DCC;
 
-@BotCommand(name="WHO", clazz= WhoCommand.class, help={
+@BotCommand(name = "WHO", help = {
         "Displays all users connected to the party line (DCC chat only)",
         "Usage: WHO"
 })

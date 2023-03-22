@@ -27,7 +27,7 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import java.util.List;
 import java.util.Optional;
 
-@BotCommand(name="WORDLE", clazz=WordleCommand.class, help={
+@BotCommand(name = "WORDLE", help = {
         "Play a game of Wordle!",
         "Usage: WORDLE",
         "After starting the game, simply type your 5-letter word guesses into the channel where you began the game"

@@ -41,12 +41,12 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.List;
 
-@BotCommand(name="WEATHER", clazz=WeatherCommand.class, help={
+@BotCommand(name = "WEATHER", help = {
         "Shows the weather for a location",
         "Usage: WEATHER [-d] [location]",
         "If the -d option is present the bot will attempt to save your default location (requires being registered with the bot)"
 })
-@BotCommand(name="WTR", clazz=WeatherCommand.class, help={
+@BotCommand(name = "WTR", help = {
         "Shows the weather for a location",
         "Usage: WTR [-d] [location]",
         "If the -d option is present the bot will attempt to save your default location (requires being registered with the bot)"

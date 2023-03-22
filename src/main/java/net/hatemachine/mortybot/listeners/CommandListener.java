@@ -21,7 +21,7 @@ import net.hatemachine.mortybot.*;
 import net.hatemachine.mortybot.dcc.DccManager;
 import net.hatemachine.mortybot.events.DccChatMessageEvent;
 import net.hatemachine.mortybot.exception.BotCommandException;
-import net.hatemachine.mortybot.helpers.BotCommandHelper;
+import net.hatemachine.mortybot.util.CommandUtil;
 import org.pircbotx.User;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
@@ -94,13 +94,13 @@ public class CommandListener extends ExtendedListenerAdapter {
         List<String> args = tokens.subList(1, tokens.size());
         User user = event.getUser();
         DccManager dccManager = DccManager.getManager();
-        BotCommandHelper cmdHelper = new BotCommandHelper();
 
         try {
-            Map<String, BotCommand> commandMap = cmdHelper.getBotCommandMap();
+            Map<String, CommandWrapper> commandMap = CommandUtil.getCommandMap();
 
             if (commandMap.containsKey(commandStr)) {
-                Command command = (Command) commandMap.get(commandStr).clazz()
+                Command command = (Command) commandMap.get(commandStr)
+                        .getCmdClass()
                         .getDeclaredConstructor(GenericMessageEvent.class, CommandSource.class, List.class)
                         .newInstance(event, source, args);
 

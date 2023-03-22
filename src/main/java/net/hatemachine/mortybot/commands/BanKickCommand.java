@@ -41,25 +41,25 @@ import static org.pircbotx.exception.DaoException.Reason.*;
 /**
  * Implements the BAN, BANKICK, KICK, and KICKBAN bot commands.
  */
-@BotCommand(name="BAN", clazz=BanKickCommand.class, help={
+@BotCommand(name = "BAN", help = {
         "Bans a user from a channel",
         "Usage: BAN <nick|hostmask>",
         "Usage: BAN <nick|hostmask> <channel>",
         "You must specify the channel if command is not from a public source"
 })
-@BotCommand(name="BANKICK", clazz=BanKickCommand.class, help={
+@BotCommand(name = "BANKICK", help = {
         "Bans and kicks a user from a channel",
         "Usage: BANKICK <nick> [reason]",
         "Usage: BANKICK <nick> <channel> [reason]",
         "You must specify the channel if command is not from a public source"
 })
-@BotCommand(name="KICK", clazz=BanKickCommand.class, help={
+@BotCommand(name = "KICK", help = {
         "Kicks a user from a channel",
         "Usage: KICK <user> [reason]",
         "Usage: KICK <user> <channel> [reason]",
         "You must specify the channel if command is not from a public source"
 })
-@BotCommand(name="KICKBAN", clazz=BanKickCommand.class, help={
+@BotCommand(name = "KICKBAN", help = {
         "Kicks and bans a user from a channel",
         "Usage: KICKBAN <user> [reason]",
         "Usage: KICKBAN <user> <channel> [reason]",

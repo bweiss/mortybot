@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
  *
  * This requires a Shodan API key that must be set in either bot.properties for the SHODAN_API_KEY environment variable.
  */
-@BotCommand(name="HOST", clazz=HostCommand.class, help={
+@BotCommand(name = "HOST", help = {
         "Looks up basic information on a particular hostname or IP address",
         "Usage: HOST <address>"
 })

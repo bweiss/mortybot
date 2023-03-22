@@ -43,7 +43,7 @@ import static java.util.stream.Collectors.joining;
  * If there are no existing bot users this will grant admin rights.
  * If no hostmask is specified it will generate one for you via the <code>IrcUtils.maskAddress()</code> method.
  */
-@BotCommand(name="REGISTER", clazz= RegisterCommand.class, help={
+@BotCommand(name = "REGISTER", help = {
         "Registers yourself with the bot using your current hostname",
         "Usage: REGISTER [name]"
 })

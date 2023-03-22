@@ -17,30 +17,30 @@
  */
 package net.hatemachine.mortybot;
 
-import java.lang.annotation.*;
-
 /**
- * Runtime annotation for defining bot commands and their help text. Multiple annotations can be used to create
- * additional aliases for the command.
- *
- * @see BotCommands
- * @see Command
+ * Wraps our command objects so that we can inject the command's class and pull in fields from the BotCommand annotations.
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@Repeatable(BotCommands.class)
-public @interface BotCommand {
-    /**
-     * The name of the bot command. This is what determines the actual command available to end users.
-     *
-     * @return the command name
-     */
-    String name();
+public class CommandWrapper {
 
-    /**
-     * The help text for the command.
-     *
-     * @return an array of help text lines
-     */
-    String[] help();
+    private final String name;
+    private final Class<?> cmdClass;
+    private final String[] help;
+
+    public CommandWrapper(String name, Class<?> cmdClass, String[] help) {
+        this.name = name;
+        this.cmdClass = cmdClass;
+        this.help = help;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Class<?> getCmdClass() {
+        return cmdClass;
+    }
+
+    public String[] getHelp() {
+        return help;
+    }
 }

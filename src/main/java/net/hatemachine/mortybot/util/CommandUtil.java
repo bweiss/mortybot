@@ -15,33 +15,52 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.hatemachine.mortybot.helpers;
+package net.hatemachine.mortybot.util;
 
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.BotCommands;
 import net.hatemachine.mortybot.Command;
-import net.hatemachine.mortybot.config.BotProperties;
+import net.hatemachine.mortybot.CommandWrapper;
 import org.reflections.Reflections;
 
 import java.util.*;
 
 import static org.reflections.scanners.Scanners.SubTypes;
 
-/**
- * Helper class for working with bot commands and BotCommand annotations.
- *
- * @see BotCommand
- * @see BotCommands
- */
-public class BotCommandHelper {
+public class CommandUtil {
+
+    private static final Map<String, CommandWrapper> commandMap = new TreeMap<>();
+
+    // Scan the commands package for classes that have BotCommand annotations and build a map
+    static {
+        Reflections reflections = new Reflections("net.hatemachine.mortybot.commands");
+        Set<Class<?>> cmdClasses = reflections.get(SubTypes.of(Command.class).asClass());
+
+        for (Class<?> clazz : cmdClasses) {
+            List<BotCommand> botCommands = getBotCommandAnnotations(clazz);
+            for (BotCommand annotation : botCommands) {
+                CommandWrapper cmdWrapper = new CommandWrapper(annotation.name(), clazz, annotation.help());
+                commandMap.put(cmdWrapper.getName(), cmdWrapper);
+            }
+        }
+    }
 
     /**
-     * Gets a list of {@link BotCommand} annotations for a class.
+     * Gets a map of commands available to the bot.
+     *
+     * @return a map of command strings and wrapper objects containing the specifics of the command
+     */
+    public static Map<String, CommandWrapper> getCommandMap() {
+        return commandMap;
+    }
+
+    /**
+     * Gets a list of {@link BotCommand} annotations for a particular class.
      *
      * @param clazz the class to retrieve annotations for
-     * @return a list of BotCommand annotations
+     * @return a list of BotCommand annotations for the provided class
      */
-    public List<BotCommand> getBotCommandAnnotations(Class<?> clazz) {
+    private static List<BotCommand> getBotCommandAnnotations(Class<?> clazz) {
         List<BotCommand> annotations = new ArrayList<>();
         var repeatedAnnotations = clazz.getAnnotation(BotCommands.class);
 
@@ -55,29 +74,5 @@ public class BotCommandHelper {
         }
 
         return annotations;
-    }
-
-    /**
-     * Gets a map of bot commands and their BotCommand annotations.
-     *
-     * @return a map of bot commands
-     */
-    public Map<String, BotCommand> getBotCommandMap() {
-        Map<String, BotCommand> commandMap = new TreeMap<>();
-        BotProperties props = BotProperties.getBotProperties();
-        List<String> enabledCmdClasses = Arrays.asList(props.getStringProperty("commands.enabled").split(","));
-        Reflections reflections = new Reflections("net.hatemachine.mortybot.commands");
-        Set<Class<?>> cmdClasses = reflections.get(SubTypes.of(Command.class).asClass());
-
-        for (var clazz : cmdClasses) {
-            List<BotCommand> botCommands = getBotCommandAnnotations(clazz);
-            botCommands.forEach(c -> {
-                if (enabledCmdClasses.contains(clazz.getSimpleName())) {
-                    commandMap.put(c.name(), c);
-                }
-            });
-        }
-
-        return commandMap;
     }
 }

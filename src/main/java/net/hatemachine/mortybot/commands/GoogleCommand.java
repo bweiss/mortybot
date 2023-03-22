@@ -35,15 +35,15 @@ import java.util.List;
 /**
  * Performs a Google search and displays the title and link for the top result.
  */
-@BotCommand(name="G", clazz= GoogleCommand.class, help={
+@BotCommand(name = "G", help = {
         "Performs a Google search and displays the top result",
         "Usage: G <query>"
 })
-@BotCommand(name="GOO", clazz= GoogleCommand.class, help={
+@BotCommand(name = "GOO", help = {
         "Performs a Google search and displays the top result",
         "Usage: GOO <query>"
 })
-@BotCommand(name="GOOGLE", clazz= GoogleCommand.class, help={
+@BotCommand(name = "GOOGLE", help = {
         "Performs a Google search and displays the top result",
         "Usage: GOOGLE <query>"
 })

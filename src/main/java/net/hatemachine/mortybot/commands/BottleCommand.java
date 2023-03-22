@@ -30,7 +30,7 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import java.util.List;
 import java.util.Optional;
 
-@BotCommand(name="BOTTLE", clazz=BottleCommand.class, help={
+@BotCommand(name = "BOTTLE", help = {
         "Searches Bottle Blue Book for bottles",
         "Usage: BOTTLE <query>"
 })

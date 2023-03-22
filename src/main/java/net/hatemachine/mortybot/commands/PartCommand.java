@@ -30,7 +30,7 @@ import java.util.List;
 
 import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.PUBLIC;
 
-@BotCommand(name="PART", clazz= PartCommand.class, help={
+@BotCommand(name = "PART", help = {
         "Makes the bot part a channel",
         "Usage: PART [channel]"
 })

@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 /**
  * CHANNEL command that allows you to view and manipulate the bot's managed channels.
  */
-@BotCommand(name="CHANNEL", clazz=ChannelCommand.class, help={
+@BotCommand(name = "CHANNEL", help = {
         "Manages the bot's channels",
         "Usage: CHANNEL <subcommand> [args]",
         "Subcommands: ADD, ADDBAN, ADDFLAG, LIST, MODES, REMOVE, REMOVEBAN, REMOVEFLAG, SHOW, SHOWBANS"

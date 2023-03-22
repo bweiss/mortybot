@@ -36,7 +36,7 @@ import java.util.List;
  * If the -l flag is present as the first argument, it will respond with a list of results.
  * Otherwise, it will respond with the details for the top result.
  */
-@BotCommand(name="IMDB", clazz= ImdbCommand.class, help={
+@BotCommand(name = "IMDB", help = {
         "Searches IMDB for movie titles or persons",
         "Usage: IMDB [-l] <query>"
 })
@@ -60,6 +60,7 @@ public class ImdbCommand implements Command {
             throw new IllegalArgumentException("Not enough arguments");
         }
 
+        IMDBHelper helper = new IMDBHelper();
         boolean listResults = false;
         int maxResults = BotProperties.getBotProperties().getIntProperty("imdb.max.results", BotDefaults.IMDB_MAX_RESULTS);
         String query;
@@ -71,7 +72,7 @@ public class ImdbCommand implements Command {
             query = String.join(" ", args);
         }
 
-        List<SearchResult> results = IMDBHelper.search(query);
+        List<SearchResult> results = helper.search(query);
 
         if (results.isEmpty()) {
             event.respondWith("No results found");
@@ -88,7 +89,7 @@ public class ImdbCommand implements Command {
 
                 // Person
                 if (topResult.getType() == SearchResult.Type.NM) {
-                    var person = IMDBHelper.fetchPerson(topResult.getUrl());
+                    var person = helper.fetchPerson(topResult.getUrl());
                     if (person.isPresent()) {
                         var p = person.get();
                         event.respondWith(RESPONSE_PREFIX + p);
@@ -100,7 +101,7 @@ public class ImdbCommand implements Command {
 
                 // Title
                 else if (topResult.getType() == SearchResult.Type.TT) {
-                    var title = IMDBHelper.fetchTitle(topResult.getUrl());
+                    var title = helper.fetchTitle(topResult.getUrl());
                     if (title.isPresent()) {
                         var t = title.get();
                         event.respondWith(RESPONSE_PREFIX + t);

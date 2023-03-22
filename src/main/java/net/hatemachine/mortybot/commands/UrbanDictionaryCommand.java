@@ -29,11 +29,11 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;
 
-@BotCommand(name="URB", clazz= UrbanDictionaryCommand.class, help={
+@BotCommand(name = "URB", help = {
         "Looks up definitions on urbandictionary.com",
         "Usage: URB [term] [defnum]"
 })
-@BotCommand(name="URBAN", clazz= UrbanDictionaryCommand.class, help={
+@BotCommand(name = "URBAN", help = {
         "Looks up definitions on urbandictionary.com",
         "Usage: URBAN [term] [defnum]"
 })

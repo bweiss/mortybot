@@ -52,7 +52,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-@BotCommand(name="STOCK", clazz= StockCommand.class , help={
+@BotCommand(name = "STOCK", help = {
         "Looks up the current price of stock symbols",
         "Usage: STOCK <symbol1> [symbol2] ..."
 })

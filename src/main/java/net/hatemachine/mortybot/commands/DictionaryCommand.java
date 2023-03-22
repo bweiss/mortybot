@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-@BotCommand(name="DICT", clazz=DictionaryCommand.class, help={
+@BotCommand(name = "DICT", help = {
         "Gets the dictionary definition for a word",
         "Usage: DICT [-a] <word>"
 })

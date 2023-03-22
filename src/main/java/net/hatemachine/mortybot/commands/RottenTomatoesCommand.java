@@ -38,7 +38,7 @@ import java.util.List;
  * If the -l flag is present as the first argument, it will respond with a list of results.
  * Otherwise, it will respond with the details for the top result.
  */
-@BotCommand(name="RT", clazz= RottenTomatoesCommand.class, help={
+@BotCommand(name = "RT", help = {
         "Searches Rotten Tomatoes for movie ratings",
         "Usage: RT [-l] <query>"
 })

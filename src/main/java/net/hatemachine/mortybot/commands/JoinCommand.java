@@ -25,7 +25,7 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;
 
-@BotCommand(name="JOIN", clazz= JoinCommand.class, help={
+@BotCommand(name = "JOIN", help = {
         "Makes the bot join a channel",
         "Usage: JOIN <channel> [key]"
 })

@@ -51,7 +51,7 @@ import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.D
 /**
  * USER command that allows you to view and manipulate bot users.
  */
-@BotCommand(name="USER", clazz=UserCommand.class, help={
+@BotCommand(name = "USER", help = {
         "Manages bot users",
         "Usage: USER <subcommand> [target] [args]",
         "Usage: USER <ADDCHANFLAG|REMOVECHANFLAG> <user> <channel> <flag>",

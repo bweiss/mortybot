@@ -17,11 +17,12 @@
  */
 package net.hatemachine.mortybot.commands;
 
-import net.hatemachine.mortybot.helpers.BotCommandHelper;
-import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
+import net.hatemachine.mortybot.Command;
+import net.hatemachine.mortybot.CommandWrapper;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
+import net.hatemachine.mortybot.util.CommandUtil;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-@BotCommand(name="HELP", clazz=HelpCommand.class, help={
+@BotCommand(name = "HELP", help = {
         "Shows help and usage information for bot commands",
         "Usage: HELP [command]"
 })
@@ -75,13 +76,13 @@ public class HelpCommand implements Command {
     }
 
     private void respondWithAllCommands() {
-        BotCommandHelper cmdHelper = new BotCommandHelper();
-        Map<String, BotCommand> commandMap = cmdHelper.getBotCommandMap();
+        Map<String, CommandWrapper> commandMap = CommandUtil.getCommandMap();
         List<String> enabledCommands = new ArrayList<>();
 
         commandMap.forEach((k, v) -> {
             try {
-                Command command = (Command) commandMap.get(k).clazz()
+                Command command = (Command) commandMap.get(k)
+                        .getCmdClass()
                         .getDeclaredConstructor(GenericMessageEvent.class, CommandListener.CommandSource.class, List.class)
                         .newInstance(event, source, args);
 
@@ -100,13 +101,11 @@ public class HelpCommand implements Command {
 
     private void respondWithCommandHelp() {
         String commandStr = args.get(0).toUpperCase(Locale.ROOT);
-        BotCommandHelper cmdHelper = new BotCommandHelper();
-        Map<String, BotCommand> commandMap = cmdHelper.getBotCommandMap();
+        Map<String, CommandWrapper> commandMap = CommandUtil.getCommandMap();
 
         if (commandMap.containsKey(commandStr)) {
             var cmd = commandMap.get(commandStr);
-            String[] help = cmd.help();
-            for (var line : help) {
+            for (var line : cmd.getHelp()) {
                 event.respondWith(line);
             }
         } else {

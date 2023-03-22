@@ -27,7 +27,7 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import java.util.List;
 import java.util.Optional;
 
-@BotCommand(name="WOTD", clazz=WotdCommand.class, help={
+@BotCommand(name = "WOTD", help = {
         "Fetch the word of the day from Merriam-Webster",
         "Usage: WOTD"
 })

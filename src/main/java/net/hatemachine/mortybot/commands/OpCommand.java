@@ -35,7 +35,7 @@ import java.util.Set;
 
 import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.*;
 
-@BotCommand(name="OP", clazz= OpCommand.class, help={
+@BotCommand(name = "OP", help = {
         "Makes the bot op a user",
         "Usage: OP [user]"
 })
