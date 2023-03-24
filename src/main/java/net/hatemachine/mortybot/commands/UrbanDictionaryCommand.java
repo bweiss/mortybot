@@ -29,6 +29,9 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;
 
+/**
+ * Implements the URBAN command, allowing users to search for terms on Urban Dictionary.
+ */
 @BotCommand(name = "URB", help = {
         "Looks up definitions on urbandictionary.com",
         "Usage: URB [term] [defnum]"

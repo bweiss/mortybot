@@ -29,9 +29,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * CONFIG command that allows you to view and set bot properties.
+ * Implements the CONFIG command, allowing users to view and set bot properties at runtime.
  */
-@BotCommand(name = "CONFIG", help = {
+@BotCommand(name = "CONFIG", restricted = true, help = {
         "Allows you to view and change bot properties",
         "Usage: CONFIG <property> [value]"
 })

@@ -41,6 +41,9 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.List;
 
+/**
+ * Implements the WEATHER command, allowing users to look up the current weather for a location.
+ */
 @BotCommand(name = "WEATHER", help = {
         "Shows the weather for a location",
         "Usage: WEATHER [-d] [location]",

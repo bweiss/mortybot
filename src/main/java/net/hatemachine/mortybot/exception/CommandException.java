@@ -17,25 +17,29 @@
  */
 package net.hatemachine.mortybot.exception;
 
-public class BotCommandException extends RuntimeException {
-    protected final BotCommandException.Reason reason;
+/**
+ * CommandException is a runtime exception intended to be thrown by command implementations whenever they encounter
+ * common, expected issues (e.g. not enough args) and should be handled by the command listener.
+ */
+public class CommandException extends RuntimeException {
+    protected final CommandException.Reason reason;
 
     public enum Reason {
-        COMMAND_NOT_ENABLED,
-        USER_IGNORED,
-        USER_UNAUTHORIZED
+        INVALID_ARGS,
+        IGNORED_USER,
+        UNAUTHORIZED_USER
     }
 
-    public BotCommandException(BotCommandException.Reason reason, String message) {
+    public CommandException(CommandException.Reason reason, String message) {
         this(reason, message, null);
     }
 
-    public BotCommandException(BotCommandException.Reason reason, String message, Exception e) {
-        super(reason + ": " + message, e);
+    public CommandException(CommandException.Reason reason, String message, Exception e) {
+        super(message, e);
         this.reason = reason;
     }
 
-    public BotCommandException.Reason getReason() {
+    public CommandException.Reason getReason() {
         return this.reason;
     }
 }

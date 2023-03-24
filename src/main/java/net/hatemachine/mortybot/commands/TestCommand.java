@@ -24,7 +24,10 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;
 
-@BotCommand(name = "TEST", help = {
+/**
+ * Implements a TEST command. This is only used for testing purposes and is typically disabled in production configurations.
+ */
+@BotCommand(name = "TEST", restricted = true, help = {
         "Used for testing",
         "Usage: TEST <args>"
 })

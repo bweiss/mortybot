@@ -24,12 +24,16 @@ import net.hatemachine.mortybot.bbb.BottleBlueBook;
 import net.hatemachine.mortybot.bbb.SearchResult;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
+import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Implements the BOTTLE command, allowing users to look up bottles on Bottle Blue Book.
+ */
 @BotCommand(name = "BOTTLE", help = {
         "Searches Bottle Blue Book for bottles",
         "Usage: BOTTLE <query>"
@@ -48,8 +52,9 @@ public class BottleCommand implements Command {
 
     @Override
     public void execute() {
-        if (args.isEmpty())
-            throw new IllegalArgumentException("Not enough arguments");
+        if (args.isEmpty()) {
+            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
+        }
 
         int maxResults = BotProperties.getBotProperties()
                 .getIntProperty("bottle.max.results", BotDefaults.BOTTLE_MAX_RESULTS);

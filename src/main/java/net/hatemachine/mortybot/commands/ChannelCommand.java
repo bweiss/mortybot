@@ -40,9 +40,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * CHANNEL command that allows you to view and manipulate the bot's managed channels.
+ * Implements the CHANNEL command, allowing admin users to view and manipulate the bot's managed channels.
  */
-@BotCommand(name = "CHANNEL", help = {
+@BotCommand(name = "CHANNEL", restricted = true, help = {
         "Manages the bot's channels",
         "Usage: CHANNEL <subcommand> [args]",
         "Subcommands: ADD, ADDBAN, ADDFLAG, LIST, MODES, REMOVE, REMOVEBAN, REMOVEFLAG, SHOW, SHOWBANS"
@@ -65,7 +65,7 @@ public class ChannelCommand implements Command {
 
     @Override
     public void execute() {
-        Validate.arguments(args, 1);
+        Validate.commandArguments(args, 1);
 
         String command = args.get(0).toUpperCase();
         List<String> newArgs = args.subList(1, args.size());
@@ -99,7 +99,7 @@ public class ChannelCommand implements Command {
      * @throws IllegalArgumentException if any arguments are missing or invalid
      */
     private void addCommand(final List<String> args) {
-        Validate.arguments(args, 1);
+        Validate.commandArguments(args, 1);
 
         String channelName = Validate.channelName(args.get(0), event.getBot().getServerInfo().getChannelTypes());
         Optional<ManagedChannel> optionalManagedChannel = managedChannelDao.getWithName(channelName);
@@ -121,7 +121,7 @@ public class ChannelCommand implements Command {
      * @throws ManagedChannelException if a managed channel with the given name cannot be found
      */
     private void addBanCommand(final List<String> args) throws IllegalArgumentException, ManagedChannelException {
-        Validate.arguments(args, 2);
+        Validate.commandArguments(args, 2);
 
         String channelName = args.get(0);
         String targetHostmask = Validate.hostmask(args.get(1));
@@ -153,7 +153,7 @@ public class ChannelCommand implements Command {
      * @throws ManagedChannelException if managed channel entry cannot be created
      */
     private void addFlagCommand(final List<String> args) throws IllegalArgumentException, ManagedChannelException {
-        Validate.arguments(args, 2);
+        Validate.commandArguments(args, 2);
 
         String channelName = Validate.channelName(args.get(0), event.getBot().getServerInfo().getChannelTypes());
         List<ManagedChannelFlag> newFlags = ManagedChannelHelper.parseFlags(args.get(1));
@@ -199,7 +199,7 @@ public class ChannelCommand implements Command {
      * @throws ManagedChannelException if managed channel entry cannot be created
      */
     private void modesCommand(final List<String> args) throws IllegalArgumentException, ManagedChannelException {
-        Validate.arguments(args, 1);
+        Validate.commandArguments(args, 1);
 
         String channelName = args.get(0);
         Optional<String> newModes = Optional.empty();
@@ -228,7 +228,7 @@ public class ChannelCommand implements Command {
      * @throws ManagedChannelException if no managed channel entry can be found for this channel
      */
     private void removeCommand(final List<String> args) throws IllegalArgumentException, ManagedChannelException {
-        Validate.arguments(args, 1);
+        Validate.commandArguments(args, 1);
 
         String channelName = Validate.channelName(args.get(0), event.getBot().getServerInfo().getChannelTypes());
         ManagedChannel managedChannel = managedChannelDao.getWithName(channelName)
@@ -247,7 +247,7 @@ public class ChannelCommand implements Command {
      * @throws ManagedChannelException if a managed channel with the given name cannot be found
      */
     private void removeBanCommand(final List<String> args) throws IllegalArgumentException, ManagedChannelException {
-        Validate.arguments(args, 2);
+        Validate.commandArguments(args, 2);
 
         String channelName = args.get(0);
         String targetHostmask = args.get(1);
@@ -279,7 +279,7 @@ public class ChannelCommand implements Command {
      * @throws ManagedChannelException if no managed channel entry can be found for this channel
      */
     private void removeFlagCommand(final List<String> args) throws IllegalArgumentException, ManagedChannelException {
-        Validate.arguments(args, 2);
+        Validate.commandArguments(args, 2);
 
         String channelName = Validate.channelName(args.get(0), event.getBot().getServerInfo().getChannelTypes());
         List<ManagedChannelFlag> flagsToRemove = ManagedChannelHelper.parseFlags(args.get(1));
@@ -306,7 +306,7 @@ public class ChannelCommand implements Command {
      * @throws ManagedChannelException if no managed channel entry can be found for this channel
      */
     private void showCommand(final List<String> args) throws IllegalArgumentException, ManagedChannelException {
-        Validate.arguments(args, 1);
+        Validate.commandArguments(args, 1);
 
         String channelName = Validate.channelName(args.get(0), event.getBot().getServerInfo().getChannelTypes());
         ManagedChannel managedChannel = managedChannelDao.getWithName(channelName)
@@ -338,7 +338,7 @@ public class ChannelCommand implements Command {
      * @throws ManagedChannelException if no managed channel entry can be found for this channel
      */
     private void showBansCommand(final List<String> args) throws IllegalArgumentException, ManagedChannelException {
-        Validate.arguments(args, 1);
+        Validate.commandArguments(args, 1);
 
         String channelName = args.get(0);
         ManagedChannel managedChannel = managedChannelDao.getWithName(channelName)

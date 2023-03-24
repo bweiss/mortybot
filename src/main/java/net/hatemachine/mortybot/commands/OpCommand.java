@@ -35,8 +35,11 @@ import java.util.Set;
 
 import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.*;
 
-@BotCommand(name = "OP", help = {
-        "Makes the bot op a user",
+/**
+ * Implements the OP command, allowing users to tell the bot to grant operator status (+o) to a user on one or more channels.
+ */
+@BotCommand(name = "OP", restricted = true, help = {
+        "Tells the bot to op a user on a channel",
         "Usage: OP [user]"
 })
 public class OpCommand implements Command {

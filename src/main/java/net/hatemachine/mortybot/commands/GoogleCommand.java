@@ -20,6 +20,7 @@ package net.hatemachine.mortybot.commands;
 import com.uwyn.urlencoder.UrlEncoder;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.Command;
+import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -33,12 +34,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Performs a Google search and displays the title and link for the top result.
+ * Implements the GOOGLE command. Performs a Google search and displays the title and link for the top result.
  */
-@BotCommand(name = "G", help = {
-        "Performs a Google search and displays the top result",
-        "Usage: G <query>"
-})
 @BotCommand(name = "GOO", help = {
         "Performs a Google search and displays the top result",
         "Usage: GOO <query>"
@@ -72,7 +69,7 @@ public class GoogleCommand implements Command {
     @Override
     public void execute() {
         if (args.isEmpty()) {
-            throw new IllegalArgumentException("Not enough arguments");
+            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
         }
 
         String searchUrl = SEARCH_URL + UrlEncoder.encode(String.join(" ", args));
@@ -87,11 +84,14 @@ public class GoogleCommand implements Command {
 
         if (page != null) {
             Elements resultDivs = page.select("div.g");
+
             for (Element div : resultDivs) {
                 Element aTag = div.select("a").first();
+
                 if (aTag != null) {
                     String url = aTag.attr("href");
                     Element h3Tag = aTag.select("h3").first();
+
                     if (h3Tag != null) {
                         String text = h3Tag.text();
                         results.add(new SearchResult(url, text));

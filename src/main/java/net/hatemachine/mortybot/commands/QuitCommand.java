@@ -25,8 +25,11 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;
 
-@BotCommand(name = "QUIT", help = {
-        "Makes the bot quit and shutdown",
+/**
+ * Implements the QUIT command, allowing users to tell the bot to quit.
+ */
+@BotCommand(name = "QUIT", restricted = true, help = {
+        "Tells the bot to quit",
         "Usage: QUIT"
 })
 public class QuitCommand implements Command {

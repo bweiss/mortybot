@@ -19,13 +19,17 @@ package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
+import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.MortyBot;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;
 
-@BotCommand(name = "JOIN", help = {
+/**
+ * Implements the JOIN command, allowing users to tell the bot to join a channel.
+ */
+@BotCommand(name = "JOIN", restricted = true, help = {
         "Makes the bot join a channel",
         "Usage: JOIN <channel> [key]"
 })
@@ -43,7 +47,12 @@ public class JoinCommand implements Command {
 
     @Override
     public void execute() {
+        if (args.isEmpty()) {
+            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
+        }
+
         MortyBot bot = event.getBot();
+
         if (args.size() == 1) {
             bot.sendIRC().joinChannel(args.get(0));
         } else if (args.size() > 1) {

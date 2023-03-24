@@ -21,6 +21,7 @@ import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
+import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.imdb.IMDBHelper;
 import net.hatemachine.mortybot.imdb.SearchResult;
 import net.hatemachine.mortybot.listeners.CommandListener;
@@ -29,16 +30,12 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import java.util.List;
 
 /**
- * Implements the IMDB bot command.
- *
- * Usage: IMDB [-l] query_str
- *
- * If the -l flag is present as the first argument, it will respond with a list of results.
- * Otherwise, it will respond with the details for the top result.
+ * Implements the IMDB command, allowing users to look up titles or persons on the IMDB website.
  */
 @BotCommand(name = "IMDB", help = {
         "Searches IMDB for movie titles or persons",
-        "Usage: IMDB [-l] <query>"
+        "Usage: IMDB [-l] <query>",
+        "Displays a list of results if the -l option is present"
 })
 public class ImdbCommand implements Command {
 
@@ -57,7 +54,7 @@ public class ImdbCommand implements Command {
     @Override
     public void execute() {
         if (args.isEmpty()) {
-            throw new IllegalArgumentException("Not enough arguments");
+            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
         }
 
         IMDBHelper helper = new IMDBHelper();

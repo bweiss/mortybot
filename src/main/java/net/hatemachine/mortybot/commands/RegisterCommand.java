@@ -39,9 +39,10 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.joining;
 
 /**
- * Registers yourself with the bot.
+ * Implements the REGISTER command, allowing users to register themselves with the bot.
  * If there are no existing bot users this will grant admin rights.
- * If no hostmask is specified it will generate one for you via the <code>IrcUtils.maskAddress()</code> method.
+ * If no hostmask is specified it will generate one for you via the <code>IrcUtils.maskAddress()</code> method.<br/>
+ * Note: There are times when the bot cannot adequately determine a user's hostname.
  */
 @BotCommand(name = "REGISTER", help = {
         "Registers yourself with the bot using your current hostname",

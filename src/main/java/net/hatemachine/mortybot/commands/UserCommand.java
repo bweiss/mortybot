@@ -17,7 +17,9 @@
  */
 package net.hatemachine.mortybot.commands;
 
-import net.hatemachine.mortybot.*;
+import net.hatemachine.mortybot.BotCommand;
+import net.hatemachine.mortybot.Command;
+import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.custom.entity.BotUserFlag;
@@ -35,7 +37,8 @@ import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.model.ManagedChannel;
 import net.hatemachine.mortybot.model.ManagedChannelUser;
-import net.hatemachine.mortybot.util.*;
+import net.hatemachine.mortybot.util.IrcUtils;
+import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.User;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
@@ -49,9 +52,9 @@ import static net.hatemachine.mortybot.config.BotDefaults.USER_ADD_MASK_TYPE;
 import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.DCC;
 
 /**
- * USER command that allows you to view and manipulate bot users.
+ * Implements the USER command, allowing users to view and manipulate bot users.
  */
-@BotCommand(name = "USER", help = {
+@BotCommand(name = "USER", restricted = true, help = {
         "Manages bot users",
         "Usage: USER <subcommand> [target] [args]",
         "Usage: USER <ADDCHANFLAG|REMOVECHANFLAG> <user> <channel> <flag>",
@@ -81,7 +84,7 @@ public class UserCommand implements Command {
 
     @Override
     public void execute() {
-        Validate.arguments(args, 1);
+        Validate.commandArguments(args, 1);
 
         String subCommand = args.get(0).toUpperCase();
         List<String> newArgs = args.subList(1, args.size());
@@ -119,7 +122,7 @@ public class UserCommand implements Command {
      * @throws IllegalArgumentException if any arguments are missing or invalid
      */
     private void addCommand(List<String> args) throws IllegalArgumentException {
-        Validate.arguments(args, 1);
+        Validate.commandArguments(args, 1);
 
         String userName = Validate.botUserName(args.get(0));
         String hostmask = "";
@@ -182,7 +185,7 @@ public class UserCommand implements Command {
      * @throws ManagedChannelUserException if there is a failure to find or create a managed channel user entry for the channel and user
      */
     private void addChannelFlagCommand(List<String> args) throws IllegalArgumentException, BotUserException, ManagedChannelException, ManagedChannelUserException {
-        Validate.arguments(args, 3);
+        Validate.commandArguments(args, 3);
 
         ManagedChannelDao mcDao = new ManagedChannelDao();
         ManagedChannelUserDao mcuDao = new ManagedChannelUserDao();
@@ -232,7 +235,7 @@ public class UserCommand implements Command {
      * @throws BotUserException if no user with the provided name exists
      */
     private void addFlagCommand(List<String> args) throws BotUserException {
-        Validate.arguments(args, 2);
+        Validate.commandArguments(args, 2);
 
         String userName = Validate.botUserName(args.get(0));
         BotUser botUser = botUserDao.getWithName(userName)
@@ -260,7 +263,7 @@ public class UserCommand implements Command {
      * @throws BotUserException if a user with the provided name cannot be found
      */
     private void addHostmaskCommand(List<String> args) throws IllegalArgumentException, BotUserException {
-        Validate.arguments(args, 2);
+        Validate.commandArguments(args, 2);
 
         String userName = Validate.botUserName(args.get(0));
         String hostmask = Validate.hostmask(args.get(1));
@@ -323,7 +326,7 @@ public class UserCommand implements Command {
      * @see WeatherCommand
      */
     private void locationCommand(List<String> args) throws IllegalArgumentException, BotUserException {
-        Validate.arguments(args, 2);
+        Validate.commandArguments(args, 2);
 
         String userName = Validate.botUserName(args.get(0));
         String location = String.join(" ", args.subList(1, args.size()));
@@ -344,7 +347,7 @@ public class UserCommand implements Command {
      * @throws BotUserException if a user with the provided name cannot be found
      */
     private void removeCommand(List<String> args) throws IllegalArgumentException, BotUserException {
-        Validate.arguments(args, 1);
+        Validate.commandArguments(args, 1);
 
         String userName = Validate.botUserName(args.get(0));
         BotUser botUser = botUserDao.getWithName(userName)
@@ -365,7 +368,7 @@ public class UserCommand implements Command {
      * @throws ManagedChannelUserException if a managed channel user entry cannot be created
      */
     private void removeChannelFlagCommand(List<String> args) throws IllegalArgumentException, BotUserException, ManagedChannelException, ManagedChannelUserException {
-        Validate.arguments(args, 3);
+        Validate.commandArguments(args, 3);
 
         var mcDao = new ManagedChannelDao();
         var mcuDao = new ManagedChannelUserDao();
@@ -401,7 +404,7 @@ public class UserCommand implements Command {
      * @throws BotUserException if a user with the provided name cannot be found
      */
     private void removeFlagCommand(List<String> args) throws IllegalArgumentException, BotUserException {
-        Validate.arguments(args, 2);
+        Validate.commandArguments(args, 2);
 
         String userName = Validate.botUserName(args.get(0));
         String flagStr = args.get(1);
@@ -424,7 +427,7 @@ public class UserCommand implements Command {
      * @throws BotUserException if a user with the provided name cannot be found
      */
     private void removeHostmaskCommand(List<String> args) throws IllegalArgumentException, BotUserException {
-        Validate.arguments(args, 2);
+        Validate.commandArguments(args, 2);
 
         String userName = Validate.botUserName(args.get(0));
         String hostmask = args.get(1);
@@ -447,7 +450,7 @@ public class UserCommand implements Command {
      * @throws BotUserException if a user with the provided name cannot be found
      */
     private void showCommand(List<String> args) throws IllegalArgumentException, BotUserException {
-        Validate.arguments(args, 1);
+        Validate.commandArguments(args, 1);
 
         String userName = Validate.botUserName(args.get(0));
         BotUser botUser = botUserDao.getWithName(userName)

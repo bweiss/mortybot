@@ -33,6 +33,9 @@ import java.util.stream.Collectors;
 
 import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.DCC;
 
+/**
+ * Implements the WHO command, allowing users to see everyone on the DCC CHAT party line.
+ */
 @BotCommand(name = "WHO", help = {
         "Displays all users connected to the party line (DCC chat only)",
         "Usage: WHO"

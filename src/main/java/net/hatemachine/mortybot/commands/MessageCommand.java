@@ -19,13 +19,17 @@ package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
+import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.MortyBot;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;
 
-@BotCommand(name = "MSG", help = {
+/**
+ * Implements the MSG command, allowing users to tell the bot to send a private message.
+ */
+@BotCommand(name = "MSG", restricted = true, help = {
         "Tells the bot to send a PRIVMSG to a user or channel",
         "Usage: MSG <user> <text>"
 })
@@ -43,13 +47,16 @@ public class MessageCommand implements Command {
 
     @Override
     public void execute() {
-        MortyBot bot = event.getBot();
-        if (args.size() > 1) {
-            String target = args.get(0);
-            var message = String.join(" ", args.subList(1, args.size()));
-            bot.sendIRC().message(target, message);
-            event.respondWith(String.format("-msg(%s) %s", target, message));
+        if (args.size() < 2) {
+            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
         }
+
+        MortyBot bot = event.getBot();
+        String target = args.get(0);
+        var message = String.join(" ", args.subList(1, args.size()));
+
+        bot.sendIRC().message(target, message);
+        event.respondWith(String.format("-msg(%s) %s", target, message));
     }
 
     @Override

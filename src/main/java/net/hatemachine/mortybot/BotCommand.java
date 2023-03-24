@@ -30,6 +30,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(BotCommands.class)
 public @interface BotCommand {
+
     /**
      * The name of the bot command. This is what determines the actual command available to end users.
      *
@@ -38,9 +39,16 @@ public @interface BotCommand {
     String name();
 
     /**
+     * Command is restricted to administrators. Defaults to false if not specified.
+     *
+     * @return true if the command is restricted to admins, or false if not
+     */
+    boolean restricted() default false;
+
+    /**
      * The help text for the command.
      *
      * @return an array of help text lines
      */
-    String[] help();
+    String[] help() default {"Help not available"};
 }

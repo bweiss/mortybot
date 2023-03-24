@@ -23,6 +23,7 @@ import com.jayway.jsonpath.JsonPath;
 import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotProperties;
+import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.Colors;
 import org.pircbotx.hooks.types.GenericMessageEvent;
@@ -44,9 +45,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Looks up some basic information about a hostname or IP address using the Shodan API (https://www.shodan.io/).
+ * Implements the HOST command. Looks up some basic information about a hostname or IP address using the Shodan API (https://www.shodan.io/).
  *
- * This requires a Shodan API key that must be set in either bot.properties for the SHODAN_API_KEY environment variable.
+ * This requires a Shodan API key that must be set in either bot.properties or the SHODAN_API_KEY environment variable.
  */
 @BotCommand(name = "HOST", help = {
         "Looks up basic information on a particular hostname or IP address",
@@ -62,8 +63,7 @@ public class HostCommand implements Command {
     private final CommandListener.CommandSource source;
     private final List<String> args;
 
-    record Host(String ip, List<String> hostnames, String asn, String city, String regionCode, String countryCode,
-                String isp, String os, List<Integer> ports) {
+    record Host(String ip, List<String> hostnames, String asn, String city, String regionCode, String countryCode, String isp, String os, List<Integer> ports) {
         @Override
         public String toString() {
             return String.format("%s :: %s :: %s, %s :: %s :: %s :: ports[%s]",
@@ -86,7 +86,7 @@ public class HostCommand implements Command {
     @Override
     public void execute() {
         if (args.isEmpty()) {
-            throw new IllegalArgumentException("Not enough arguments");
+            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
         }
 
         try {
@@ -96,9 +96,13 @@ public class HostCommand implements Command {
             if (json.isPresent()) {
                 Host host = parseJson(json.get());
                 event.respondWith(host.toString());
+            } else {
+                event.respondWith("Something went wrong");
             }
         } catch (UnknownHostException e) {
-            log.error("Unknown host: {}", args.get(0));
+            String errMsg = "Unknown host";
+            log.error(errMsg + ": {}", args.get(0));
+            event.respondWith(errMsg);
         }
     }
 
@@ -108,12 +112,12 @@ public class HostCommand implements Command {
      * @param ip the ip address to lookup
      * @return an optional that may contain json with information about the host
      */
-    private static Optional<String> doShodanHostLookup(String ip) {
+    private Optional<String> doShodanHostLookup(String ip) {
         String apiKey = BotProperties.getBotProperties().getStringProperty("shodan.api.key", System.getenv("SHODAN_API_KEY"));
         Optional<String> jsonOptional = Optional.empty();
 
         if (apiKey == null || apiKey.isBlank()) {
-            throw new IllegalArgumentException("Shodan API key not set");
+            log.warn("API key not set");
         }
 
         try {

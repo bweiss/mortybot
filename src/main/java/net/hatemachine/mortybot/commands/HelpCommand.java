@@ -22,17 +22,16 @@ import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.CommandWrapper;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
-import net.hatemachine.mortybot.util.CommandUtil;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
+/**
+ * Implements the HELP command, allowing users to see available commands and retrieve their help text.
+ */
 @BotCommand(name = "HELP", help = {
         "Shows help and usage information for bot commands",
         "Usage: HELP [command]"
@@ -75,41 +74,47 @@ public class HelpCommand implements Command {
         return args;
     }
 
+    /**
+     * Responds with a list of all commands available to end users.
+     */
     private void respondWithAllCommands() {
-        Map<String, CommandWrapper> commandMap = CommandUtil.getCommandMap();
-        List<String> enabledCommands = new ArrayList<>();
+        var commandMap = CommandListener.getCommandMap();
+        var regularCommands = commandMap.values()
+                .stream()
+                .filter(c -> !c.isRestricted())
+                .map(CommandWrapper::getName)
+                .toList();
+        var adminCommands = commandMap.values()
+                .stream()
+                .filter(CommandWrapper::isRestricted)
+                .map(CommandWrapper::getName)
+                .toList();
 
-        commandMap.forEach((k, v) -> {
-            try {
-                Command command = (Command) commandMap.get(k)
-                        .getCmdClass()
-                        .getDeclaredConstructor(GenericMessageEvent.class, CommandListener.CommandSource.class, List.class)
-                        .newInstance(event, source, args);
+        if (regularCommands.size() > 0) {
+            event.respondWith("Commands: " + String.join(", ", regularCommands));
+        }
 
-                if (command.isEnabled()) {
-                    enabledCommands.add(k);
-                }
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                log.error(e.getMessage(), e);
-            }
-        });
+        if (adminCommands.size() > 0) {
+            event.respondWith("Admin commands: " + String.join(", ", adminCommands));
+        }
 
-        event.respondWith("Commands: " + String.join(", ", enabledCommands));
         event.respondWith(String.format("Type %sHELP <command> to get more information about a command",
                 BotProperties.getBotProperties().getStringProperty("bot.command.prefix")));
     }
 
+    /**
+     * Responds with the help text for a given command.
+     */
     private void respondWithCommandHelp() {
-        String commandStr = args.get(0).toUpperCase(Locale.ROOT);
-        Map<String, CommandWrapper> commandMap = CommandUtil.getCommandMap();
+        String cmdName = args.get(0).toUpperCase(Locale.ROOT);
+        CommandWrapper cmdWrapper = CommandListener.getCommand(cmdName);
 
-        if (commandMap.containsKey(commandStr)) {
-            var cmd = commandMap.get(commandStr);
-            for (var line : cmd.getHelp()) {
+        if (cmdWrapper != null) {
+            for (String line : cmdWrapper.getHelp()) {
                 event.respondWith(line);
             }
         } else {
-            event.respondWith("Invalid command");
+            event.respondWith("Unknown command");
         }
     }
 }

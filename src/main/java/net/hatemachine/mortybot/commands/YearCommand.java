@@ -27,9 +27,9 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Show our progress into the current year.
+ * Implements the YEAR command. This displays a progress bar representing the progress into the current year.
  *
- * Inspired by vect0rx and https://twitter.com/year_progress.
+ * Inspired by vect0rx and <a href="https://twitter.com/year_progress">@year_progress</a>.
  */
 @BotCommand(name = "YEAR", help = {
         "Shows progress through the current year",

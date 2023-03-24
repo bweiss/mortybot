@@ -18,14 +18,15 @@
 package net.hatemachine.mortybot.listeners;
 
 import net.hatemachine.mortybot.*;
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.dcc.DccManager;
 import net.hatemachine.mortybot.events.DccChatMessageEvent;
-import net.hatemachine.mortybot.exception.BotCommandException;
-import net.hatemachine.mortybot.util.CommandUtil;
+import net.hatemachine.mortybot.exception.CommandException;
 import org.pircbotx.User;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
 import org.pircbotx.hooks.types.GenericMessageEvent;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +34,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.*;
+import static org.reflections.scanners.Scanners.SubTypes;
 
 /**
  * Listens for commands from users.
@@ -41,6 +43,7 @@ import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.*
 public class CommandListener extends ExtendedListenerAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(CommandListener.class);
+    private static final Map<String, CommandWrapper> commandMap = new TreeMap<>();
 
     private final String commandPrefix;
 
@@ -51,11 +54,29 @@ public class CommandListener extends ExtendedListenerAdapter {
     }
 
     public CommandListener() {
-        this.commandPrefix = "!";
+        this("!");
     }
 
     public CommandListener(String commandPrefix) {
         this.commandPrefix = commandPrefix;
+
+        // Scan for command classes
+        Reflections reflections = new Reflections("net.hatemachine.mortybot.commands");
+        Set<Class<?>> cmdClasses = reflections.get(SubTypes.of(Command.class).asClass());
+
+        // Check for disabled commands
+        BotProperties props = BotProperties.getBotProperties();
+        List<String> disabled = Arrays.asList(props.getStringProperty("commands.disabled", "").split(","));
+
+        // Build our command map from the annotations
+        for (Class<?> clazz : cmdClasses) {
+            for (BotCommand annotation : getBotCommandAnnotations(clazz)) {
+                if (!disabled.contains(annotation.name())) {
+                    CommandWrapper cmdWrapper = new CommandWrapper(annotation.name(), clazz, annotation.restricted(), annotation.help());
+                    commandMap.put(cmdWrapper.getName(), cmdWrapper);
+                }
+            }
+        }
     }
 
     @Override
@@ -83,6 +104,35 @@ public class CommandListener extends ExtendedListenerAdapter {
     }
 
     /**
+     * Gets the current command prefix.
+     *
+     * @return the command prefix
+     */
+    public String getCommandPrefix() {
+        return commandPrefix;
+    }
+
+    /**
+     * Gets a map of commands available to the bot.
+     *
+     * @return a map of command strings and wrapper objects containing the specifics of the command
+     */
+    public static Map<String, CommandWrapper> getCommandMap() {
+        return commandMap;
+    }
+
+    /**
+     * Gets a single command if it is available.
+     *
+     * @param commandName the name of the command to retrieve
+     * @return the requested command if it exists
+     * @see CommandWrapper
+     */
+    public static CommandWrapper getCommand(String commandName) {
+        return commandMap.get(commandName);
+    }
+
+    /**
      * Handles a command from a user.
      *
      * @param event the event that contained a command
@@ -90,45 +140,73 @@ public class CommandListener extends ExtendedListenerAdapter {
      */
     private void handleCommand(final GenericMessageEvent event, CommandSource source) {
         List<String> tokens = Arrays.asList(event.getMessage().split(" "));
-        String commandStr = tokens.get(0).substring(getCommandPrefix().length()).toUpperCase(Locale.ROOT);
+        String commandName = tokens.get(0).substring(getCommandPrefix().length()).toUpperCase(Locale.ROOT);
         List<String> args = tokens.subList(1, tokens.size());
+        Map<String, CommandWrapper> commandMap = getCommandMap();
         User user = event.getUser();
-        DccManager dccManager = DccManager.getManager();
 
-        try {
-            Map<String, CommandWrapper> commandMap = CommandUtil.getCommandMap();
+        if (commandMap.containsKey(commandName)) {
+            log.info("{} command triggered by {}, source: {}, args: {}", commandName, user.getNick(), source, args);
 
-            if (commandMap.containsKey(commandStr)) {
-                Command command = (Command) commandMap.get(commandStr)
-                        .getCmdClass()
+            // Dispatch a notification to admins on the party line
+            DccManager.getManager().dispatchMessage(String.format("*** %s command triggered by %s [%s]: %s",
+                    commandName,
+                    user.getNick(),
+                    source == PUBLIC ? ((MessageEvent) event).getChannel().getName() : source.toString(),
+                    event.getMessage()
+            ), true);
+
+            CommandWrapper cmdWrapper = commandMap.get(commandName);
+
+            // Attempt to create a command instance and add it to our wrapper object
+            try {
+                Command command = (Command) cmdWrapper.getCmdClass()
                         .getDeclaredConstructor(GenericMessageEvent.class, CommandSource.class, List.class)
                         .newInstance(event, source, args);
-
-                log.info("{} command triggered by {}, source: {}, args: {}", commandStr, user.getNick(), source, args);
-
-                dccManager.dispatchMessage(String.format("*** %s command triggered by %s [%s]: %s",
-                        commandStr,
-                        user.getNick(),
-                        source == PUBLIC ? ((MessageEvent) event).getChannel().getName() : source.toString(),
-                        event.getMessage()
-                ), true);
-
-                CommandProxy.newInstance(command).execute();
-
-            } else {
-                log.info("Invalid command {} from {}", commandStr, user.getNick());
+                cmdWrapper.setInstance(command);
+            } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
+                log.error("Exception encountered trying to create instance of command: {}", e.getMessage(), e);
             }
 
-        } catch (IllegalArgumentException e) {
-            log.warn("Invalid command {} from {}", commandStr, user.getNick());
-        } catch (BotCommandException e) {
-            log.warn(e.getMessage());
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            log.error("Exception encountered trying to execute command: {}", commandStr, e);
+            // Invoke the command proxy to execute the command if it passes all checks
+            try {
+                CommandProxy.newInstance(cmdWrapper).execute();
+            } catch (CommandException e) {
+                if (e.getReason() == CommandException.Reason.INVALID_ARGS) {
+                    event.respondWith(e.getMessage());
+                } else if (e.getReason() == CommandException.Reason.IGNORED_USER) {
+                    log.info("Ignoring command from {}", user.getNick());
+                } else if (e.getReason() == CommandException.Reason.UNAUTHORIZED_USER) {
+                    event.respondWith("User unauthorized");
+                }
+            } catch (RuntimeException e) {
+                log.error("Exception encountered trying to execute command: {}", commandName, e);
+            }
+        } else {
+            log.info("Invalid command {} from {}", commandName, user.getNick());
         }
     }
 
-    public String getCommandPrefix() {
-        return commandPrefix;
+    /**
+     * Gets a list of {@link BotCommand} annotations for a particular class.
+     *
+     * @param clazz the class to retrieve annotations for
+     * @return a list of BotCommand annotations for the provided class
+     */
+    private List<BotCommand> getBotCommandAnnotations(Class<?> clazz) {
+        List<BotCommand> annotations = new ArrayList<>();
+        var repeatedAnnotations = clazz.getAnnotation(BotCommands.class);
+
+        if (repeatedAnnotations != null) {
+            annotations.addAll(Arrays.asList(repeatedAnnotations.value()));
+        } else {
+            var annotation = clazz.getAnnotation(BotCommand.class);
+
+            if (annotation != null) {
+                annotations.add(annotation);
+            }
+        }
+
+        return annotations;
     }
 }

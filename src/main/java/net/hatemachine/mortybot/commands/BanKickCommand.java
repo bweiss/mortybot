@@ -22,6 +22,7 @@ import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
+import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.util.IrcUtils;
 import net.hatemachine.mortybot.util.Validate;
@@ -39,27 +40,27 @@ import java.util.List;
 import static org.pircbotx.exception.DaoException.Reason.*;
 
 /**
- * Implements the BAN, BANKICK, KICK, and KICKBAN bot commands.
+ * Implements the BAN, BANKICK, KICK, and KICKBAN commands.
  */
-@BotCommand(name = "BAN", help = {
+@BotCommand(name = "BAN", restricted = true, help = {
         "Bans a user from a channel",
         "Usage: BAN <nick|hostmask>",
         "Usage: BAN <nick|hostmask> <channel>",
         "You must specify the channel if command is not from a public source"
 })
-@BotCommand(name = "BANKICK", help = {
+@BotCommand(name = "BANKICK", restricted = true, help = {
         "Bans and kicks a user from a channel",
         "Usage: BANKICK <nick> [reason]",
         "Usage: BANKICK <nick> <channel> [reason]",
         "You must specify the channel if command is not from a public source"
 })
-@BotCommand(name = "KICK", help = {
+@BotCommand(name = "KICK", restricted = true, help = {
         "Kicks a user from a channel",
         "Usage: KICK <user> [reason]",
         "Usage: KICK <user> <channel> [reason]",
         "You must specify the channel if command is not from a public source"
 })
-@BotCommand(name = "KICKBAN", help = {
+@BotCommand(name = "KICKBAN", restricted = true, help = {
         "Kicks and bans a user from a channel",
         "Usage: KICKBAN <user> [reason]",
         "Usage: KICKBAN <user> <channel> [reason]",
@@ -96,8 +97,7 @@ public class BanKickCommand implements Command {
         List<String> newArgs;
 
         if (args.isEmpty()) {
-            event.respondWith("Not enough arguments. Consult the HELP command.");
-            return;
+            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
         }
 
         // if from a public message, attempt to determine the channel

@@ -27,6 +27,9 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Implements the WOTD command, allowing users to look up the day's Word of the Day from the Merriam-Webster website.
+ */
 @BotCommand(name = "WOTD", help = {
         "Fetch the word of the day from Merriam-Webster",
         "Usage: WOTD"

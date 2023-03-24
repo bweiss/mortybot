@@ -30,6 +30,7 @@ import com.maxmind.geoip2.record.Subdivision;
 import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotProperties;
+import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.Colors;
 import org.pircbotx.hooks.types.GenericMessageEvent;
@@ -41,7 +42,8 @@ import java.net.InetAddress;
 import java.util.List;
 
 /**
- * Performs a GeoIP2 (GeoLite2) lookup on an IP address. This requires a free GeoLite2 account and license key.
+ * Implements the GEOIP command. This performs a GeoIP2 (GeoLite2) lookup on an IP address.
+ * Note that this requires a free GeoLite2 account and license key.
  *
  * <a href="https://dev.maxmind.com/geoip/geolite2-free-geolocation-data">https://dev.maxmind.com/geoip/geolite2-free-geolocation-data</a>
  */
@@ -68,7 +70,7 @@ public class GeoIpCommand implements Command {
     @Override
     public void execute() {
         if (args.isEmpty()) {
-            throw new IllegalArgumentException("Not enough arguments");
+            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
         }
 
         var botProperties = BotProperties.getBotProperties();

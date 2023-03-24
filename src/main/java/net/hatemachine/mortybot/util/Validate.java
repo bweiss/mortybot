@@ -18,6 +18,7 @@
 package net.hatemachine.mortybot.util;
 
 import com.google.common.collect.ImmutableMap;
+import net.hatemachine.mortybot.exception.CommandException;
 import org.apache.commons.lang3.NotImplementedException;
 
 import java.text.NumberFormat;
@@ -25,6 +26,9 @@ import java.text.ParsePosition;
 import java.util.List;
 import java.util.regex.Pattern;
 
+/**
+ * Utility class to help validate things.
+ */
 public class Validate {
 
     private static final int MAX_BOT_USER_NAME_LENGTH = 16;
@@ -173,16 +177,36 @@ public class Validate {
      *
      * @param args the list or arguments to validate
      * @param minSize the minimum size of the list
-     * @throws IllegalArgumentException if list is null, empty, or has null or blank items.
+     * @throws IllegalArgumentException if list is null, empty, or has null or blank items
      */
     public static void arguments(List<String> args, Integer minSize) {
         if (args == null || args.isEmpty() || args.size() < minSize) {
             throw new IllegalArgumentException("Not enough arguments");
         }
+
         for (int i = 0; i < args.size(); i++) {
             String arg = args.get(i);
             if (arg == null || arg.isBlank()) {
                 throw new IllegalArgumentException("Item in position " + i + " is null or blank");
+            }
+        }
+    }
+
+    /**
+     * Validates a list of arguments to ensure it is not null, empty, or has null or blank items.
+     *
+     * @param args the list of arguments to validate
+     * @param minSize the minimum size of the list
+     * @throws CommandException if list is null, empty, or has null or blank items
+     */
+    public static void commandArguments(List<String> args, Integer minSize) {
+        if (args == null || args.isEmpty() || args.size() < minSize) {
+            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
+        }
+
+        for (String arg : args) {
+            if (arg == null || arg.isBlank()) {
+                throw new CommandException(CommandException.Reason.INVALID_ARGS, "Invalid argument");
             }
         }
     }

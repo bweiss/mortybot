@@ -29,6 +29,7 @@ import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
+import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.hooks.types.GenericMessageEvent;
@@ -52,6 +53,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Implements the STOCK command, allowing users to look up stock quotes.
+ */
 @BotCommand(name = "STOCK", help = {
         "Looks up the current price of stock symbols",
         "Usage: STOCK <symbol1> [symbol2] ..."
@@ -97,11 +101,17 @@ public class StockCommand implements Command {
 
     @Override
     public void execute() {
-        int maxSymbols = BotProperties.getBotProperties()
-                .getIntProperty("stock.max.symbols", BotDefaults.STOCK_MAX_SYMBOLS);
-        for (int cnt = 0; cnt < maxSymbols; cnt++) {
+        if (args.isEmpty()) {
+            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
+        }
+
+        BotProperties props = BotProperties.getBotProperties();
+        int maxSymbols = props.getIntProperty("stock.max.symbols", BotDefaults.STOCK_MAX_SYMBOLS);
+
+        for (int cnt = 0; cnt < args.size() && cnt < maxSymbols; cnt++) {
             String symbol = args.get(cnt);
             Optional<String> json = fetchQuote(symbol);
+
             if (json.isPresent()) {
                 String quote = parseQuote(json.get());
                 event.respondWith(quote);

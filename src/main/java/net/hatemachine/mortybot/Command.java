@@ -17,11 +17,9 @@
  */
 package net.hatemachine.mortybot;
 
-import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -61,16 +59,4 @@ public interface Command {
      * @return a list of arguments
      */
     List<String> getArgs();
-
-    /**
-     * Checks if a command is enabled in the bot's properties.
-     *
-     * @return true if the command is enabled
-     * @see BotProperties
-     */
-    default boolean isEnabled() {
-        String prop = BotProperties.getBotProperties().getStringProperty("commands.enabled");
-        List<String> enabled = Arrays.asList(prop.split(","));
-        return (enabled.contains(this.getClass().getSimpleName()));
-    }
 }

@@ -35,8 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * CHAT command
- * Instructs the bot to initiate a DCC CHAT session with the calling user.
+ * Implements the CHAT command. This instructs the bot to initiate a DCC CHAT session with a user.
  */
 @BotCommand(name = "CHAT", help = {
         "Tells the bot to initiate a DCC chat request with you or [nick] if specified",

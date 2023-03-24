@@ -21,6 +21,7 @@ import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
+import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.rt.Movie;
 import net.hatemachine.mortybot.rt.RTHelper;
@@ -31,12 +32,7 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import java.util.List;
 
 /**
- * Implements the RT bot command. This searches for a movie title on rottentomatoes.com.
- *
- * Usage: RT [-l] query_str
- *
- * If the -l flag is present as the first argument, it will respond with a list of results.
- * Otherwise, it will respond with the details for the top result.
+ * Implements the RT command. This searches for a movie title on rottentomatoes.com.
  */
 @BotCommand(name = "RT", help = {
         "Searches Rotten Tomatoes for movie ratings",
@@ -64,7 +60,7 @@ public class RottenTomatoesCommand implements Command {
     @Override
     public void execute() {
         if (args.isEmpty()) {
-            throw new IllegalArgumentException("Not enough arguments");
+            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
         }
 
         boolean listResults = false;

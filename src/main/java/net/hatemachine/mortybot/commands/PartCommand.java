@@ -19,6 +19,7 @@ package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
+import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.MortyBot;
 import org.pircbotx.hooks.events.MessageEvent;
@@ -30,8 +31,11 @@ import java.util.List;
 
 import static net.hatemachine.mortybot.listeners.CommandListener.CommandSource.PUBLIC;
 
-@BotCommand(name = "PART", help = {
-        "Makes the bot part a channel",
+/**
+ * Implements the PART command, allowing users to tell the bot to part a channel.
+ */
+@BotCommand(name = "PART", restricted = true, help = {
+        "Tells the bot to part a channel",
         "Usage: PART [channel]"
 })
 public class PartCommand implements Command {
@@ -57,7 +61,7 @@ public class PartCommand implements Command {
         } else if (!args.isEmpty()) {
             bot.sendRaw().rawLine("PART " + args.get(0));
         } else {
-            log.debug("too few arguments for private command; missing channel");
+            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
         }
     }
 

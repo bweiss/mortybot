@@ -27,6 +27,9 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Implements the WORDLE command, allowing users to start a game of wordle.
+ */
 @BotCommand(name = "WORDLE", help = {
         "Play a game of Wordle!",
         "Usage: WORDLE",
@@ -48,6 +51,7 @@ public class WordleCommand implements Command {
     public void execute() {
         GameManager gm = GameManager.getGameManager();
         Optional<Game> optGame = gm.getGame(event.getUser());
+
         if (optGame.isPresent()) {
             Game game = optGame.get();
             if (game.isActive()) {

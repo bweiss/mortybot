@@ -24,6 +24,7 @@ import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.dict.Dictionary;
 import net.hatemachine.mortybot.dict.DictionaryEntry;
 import net.hatemachine.mortybot.dict.MerriamWebsterWeb;
+import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
@@ -31,6 +32,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+/**
+ * Implements the DICT command, allowing users to perform dictionary lookups on the Merriam-Webster website.
+ */
 @BotCommand(name = "DICT", help = {
         "Gets the dictionary definition for a word",
         "Usage: DICT [-a] <word>"
@@ -52,7 +56,7 @@ public class DictionaryCommand implements Command {
     @Override
     public void execute() {
         if (args.isEmpty()) {
-            throw new IllegalArgumentException("Not enough arguments");
+            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
         }
 
         List<String> newArgs = args;

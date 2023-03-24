@@ -24,12 +24,16 @@ public class CommandWrapper {
 
     private final String name;
     private final Class<?> cmdClass;
+    private final boolean restricted;
     private final String[] help;
+    private Command instance;
 
-    public CommandWrapper(String name, Class<?> cmdClass, String[] help) {
+    public CommandWrapper(String name, Class<?> cmdClass, boolean restricted, String[] help) {
         this.name = name;
         this.cmdClass = cmdClass;
+        this.restricted = restricted;
         this.help = help;
+        this.instance = null;
     }
 
     public String getName() {
@@ -40,7 +44,19 @@ public class CommandWrapper {
         return cmdClass;
     }
 
+    public boolean isRestricted() {
+        return restricted;
+    }
+
     public String[] getHelp() {
         return help;
+    }
+
+    public Command getInstance() {
+        return instance;
+    }
+
+    public void setInstance(Command instance) {
+        this.instance = instance;
     }
 }
