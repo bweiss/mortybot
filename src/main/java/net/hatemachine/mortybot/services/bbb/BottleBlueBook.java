@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.hatemachine.mortybot.bbb;
+package net.hatemachine.mortybot.services.bbb;
 
 import com.uwyn.urlencoder.UrlEncoder;
 import net.hatemachine.mortybot.util.Validate;

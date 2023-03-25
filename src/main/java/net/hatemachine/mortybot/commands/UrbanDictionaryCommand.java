@@ -22,8 +22,8 @@ import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
-import net.hatemachine.mortybot.urban.Definition;
-import net.hatemachine.mortybot.urban.UrbanDictionary;
+import net.hatemachine.mortybot.services.urban.Definition;
+import net.hatemachine.mortybot.services.urban.UrbanDictionary;
 import org.pircbotx.Colors;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 

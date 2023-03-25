@@ -22,10 +22,10 @@ import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.events.DccChatMessageEvent;
 import net.hatemachine.mortybot.util.DateTimeUtils;
-import net.hatemachine.mortybot.wordle.Game;
-import net.hatemachine.mortybot.wordle.GameManager;
-import net.hatemachine.mortybot.wordle.GameState;
-import net.hatemachine.mortybot.wordle.WordleException;
+import net.hatemachine.mortybot.services.wordle.Game;
+import net.hatemachine.mortybot.services.wordle.GameManager;
+import net.hatemachine.mortybot.services.wordle.GameState;
+import net.hatemachine.mortybot.services.wordle.WordleException;
 import org.pircbotx.Colors;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
@@ -39,7 +39,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import static net.hatemachine.mortybot.wordle.WordleException.Reason.WORD_INVALID;
+import static net.hatemachine.mortybot.services.wordle.WordleException.Reason.WORD_INVALID;
 
 public class WordleListener extends ExtendedListenerAdapter {
 

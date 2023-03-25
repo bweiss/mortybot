@@ -15,11 +15,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.hatemachine.mortybot.wordle;
+package net.hatemachine.mortybot.services.dict;
 
-public enum LetterState {
-    UNUSED,
-    NO_MATCH,
-    IMPRECISE_MATCH,
-    EXACT_MATCH;
+import org.pircbotx.Colors;
+
+import java.util.List;
+
+public record DictionaryEntry(String word, String type, String attributes, List<String> definitions) {
+    @Override
+    public String toString() {
+        return String.format("[%s | %s] (%s)", Colors.BOLD + word + Colors.BOLD, attributes, type);
+    }
 }

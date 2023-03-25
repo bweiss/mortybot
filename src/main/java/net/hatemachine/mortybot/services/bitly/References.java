@@ -15,12 +15,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.hatemachine.mortybot.bbb;
+package net.hatemachine.mortybot.services.bitly;
 
-public record SearchResult(String name, String url, String proof, String size) {
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
-    @Override
-    public String toString() {
-        return String.format("%s - %s (%s)", name, proof, size);
+public class References {
+
+    @SerializedName("group")
+    @Expose
+    private String group;
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
     }
 }

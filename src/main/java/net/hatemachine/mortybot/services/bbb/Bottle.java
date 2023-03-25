@@ -15,22 +15,30 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.hatemachine.mortybot.dict;
+package net.hatemachine.mortybot.services.bbb;
 
-import java.util.ArrayList;
-import java.util.List;
+public record Bottle(String name,
+                     String url,
+                     String type,
+                     String bottled,
+                     String age,
+                     String proof,
+                     String size,
+                     String owner,
+                     String producer,
+                     String location) {
 
-public class MerriamWebsterAPI implements Dictionary {
-
-    /**
-     * Performs a Merriam-Webster dictionary lookup and returns any definitions found.
-     *
-     * @param term the term to lookup
-     * @return a list of dictionary entries containing any definitions for the given term
-     */
     @Override
-    public List<DictionaryEntry> lookup(String term) {
-        // TODO: implement me!
-        return new ArrayList<>();
+    public String toString() {
+        return String.format("[%s] %s (%s), %s (%s) [Bottled: %s, Age: %s, Proof: %s]",
+                type,
+                name,
+                size,
+                producer,
+                location,
+                bottled,
+                age,
+                proof);
     }
 }
+

@@ -15,11 +15,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.hatemachine.mortybot.urban;
+package net.hatemachine.mortybot.services.bbb;
 
-public record Definition(String term, String meaning) {
+public record SearchResult(String name, String url, String proof, String size) {
+
     @Override
     public String toString() {
-        return String.format("%s: %s", term, meaning);
+        return String.format("%s - %s (%s)", name, proof, size);
     }
 }

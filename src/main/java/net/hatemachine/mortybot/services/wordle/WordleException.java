@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.hatemachine.mortybot.wordle;
+package net.hatemachine.mortybot.services.wordle;
 
 public class WordleException extends Exception {
     protected final Reason reason;

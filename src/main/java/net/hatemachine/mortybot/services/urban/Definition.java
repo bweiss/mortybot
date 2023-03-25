@@ -15,15 +15,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.hatemachine.mortybot.dict;
+package net.hatemachine.mortybot.services.urban;
 
-import org.pircbotx.Colors;
-
-import java.util.List;
-
-public record DictionaryEntry(String word, String type, String attributes, List<String> definitions) {
+public record Definition(String term, String meaning) {
     @Override
     public String toString() {
-        return String.format("[%s | %s] (%s)", Colors.BOLD + word + Colors.BOLD, attributes, type);
+        return String.format("%s: %s", term, meaning);
     }
 }

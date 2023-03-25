@@ -22,6 +22,7 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import com.uwyn.urlencoder.UrlEncoder;
+import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.util.Validate;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -40,12 +41,8 @@ import java.util.Optional;
 
 public class IMDBHelper {
 
-    private IMDBHelper() {
-        throw new IllegalStateException("Utility class");
-    }
-
     public static final String BASE_URL = "https://www.imdb.com";
-    public static final String SEARCH_URL = BASE_URL + "/find?q=";
+    public static final String SEARCH_URL = BASE_URL + "/find/?q=";
 
     private static final Logger log = LoggerFactory.getLogger(IMDBHelper.class);
 
@@ -55,14 +52,14 @@ public class IMDBHelper {
      * @param query the search string
      * @return list of the results
      */
-    public static List<SearchResult> search(String query) {
+    public List<SearchResult> search(String query) {
         Validate.notNullOrBlank(query);
         String searchUrl = SEARCH_URL + UrlEncoder.encode(query);
-        log.debug("searchUrl: {}", searchUrl);
         List<SearchResult> results = new ArrayList<>();
         Document searchResultPage = null;
 
         log.info("Searching IMDB for \"{}\"", query);
+        log.debug("searchUrl: {}", searchUrl);
 
         // attempt to connect to imdb.com and fetch the search results page
         try {
@@ -122,7 +119,7 @@ public class IMDBHelper {
      * @param url the url for this person
      * @return optional person object
      */
-    public static Optional<Person> fetchPerson(String url) {
+    public Optional<Person> fetchPerson(String url) {
         Validate.notNullOrBlank(url);
         Optional<Person> person = Optional.empty();
         Document personDetailsPage = null;
@@ -130,10 +127,14 @@ public class IMDBHelper {
         log.info("Fetching person details for {}", url);
 
         try {
-            personDetailsPage = Jsoup.connect(url).get();
+            personDetailsPage = Jsoup.connect(url)
+                    .ignoreContentType(true)
+                    .userAgent("MortyBot/" + MortyBot.VERSION)
+                    .timeout(12000)
+                    .followRedirects(true)
+                    .get();
         } catch (IOException e) {
-            log.error("Failed to fetch person details page: {}", e.getMessage());
-            e.printStackTrace();
+            log.error("Failed to fetch person details page: {}", e.getMessage(), e);
         }
 
         if (personDetailsPage != null) {
@@ -169,7 +170,7 @@ public class IMDBHelper {
      * @param url the url for this title
      * @return optional title object
      */
-    public static Optional<Title> fetchTitle(String url) {
+    public Optional<Title> fetchTitle(String url) {
         Validate.notNullOrBlank(url);
         Optional<Title> title = Optional.empty();
         Document titleDetailsPage = null;
@@ -195,7 +196,7 @@ public class IMDBHelper {
         return title;
     }
 
-    private static Title createTitleFromJson(String url, String json) {
+    private Title createTitleFromJson(String url, String json) {
         Configuration conf = Configuration.defaultConfiguration();
         DocumentContext parsedJson = JsonPath.using(conf).parse(json);
         String name = parsedJson.read("$.name");
@@ -221,5 +222,4 @@ public class IMDBHelper {
 
         return title;
     }
-
 }

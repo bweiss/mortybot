@@ -19,9 +19,9 @@ package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.bbb.Bottle;
-import net.hatemachine.mortybot.bbb.BottleBlueBook;
-import net.hatemachine.mortybot.bbb.SearchResult;
+import net.hatemachine.mortybot.services.bbb.Bottle;
+import net.hatemachine.mortybot.services.bbb.BottleBlueBook;
+import net.hatemachine.mortybot.services.bbb.SearchResult;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.exception.CommandException;

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.hatemachine.mortybot.bitly;
+package net.hatemachine.mortybot.services.bitly;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -50,7 +50,7 @@ public class Bitlink {
     private List<Object> deeplinks = null;
     @SerializedName("references")
     @Expose
-    private net.hatemachine.mortybot.bitly.References references;
+    private net.hatemachine.mortybot.services.bitly.References references;
 
     public String getCreatedAt() {
         return createdAt;
@@ -116,11 +116,11 @@ public class Bitlink {
         this.deeplinks = deeplinks;
     }
 
-    public net.hatemachine.mortybot.bitly.References getReferences() {
+    public net.hatemachine.mortybot.services.bitly.References getReferences() {
         return references;
     }
 
-    public void setReferences(net.hatemachine.mortybot.bitly.References references) {
+    public void setReferences(net.hatemachine.mortybot.services.bitly.References references) {
         this.references = references;
     }
 }

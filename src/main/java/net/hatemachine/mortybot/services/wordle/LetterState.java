@@ -15,21 +15,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.hatemachine.mortybot.dict;
+package net.hatemachine.mortybot.services.wordle;
 
-import java.util.List;
-
-/**
- * Interface for performing dictionary lookups.
- */
-public interface Dictionary {
-
-    /**
-     * Performs a dictionary lookup and returns any definitions found.
-     *
-     * @param term the term to lookup
-     * @return a list of dictionary entries containing any definitions for the given term
-     * @see DictionaryEntry
-     */
-    List<DictionaryEntry> lookup(String term);
+public enum LetterState {
+    UNUSED,
+    NO_MATCH,
+    IMPRECISE_MATCH,
+    EXACT_MATCH;
 }

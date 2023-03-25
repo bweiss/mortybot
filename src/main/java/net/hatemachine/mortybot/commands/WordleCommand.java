@@ -20,8 +20,8 @@ package net.hatemachine.mortybot.commands;
 import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.listeners.CommandListener;
-import net.hatemachine.mortybot.wordle.Game;
-import net.hatemachine.mortybot.wordle.GameManager;
+import net.hatemachine.mortybot.services.wordle.Game;
+import net.hatemachine.mortybot.services.wordle.GameManager;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.util.List;

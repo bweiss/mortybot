@@ -15,22 +15,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.hatemachine.mortybot.bitly;
+package net.hatemachine.mortybot.services.dict;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
+import java.util.List;
 
-public class References {
+/**
+ * Interface for performing dictionary lookups.
+ */
+public interface Dictionary {
 
-    @SerializedName("group")
-    @Expose
-    private String group;
-
-    public String getGroup() {
-        return group;
-    }
-
-    public void setGroup(String group) {
-        this.group = group;
-    }
+    /**
+     * Performs a dictionary lookup and returns any definitions found.
+     *
+     * @param term the term to lookup
+     * @return a list of dictionary entries containing any definitions for the given term
+     * @see DictionaryEntry
+     */
+    List<DictionaryEntry> lookup(String term);
 }

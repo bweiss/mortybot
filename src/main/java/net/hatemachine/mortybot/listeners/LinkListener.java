@@ -20,7 +20,7 @@ package net.hatemachine.mortybot.listeners;
 import io.github.redouane59.twitter.TwitterClient;
 import io.github.redouane59.twitter.dto.tweet.Tweet;
 import io.github.redouane59.twitter.signature.TwitterCredentials;
-import net.hatemachine.mortybot.bitly.Bitly;
+import net.hatemachine.mortybot.services.bitly.Bitly;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.custom.entity.BotUserFlag;

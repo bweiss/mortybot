@@ -19,8 +19,8 @@ package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.dict.DictionaryEntry;
-import net.hatemachine.mortybot.dict.MerriamWebsterWeb;
+import net.hatemachine.mortybot.services.dict.DictionaryEntry;
+import net.hatemachine.mortybot.services.dict.MerriamWebsterWeb;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 

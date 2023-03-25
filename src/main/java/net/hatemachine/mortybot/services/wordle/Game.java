@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.hatemachine.mortybot.wordle;
+package net.hatemachine.mortybot.services.wordle;
 
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
@@ -29,9 +29,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static net.hatemachine.mortybot.wordle.GameState.*;
-import static net.hatemachine.mortybot.wordle.LetterState.*;
-import static net.hatemachine.mortybot.wordle.WordleHelper.ALPHABET;
+import static net.hatemachine.mortybot.services.wordle.GameState.*;
+import static net.hatemachine.mortybot.services.wordle.LetterState.*;
+import static net.hatemachine.mortybot.services.wordle.WordleHelper.ALPHABET;
 
 public class Game {
 
