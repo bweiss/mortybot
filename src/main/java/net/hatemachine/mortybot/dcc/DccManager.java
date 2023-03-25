@@ -167,7 +167,7 @@ public class DccManager {
      * @param adminOnly if true, message will only be dispatched to admin users
      */
     public void dispatchMessage(String message, boolean adminOnly) {
-        log.debug("Dispatching message to all party line members: \"{}\"", message);
+        log.debug("Dispatching message to all party line members (adminOnly: {}): \"{}\"", adminOnly, message);
 
         for (ChatSession cs : manager.getActiveChatSessions()) {
             Chat chat = cs.getChat();

@@ -29,8 +29,7 @@ import java.net.SocketTimeoutException;
 import java.util.Objects;
 
 import static net.hatemachine.mortybot.dcc.ChatSession.SessionState.*;
-import static net.hatemachine.mortybot.dcc.ChatSession.SessionType.RECEIVE;
-import static net.hatemachine.mortybot.dcc.ChatSession.SessionType.SEND;
+import static net.hatemachine.mortybot.dcc.ChatSession.SessionType.*;
 
 /**
  * Wraps our Chat objects and ensures that each chat session runs in its own thread.
@@ -93,17 +92,17 @@ public class ChatSession extends Thread {
             }
 
         } catch (SocketTimeoutException e) {
-            log.info("Connection timed out");
+            log.error("Connection timed out", e);
         } catch (IOException e) {
-            log.error("DCC CHAT failed", e);
+            log.error("DCC CHAT failed: {}", e.getMessage(), e);
         } catch (InterruptedException e) {
             log.warn("Thread interrupted!", e);
             Thread.currentThread().interrupt();
         } catch (DccException e) {
-            log.error("DCC exception encountered", e);
+            log.error("DCC exception encountered: {}", e.getMessage(), e);
+        } finally {
+            sessionState = CLOSED;
         }
-
-        sessionState = CLOSED;
     }
 
     public Chat getChat() {
