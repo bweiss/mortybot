@@ -75,8 +75,7 @@ public class ChatCommand implements Command {
                 boolean dccFlag = botUsers.stream().anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.DCC));
 
                 if (dccFlag) {
-                    BotUser botUser = botUsers.get(0);
-                    log.info("Sending DCC CHAT request to {} (bot_user: {})", user.getHostmask(), botUser);
+                    log.info("Sending DCC CHAT request to {}", user.getHostmask());
                     DccManager mgr = DccManager.getManager();
                     mgr.startDccChat(user);
                 }

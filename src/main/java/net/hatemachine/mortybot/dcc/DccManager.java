@@ -69,7 +69,7 @@ public class DccManager {
      * @param user the user to retrieve a session for
      * @return an optional containing a chat session if one exists for that user
      */
-    public Optional<ChatSession> getChatSession(User user) {
+    public synchronized Optional<ChatSession> getChatSession(User user) {
         Optional<ChatSession> chatSession = Optional.empty();
         if (userChatMap.containsKey(user)) {
             chatSession = Optional.of(userChatMap.get(user));
@@ -121,7 +121,7 @@ public class DccManager {
      *
      * @param user the user to start the chat with
      */
-    public void startDccChat(User user) {
+    public synchronized void startDccChat(User user) {
         ChatSession chatSession = new ChatSession(ChatSession.SessionType.SEND, user);
         addChatSession(user, chatSession);
         chatSession.start();
@@ -132,7 +132,7 @@ public class DccManager {
      *
      * @param event the {incoming chat request event
      */
-    public void acceptDccChat(final IncomingChatRequestEvent event) {
+    public synchronized void acceptDccChat(final IncomingChatRequestEvent event) {
         ChatSession chatSession = new ChatSession(ChatSession.SessionType.RECEIVE, event);
         addChatSession(event.getUser(), chatSession);
         chatSession.start();
@@ -144,7 +144,7 @@ public class DccManager {
      * @param chatSession the chat session object that's initiating the event
      * @param line the message text
      */
-    public void handleChatMessage(ChatSession chatSession, String line) {
+    public synchronized void handleChatMessage(ChatSession chatSession, String line) {
         Chat chat = chatSession.getChat();
         User user = chat.getUser();
         MortyBot bot = user.getBot();
@@ -156,7 +156,7 @@ public class DccManager {
      *
      * @param message the message text
      */
-    public void dispatchMessage(String message) {
+    public synchronized void dispatchMessage(String message) {
         dispatchMessage(message, false);
     }
 
@@ -166,7 +166,7 @@ public class DccManager {
      * @param message the message text
      * @param adminOnly if true, message will only be dispatched to admin users
      */
-    public void dispatchMessage(String message, boolean adminOnly) {
+    public synchronized void dispatchMessage(String message, boolean adminOnly) {
         log.debug("Dispatching message to all party line members (adminOnly: {}): \"{}\"", adminOnly, message);
 
         for (ChatSession cs : manager.getActiveChatSessions()) {

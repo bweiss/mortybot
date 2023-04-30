@@ -19,25 +19,61 @@ package net.hatemachine.mortybot.listeners;
 
 import net.hatemachine.mortybot.ExtendedListenerAdapter;
 import net.hatemachine.mortybot.MortyBot;
+import net.hatemachine.mortybot.config.BotDefaults;
+import net.hatemachine.mortybot.config.BotProperties;
+import net.hatemachine.mortybot.custom.entity.BotUserFlag;
 import net.hatemachine.mortybot.dcc.DccManager;
 import net.hatemachine.mortybot.events.DccChatMessageEvent;
+import net.hatemachine.mortybot.helpers.BotUserHelper;
+import net.hatemachine.mortybot.model.BotUser;
+import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.User;
 import org.pircbotx.hooks.Listener;
-import org.pircbotx.hooks.events.ConnectEvent;
-import org.pircbotx.hooks.events.DisconnectEvent;
-import org.pircbotx.hooks.events.KickEvent;
-import org.pircbotx.hooks.events.PrivateMessageEvent;
+import org.pircbotx.hooks.events.*;
 import org.pircbotx.hooks.managers.ListenerManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
- * Responsible for dispatching chat messages on the party line.
- * Also shows admin users all commands and private messages sent to the bot.
+ * Listener that handles DCC related events.
  */
-public class DccPartyLineListener extends ExtendedListenerAdapter {
+public class DccListener extends ExtendedListenerAdapter {
 
+    private static final Logger log = LoggerFactory.getLogger(DccListener.class);
     private static final DccManager dccManager = DccManager.getManager();
+
+    /**
+     * Handle incoming DCC CHAT requests from users. The dcc.chat.enabled property must be TRUE and the user must
+     * be a registered bot user with the DCC flag or the request will be rejected.
+     *
+     * @param event the {@link IncomingChatRequestEvent} object containing our event data
+     */
+    @Override
+    public void onIncomingChatRequest(IncomingChatRequestEvent event) {
+        BotProperties botProperties = BotProperties.getBotProperties();
+        boolean dccEnabled = botProperties.getBooleanProperty("dcc.chat.enabled", BotDefaults.DCC_CHAT_ENABLED);
+        User user = (User) Validate.notNull(event.getUser());
+        BotUserHelper botUserHelper = new BotUserHelper();
+        List<BotUser> matchedBotUsers = botUserHelper.findByHostmask(user.getHostmask());
+        boolean userHasDccFlag = matchedBotUsers.stream().anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.DCC));
+
+        if (dccEnabled && userHasDccFlag) {
+            try {
+                Thread.sleep(1000);
+                log.info("Accepting DCC CHAT request from {}", user.getHostmask());
+                DccManager.getManager().acceptDccChat(event);
+            } catch (InterruptedException e) {
+                log.warn("Thread interrupted", e);
+                Thread.currentThread().interrupt();
+            }
+        } else {
+            log.info("Rejecting DCC CHAT request from {}", user.getHostmask());
+            user.send().ctcpResponse("DCC REJECT CHAT chat");
+        }
+    }
 
     /**
      * Handles DCC CHAT events from users on the party line and dispatches them to other members.

@@ -68,8 +68,7 @@ public class Main {
                 .setAutoNickChange(props.getBooleanProperty("auto.nick.change", BotDefaults.AUTO_NICK_CHANGE))
                 .addListener(new AutoOpListener())
                 .addListener(new CommandListener(props.getStringProperty("bot.command.prefix", BotDefaults.BOT_COMMAND_PREFIX)))
-                .addListener(new DccPartyLineListener())
-                .addListener(new DccRequestListener())
+                .addListener(new DccListener())
                 .addListener(new LinkListener())
                 .addListener(new ManagedChannelListener())
                 .addListener(new WordleListener());
