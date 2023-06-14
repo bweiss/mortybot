@@ -26,8 +26,15 @@ import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.services.rt.Movie;
 import net.hatemachine.mortybot.services.rt.RTHelper;
 import net.hatemachine.mortybot.util.Validate;
+import net.sourceforge.argparse4j.ArgumentParsers;
+import net.sourceforge.argparse4j.impl.Arguments;
+import net.sourceforge.argparse4j.inf.ArgumentParser;
+import net.sourceforge.argparse4j.inf.ArgumentParserException;
+import net.sourceforge.argparse4j.inf.Namespace;
 import org.pircbotx.Colors;
 import org.pircbotx.hooks.types.GenericMessageEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -47,6 +54,8 @@ public class RottenTomatoesCommand implements Command {
     private static final String FRESH = TOMATO + "fresh" + TOMATO;
     private static final String ROTTEN = SPLAT + "rotten" + SPLAT;
 
+    private static final Logger log = LoggerFactory.getLogger(RottenTomatoesCommand.class);
+
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;
     private final List<String> args;
@@ -63,48 +72,41 @@ public class RottenTomatoesCommand implements Command {
             throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
         }
 
-        boolean listResults = false;
-        int maxResults = BotProperties.getBotProperties().getIntProperty("rt.max.results", BotDefaults.RT_MAX_RESULTS);
-        String query;
+        ArgumentParser parser = ArgumentParsers.newFor("RT").build();
+        parser.addArgument("-l", "--list").action(Arguments.storeTrue());
+        parser.addArgument("query").nargs("*");
+        Namespace ns;
 
-        if (args.get(0).equals("-l")) {
-            listResults = true;
-            query = String.join(" ", args.subList(1, args.size()));
-        } else {
-            query = String.join(" ", args);
+        try {
+            ns = parser.parseArgs(args.toArray(new String[0]));
+        } catch (ArgumentParserException e) {
+            log.error("Problem parsing command arguments", e);
+            parser.handleError(e);
+            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Problem parsing command");
         }
 
-        List<Movie> results = RTHelper.search(query);
+        if (ns != null) {
+            int maxResults = BotProperties.getBotProperties().getIntProperty("rt.max.results", BotDefaults.RT_MAX_RESULTS);
+            boolean listFlag = ns.getBoolean("list");
+            String query = String.join(" ", ns.getList("query"));
 
-        if (results.isEmpty()) {
-            event.respondWith("No results found");
-        } else {
-            if (listResults) {
-                // -l flag present, list results
-                event.respondWith(String.format(RESPONSE_PREFIX + "Showing top %d results:", Math.min(results.size(), maxResults)));
-                for (int i = 0; i < results.size() && i < maxResults; i++) {
-                    event.respondWith(formatResponse(results.get(i)));
-                }
+            List<Movie> results = RTHelper.search(query);
+
+            if (results.isEmpty()) {
+                event.respondWith("No results found");
             } else {
-                // display details for top result
-                event.respondWith(formatResponse(results.get(0)));
+                if (listFlag) {
+                    // -l flag present, list results
+                    event.respondWith(String.format(RESPONSE_PREFIX + "Showing top %d results:", Math.min(results.size(), maxResults)));
+                    for (int i = 0; i < results.size() && i < maxResults; i++) {
+                        event.respondWith(formatResponse(results.get(i)));
+                    }
+                } else {
+                    // display details for top result
+                    event.respondWith(formatResponse(results.get(0)));
+                }
             }
         }
-    }
-
-    @Override
-    public GenericMessageEvent getEvent() {
-        return event;
-    }
-
-    @Override
-    public CommandListener.CommandSource getSource() {
-        return source;
-    }
-
-    @Override
-    public List<String> getArgs() {
-        return args;
     }
 
     private String formatResponse(Movie movie) {
@@ -130,5 +132,20 @@ public class RottenTomatoesCommand implements Command {
         }
 
         return sb.toString();
+    }
+
+    @Override
+    public GenericMessageEvent getEvent() {
+        return event;
+    }
+
+    @Override
+    public CommandListener.CommandSource getSource() {
+        return source;
+    }
+
+    @Override
+    public List<String> getArgs() {
+        return args;
     }
 }

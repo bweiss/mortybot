@@ -20,12 +20,18 @@ package net.hatemachine.mortybot.commands;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
-import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.dao.BotUserDao;
+import net.hatemachine.mortybot.exception.CommandException;
+import net.hatemachine.mortybot.helpers.BotUserHelper;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.model.BotUser;
-import net.hatemachine.mortybot.helpers.BotUserHelper;
+import net.sourceforge.argparse4j.ArgumentParsers;
+import net.sourceforge.argparse4j.impl.Arguments;
+import net.sourceforge.argparse4j.inf.ArgumentParser;
+import net.sourceforge.argparse4j.inf.ArgumentParserException;
+import net.sourceforge.argparse4j.inf.Namespace;
 import org.pircbotx.User;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
@@ -82,28 +88,46 @@ public class WeatherCommand implements Command {
 
     @Override
     public void execute() {
-        // If user passes the -d option, attempt to set their default location
-        if (!args.isEmpty() && args.get(0).equals("-d")) {
-            if (botUser == null) {
-                event.respondWith("You are not registered with the bot. Please register with the REGISTER command.");
-            } else if (args.size() < 2) {
-                event.respondWith("Could not set default location (not enough arguments)");
-            } else {
-                List<String> newArgs = args.subList(1, args.size());
-                setDefaultLocation(String.join(" ", newArgs));
-            }
-        }
+        ArgumentParser parser = ArgumentParsers.newFor("WEATHER").build();
+        parser.addArgument("-d", "--default").action(Arguments.storeTrue());
+        parser.addArgument("location").nargs("*");
+        Namespace ns;
 
         try {
-            String location = "";
-            if (args.isEmpty() && botUser != null) {
-                location = String.join("+", botUser.getLocation().split(" "));
-            } else if (!args.isEmpty() && !args.get(0).equals("-d")) {
-                location = String.join("+", args);
+            ns = parser.parseArgs(args.toArray(new String[0]));
+        } catch (ArgumentParserException e) {
+            log.error("Problem parsing command arguments", e);
+            parser.handleError(e);
+            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Problem parsing command");
+        }
+
+        if (ns != null) {
+            boolean defaultFlag = ns.getBoolean("default");
+            String location = String.join(" ", ns.getList("location"));
+
+            // If user passes the -d option, attempt to set their default location
+            if (defaultFlag) {
+                if (location.isBlank()) {
+                    throw new CommandException(CommandException.Reason.INVALID_ARGS, "location not provided");
+                } else if (botUser == null) {
+                    throw new CommandException(CommandException.Reason.UNAUTHORIZED_USER, "user not registered");
+                } else {
+                    setDefaultLocation(location);
+                }
             }
 
-            if (!location.isBlank()) {
-                URL url = new URL(BASE_URL + location + PARAMETERS);
+            // If still no location provided, and we know the user, try to pull it from their default
+            if (location.isBlank() && botUser != null) {
+                location = botUser.getLocation();
+            }
+
+            // one last check
+            if (location == null || location.isBlank()) {
+                throw new CommandException(CommandException.Reason.INVALID_ARGS, "location not provided");
+            }
+
+            try {
+                URL url = new URL(BASE_URL + String.join("+", location.split(" ")) + PARAMETERS);
 
                 HttpClient client = HttpClient.newBuilder()
                         .followRedirects(HttpClient.Redirect.NORMAL)
@@ -123,32 +147,17 @@ public class WeatherCommand implements Command {
                 if (response != null && response.statusCode() == 200) {
                     event.respondWith(parseWeatherJson(response.body()));
                 }
+            } catch (MalformedURLException e) {
+                log.error("Invalid URL", e);
+            } catch (URISyntaxException e) {
+                log.error("Invalid URI", e);
+            } catch (IOException e) {
+                log.error("Error fetching body", e);
+            } catch (InterruptedException e) {
+                log.warn("Thread interrupted", e);
+                Thread.currentThread().interrupt();
             }
-        } catch (MalformedURLException e) {
-            log.error("Invalid URL", e);
-        } catch (URISyntaxException e) {
-            log.error("Invalid URI", e);
-        } catch (IOException e) {
-            log.error("Error fetching body", e);
-        } catch (InterruptedException e) {
-            log.warn("Thread interrupted", e);
-            Thread.currentThread().interrupt();
         }
-    }
-
-    @Override
-    public GenericMessageEvent getEvent() {
-        return event;
-    }
-
-    @Override
-    public CommandListener.CommandSource getSource() {
-        return source;
-    }
-
-    @Override
-    public List<String> getArgs() {
-        return args;
     }
 
     private String parseWeatherJson(String json) {
@@ -167,13 +176,28 @@ public class WeatherCommand implements Command {
     }
 
     private void setDefaultLocation(String loc) {
-        try {
+        if (botUser != null) {
             BotUserDao botUserDao = new BotUserDao();
             botUser.setLocation(loc);
             botUserDao.update(botUser);
             event.respondWith("Set default location to: " + loc);
-        } catch (Exception ex) {
-            log.error("Exception encountered", ex);
+        } else {
+            log.warn("Unable to set default location, botUser is null");
         }
+    }
+
+    @Override
+    public GenericMessageEvent getEvent() {
+        return event;
+    }
+
+    @Override
+    public CommandListener.CommandSource getSource() {
+        return source;
+    }
+
+    @Override
+    public List<String> getArgs() {
+        return args;
     }
 }

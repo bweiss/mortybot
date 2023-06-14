@@ -26,6 +26,11 @@ import net.hatemachine.mortybot.services.dict.DictionaryEntry;
 import net.hatemachine.mortybot.services.dict.MerriamWebsterWeb;
 import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.listeners.CommandListener;
+import net.sourceforge.argparse4j.ArgumentParsers;
+import net.sourceforge.argparse4j.impl.Arguments;
+import net.sourceforge.argparse4j.inf.ArgumentParser;
+import net.sourceforge.argparse4j.inf.ArgumentParserException;
+import net.sourceforge.argparse4j.inf.Namespace;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,32 +64,42 @@ public class DictionaryCommand implements Command {
             throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
         }
 
-        List<String> newArgs = args;
-        boolean showAllDefs = false;
-        if (args.get(0).equalsIgnoreCase("-a")) {
-            showAllDefs = true;
-            newArgs = args.subList(1, args.size());
+        ArgumentParser parser = ArgumentParsers.newFor("DICT").build();
+        parser.addArgument("-a", "--all").action(Arguments.storeTrue());
+        parser.addArgument("term").nargs("*");
+        Namespace ns = null;
+
+        try {
+            ns = parser.parseArgs(args.toArray(new String[0]));
+        } catch (ArgumentParserException e) {
+            log.error("problem parsing command arguments", e);
+            parser.handleError(e);
+            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Problem parsing command");
         }
 
-        int maxDefs = BotProperties.getBotProperties().getIntProperty("dict.max.defs", BotDefaults.DICT_MAX_DEFS);
-        Dictionary dict = new MerriamWebsterWeb();
-        List<DictionaryEntry> entries = dict.lookup(String.join(" ", newArgs));
+        if (ns != null) {
+            boolean allDefsFlag = ns.getBoolean("all");
+            String term = String.join(" ", ns.getList("term"));
+            int maxDefs = BotProperties.getBotProperties().getIntProperty("dict.max.defs", BotDefaults.DICT_MAX_DEFS);
+            Dictionary dict = new MerriamWebsterWeb();
+            List<DictionaryEntry> entries = dict.lookup(term);
 
-        if (entries.isEmpty()) {
-            event.respondWith("No results found");
-        } else {
-            for (DictionaryEntry entry : entries) {
-                List<String> defs = entry.definitions();
+            if (entries.isEmpty()) {
+                event.respondWith("No results found");
+            } else {
+                for (DictionaryEntry entry : entries) {
+                    List<String> defs = entry.definitions();
 
-                log.debug("Dictionary entry for {} has {} definitions", entry.word(), defs.size());
-                event.respondWith(entry.toString());
+                    log.debug("Dictionary entry for {} has {} definitions", entry.word(), defs.size());
+                    event.respondWith(entry.toString());
 
-                for (int i = 0; i < defs.size() && (showAllDefs || i < maxDefs); i++) {
-                    event.respondWith("#" + (i + 1) + defs.get(i));
-                }
+                    for (int i = 0; i < defs.size() && (allDefsFlag || i < maxDefs); i++) {
+                        event.respondWith("#" + (i + 1) + defs.get(i));
+                    }
 
-                if (!showAllDefs && defs.size() > maxDefs) {
-                    event.respondWith(String.format("Max definitions reached (%s of %s shown). Pass the -a option to show all.", maxDefs, defs.size()));
+                    if (!allDefsFlag && defs.size() > maxDefs) {
+                        event.respondWith(String.format("Max definitions reached (%s of %s shown). Pass the -a option to show all.", maxDefs, defs.size()));
+                    }
                 }
             }
         }

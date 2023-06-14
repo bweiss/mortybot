@@ -25,7 +25,14 @@ import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.imdb.IMDBHelper;
 import net.hatemachine.mortybot.imdb.SearchResult;
 import net.hatemachine.mortybot.listeners.CommandListener;
+import net.sourceforge.argparse4j.ArgumentParsers;
+import net.sourceforge.argparse4j.impl.Arguments;
+import net.sourceforge.argparse4j.inf.ArgumentParser;
+import net.sourceforge.argparse4j.inf.ArgumentParserException;
+import net.sourceforge.argparse4j.inf.Namespace;
 import org.pircbotx.hooks.types.GenericMessageEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -40,6 +47,8 @@ import java.util.List;
 public class ImdbCommand implements Command {
 
     private static final String RESPONSE_PREFIX = "[imdb] ";
+
+    private static final Logger log = LoggerFactory.getLogger(ImdbCommand.class);
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;
@@ -57,53 +66,57 @@ public class ImdbCommand implements Command {
             throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
         }
 
-        IMDBHelper helper = new IMDBHelper();
-        boolean listResults = false;
-        int maxResults = BotProperties.getBotProperties().getIntProperty("imdb.max.results", BotDefaults.IMDB_MAX_RESULTS);
-        String query;
+        ArgumentParser parser = ArgumentParsers.newFor("IMDB").build();
+        parser.addArgument("-l", "--list").action(Arguments.storeTrue());
+        parser.addArgument("query").nargs("*");
+        Namespace ns;
 
-        if (args.get(0).equals("-l")) {
-            listResults = true;
-            query = String.join(" ", args.subList(1, args.size()));
-        } else {
-            query = String.join(" ", args);
+        try {
+            ns = parser.parseArgs(args.toArray(new String[0]));
+        } catch (ArgumentParserException e) {
+            log.error("Problem parsing command arguments", e);
+            parser.handleError(e);
+            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Problem parsing command");
         }
 
-        List<SearchResult> results = helper.search(query);
+        if (ns != null) {
+            int maxResults = BotProperties.getBotProperties().getIntProperty("imdb.max.results", BotDefaults.IMDB_MAX_RESULTS);
+            boolean listFlag = ns.getBoolean("list");
+            String query = String.join(" ", ns.getList("query"));
+            IMDBHelper helper = new IMDBHelper();
+            List<SearchResult> results = helper.search(query);
 
-        if (results.isEmpty()) {
-            event.respondWith("No results found");
-        } else {
-            // -l flag present, list results
-            if (listResults) {
-                for (int i = 0; i < results.size() && i < maxResults; i++) {
-                    event.respondWith(RESPONSE_PREFIX + results.get(i));
-                }
-
-            // display details for top result
+            if (results.isEmpty()) {
+                event.respondWith("No results found");
             } else {
-                SearchResult topResult = results.get(0);
+                if (listFlag) {
+                    for (int i = 0; i < results.size() && i < maxResults; i++) {
+                        event.respondWith(RESPONSE_PREFIX + results.get(i));
+                    }
+                } else {
+                    SearchResult topResult = results.get(0);
 
-                // Person
-                if (topResult.getType() == SearchResult.Type.NM) {
-                    var person = helper.fetchPerson(topResult.getUrl());
-                    if (person.isPresent()) {
-                        var p = person.get();
-                        event.respondWith(RESPONSE_PREFIX + p);
-                        if (p.hasBio()) {
-                            event.respondWith(RESPONSE_PREFIX + p.getBio());
+                    // Person
+                    if (topResult.getType() == SearchResult.Type.NM) {
+                        var person = helper.fetchPerson(topResult.getUrl());
+                        if (person.isPresent()) {
+                            var p = person.get();
+                            event.respondWith(RESPONSE_PREFIX + p);
+                            if (p.hasBio()) {
+                                event.respondWith(RESPONSE_PREFIX + p.getBio());
+                            }
                         }
                     }
-                }
 
-                // Title
-                else if (topResult.getType() == SearchResult.Type.TT) {
-                    var title = helper.fetchTitle(topResult.getUrl());
-                    if (title.isPresent()) {
-                        var t = title.get();
-                        event.respondWith(RESPONSE_PREFIX + t);
-                        if (t.hasDescription()) {
-                            event.respondWith(RESPONSE_PREFIX + t.getDescription());
+                    // Title
+                    else if (topResult.getType() == SearchResult.Type.TT) {
+                        var title = helper.fetchTitle(topResult.getUrl());
+                        if (title.isPresent()) {
+                            var t = title.get();
+                            event.respondWith(RESPONSE_PREFIX + t);
+                            if (t.hasDescription()) {
+                                event.respondWith(RESPONSE_PREFIX + t.getDescription());
+                            }
                         }
                     }
                 }
