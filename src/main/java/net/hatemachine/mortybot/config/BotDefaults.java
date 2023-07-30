@@ -69,9 +69,6 @@ public class BotDefaults {
     public static final int     BAN_MASK_TYPE = 3;
     public static final String  KICK_REASON = "Aww jeez";
 
-    // BottleCommand
-    public static final int     BOTTLE_MAX_RESULTS = 5;
-
     // DictionaryCommand
     public static final int     DICT_MAX_DEFS = 4;
 

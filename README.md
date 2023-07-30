@@ -130,7 +130,8 @@ To get a list of commands and basic usage information, issue the HELP command in
 For example:
 
 > &lt;rick&gt; .help<br/>
-> &lt;morty&gt; Commands: BAN, BANKICK, BOTTLE, CHANNEL, CHAT, CONFIG, DICT, G, GEOIP, GOO, GOOGLE, HELP, HOST, IMDB, JOIN, KICK, KICKBAN, MSG, OP, PART, QUIT, REGISTER, RT, STOCK, TEST, URB, URBAN, USER, WEATHER, WHO, WORDLE, WOTD, WTR, YEAR<br/>
+> &lt;morty&gt; Commands: CHAT, DICT, GEOIP, GOO, GOOGLE, HELP, HOST, IMDB, NICK, REGISTER, RT, STOCK, URB, URBAN, WEATHER, WHO, WORDLE, WOTD, WTR, YEAR<br/>
+> &lt;morty&gt; Admin commands: BAN, BANKICK, CHANNEL, CONFIG, JOIN, KICK, KICKBAN, MSG, NICK, OP, PART, QUIT, USER<br/>
 > &lt;morty&gt; Type .HELP &lt;command&gt; to get more information about a command<br/>
 > &lt;rick&gt; .help register<br/>
 > &lt;morty&gt; Registers yourself with the bot using your current hostname<br/>
