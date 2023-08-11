@@ -17,28 +17,17 @@
  */
 package net.hatemachine.mortybot.config;
 
-import com.darwinsys.io.FileSaver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Writer;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
 import java.util.Properties;
-import java.util.TreeMap;
 
-/**
- * This manages all of our bot properties and provides a mechanism for other classes to get and set properties
- * for the bot.
- *
- * It is also responsible for reading our properties file at startup as well as saving changes back to disk.
- */
 public class BotProperties {
 
     private static final Logger log = LoggerFactory.getLogger(BotProperties.class);
@@ -122,38 +111,5 @@ public class BotProperties {
 
     public synchronized void setFloatProperty(String name, float newValue) {
         setStringProperty(name, Float.toString(newValue));
-    }
-
-    public synchronized void save() {
-        String pathSeparator = FileSystems.getDefault().getSeparator();
-        Path propertiesFile = Path.of(getBotConfigDir() + pathSeparator + BotDefaults.PROPERTIES_FILE);
-
-        try {
-            FileSaver saver = new FileSaver(propertiesFile);
-            Writer writer = saver.getWriter();
-            PrintWriter out = new PrintWriter(writer);
-
-            out.println("""
-                    #
-                    # Bot properties
-                    #
-                    # Note that this file will be overwritten by the bot during runtime if a property is changed.
-                    # It should not be edited directly while the bot is running.
-                    #
-                    """);
-
-            // transfer into a TreeMap for sorting purposes
-            Map<String, String> sortedMap = new TreeMap<>();
-            properties.forEach((k, v) -> sortedMap.put(k.toString(), v.toString()));
-
-            // write all properties to our file
-            sortedMap.forEach((k, v) -> out.println(k + "=" + v));
-
-            out.close();
-            saver.finish();
-
-        } catch (IOException e) {
-            log.error("Unable to write bot properties file: {}", propertiesFile, e);
-        }
     }
 }
