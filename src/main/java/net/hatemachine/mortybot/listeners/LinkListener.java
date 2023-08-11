@@ -17,9 +17,6 @@
  */
 package net.hatemachine.mortybot.listeners;
 
-import io.github.redouane59.twitter.TwitterClient;
-import io.github.redouane59.twitter.dto.tweet.Tweet;
-import io.github.redouane59.twitter.signature.TwitterCredentials;
 import net.hatemachine.mortybot.services.bitly.Bitly;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
@@ -51,7 +48,6 @@ import static net.hatemachine.mortybot.listeners.LinkListener.Source.PUBLIC;
 public class LinkListener extends ListenerAdapter {
 
     private static final Pattern URL_PATTERN = Pattern.compile("https?:\\/\\/([.]|\\S+)");
-    private static final Pattern TWEET_PATTERN = Pattern.compile("https?:\\/\\/(www\\.|mobile\\.)?twitter.com\\/\\w+\\/status\\/(\\d+)");
 
     private static final Logger log = LoggerFactory.getLogger(LinkListener.class);
 
@@ -85,7 +81,6 @@ public class LinkListener extends ListenerAdapter {
         int maxTitleLength = props.getIntProperty("links.max.title.length", BotDefaults.LINKS_MAX_TITLE_LENGTH);
         boolean shortenLinksFlag = props.getBooleanProperty("links.shorten", BotDefaults.LINKS_SHORTEN);
         boolean showTitlesFlag = props.getBooleanProperty("links.show.titles", BotDefaults.LINKS_SHOW_TITLES);
-        boolean showTweetsFlag = props.getBooleanProperty("links.show.tweets", BotDefaults.LINKS_SHOW_TWEETS);
         String commandPrefix = props.getStringProperty("command.prefix", BotDefaults.BOT_COMMAND_PREFIX);
         BotUserHelper botUserHelper = new BotUserHelper();
         boolean ignoreFlag = botUserHelper.findByHostmask(event.getUser().getHostmask())
@@ -112,9 +107,6 @@ public class LinkListener extends ListenerAdapter {
                 if (!flags.contains(ManagedChannelFlag.SHOW_TITLES)) {
                     showTitlesFlag = false;
                 }
-                if (!flags.contains(ManagedChannelFlag.SHOW_TWEETS)) {
-                    showTweetsFlag = false;
-                }
             }
         }
 
@@ -123,71 +115,49 @@ public class LinkListener extends ListenerAdapter {
 
         for (int i = 0; i < links.size() && i < maxLinks; i++) {
             String link = links.get(i);
+            Optional<String> shortLink = Optional.empty();
+            Optional<String> title = Optional.empty();
 
-            // If this is a tweet, try to fetch and display the details
-            if (showTweetsFlag && isTweet(link)) {
-                log.debug("Link appears to be a tweet, fetching details...");
-
-                try {
-                    Matcher matcher = TWEET_PATTERN.matcher(link);
-                    if (matcher.find()) {
-                        String tweetId = matcher.group(2);
-                        String bearerToken = props.getStringProperty("twitter.bearer.token", System.getenv("TWITTER_BEARER_TOKEN"));
-                        TwitterClient twitterClient = new TwitterClient(TwitterCredentials.builder()
-                                .bearerToken(bearerToken)
-                                .build());
-                        Tweet tweet = twitterClient.getTweet(tweetId);
-
-                        event.respondWith(Colors.BOLD + "@" + tweet.getUser().getName() + Colors.BOLD + ": " + tweet.getText());
-                    }
-                } catch (Exception ex) {
-                    log.error("Failed to fetch tweet", ex);
-                }
-
-            // Regular link, shorten and fetch title
-            } else {
-                Optional<String> shortLink = Optional.empty();
-                Optional<String> title = Optional.empty();
-
-                if (shortenLinksFlag) {
-                    if (link.length() < minLenToShorten) {
-                        shortLink = Optional.of(link);
-                    } else {
-                        try {
-                            shortLink = Bitly.shorten(link);
-                            log.debug("Shortened {} to {}", link, shortLink.orElse(""));
-                        } catch (InterruptedException ex) {
-                            log.warn("Thread interrupted", ex);
-                            Thread.currentThread().interrupt();
-                        } catch (IOException ex) {
-                            log.error("I/O error", ex);
-                        }
-                    }
-                }
-
-                if (showTitlesFlag) {
-                    title = fetchTitle(link);
-                    log.debug("Title: {}", title);
-                }
-
-                // shortened link only
-                if ((shortLink.isPresent() && !shortLink.get().equals(link)) && !shortLink.get().isBlank() && title.isEmpty()) {
-                    event.respondWith(Colors.BOLD + shortLink.get() + Colors.BOLD);
-
-                // title only
-                } else if (title.isPresent() && shortLink.isEmpty()) {
-                    event.respondWith(trimTitle(title.get(), maxTitleLength, "..."));
-
-                // short link and title
-                } else if (shortLink.isPresent() && title.isPresent()) {
-                    event.respondWith(String.format("%s :: %s",
-                            Colors.BOLD + shortLink.get() + Colors.BOLD,
-                            trimTitle(title.get(), maxTitleLength, "...")));
-
-                // nothing to do
+            if (shortenLinksFlag) {
+                if (link.length() < minLenToShorten) {
+                    shortLink = Optional.of(link);
                 } else {
-                    log.debug("No title or shortened link (link: {}", link);
+                    try {
+                        shortLink = Bitly.shorten(link);
+                        log.debug("Shortened {} to {}", link, shortLink.orElse(""));
+                    } catch (InterruptedException e) {
+                        log.warn("Thread interrupted", e);
+                        Thread.currentThread().interrupt();
+                    } catch (IOException e) {
+                        String errMsg = "Failed to shorten link: " + link;
+                        log.error(errMsg, e);
+                        throw new RuntimeException(errMsg, e);
+                    }
                 }
+            }
+
+            if (showTitlesFlag) {
+                title = fetchTitle(link);
+                log.debug("Title: {}", title);
+            }
+
+            // shortened link only
+            if ((shortLink.isPresent() && !shortLink.get().equals(link)) && !shortLink.get().isBlank() && title.isEmpty()) {
+                event.respondWith(Colors.BOLD + shortLink.get() + Colors.BOLD);
+
+            // title only
+            } else if (title.isPresent() && shortLink.isEmpty()) {
+                event.respondWith(trimTitle(title.get(), maxTitleLength, "..."));
+
+            // short link and title
+            } else if (shortLink.isPresent() && title.isPresent()) {
+                event.respondWith(String.format("%s :: %s",
+                        Colors.BOLD + shortLink.get() + Colors.BOLD,
+                        trimTitle(title.get(), maxTitleLength, "...")));
+
+            // nothing to do
+            } else {
+                log.debug("No title or shortened link (link: {}", link);
             }
         }
     }
@@ -263,16 +233,5 @@ public class LinkListener extends ListenerAdapter {
             }
         }
         return sb.toString();
-    }
-
-    /**
-     * Find out if a URL is a link to a tweet.
-     *
-     * @param url the url in question
-     * @return true if the url links to a tweet
-     */
-    private boolean isTweet(String url) {
-        Matcher m = TWEET_PATTERN.matcher(url);
-        return m.find();
     }
 }

@@ -22,6 +22,5 @@ public enum ManagedChannelFlag {
     ENFORCE_BANS,
     ENFORCE_MODES,
     SHORTEN_LINKS,
-    SHOW_TITLES,
-    SHOW_TWEETS
+    SHOW_TITLES
 }

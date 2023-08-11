@@ -51,13 +51,12 @@ public class BotDefaults {
     public static final int     LINKS_MAX = 2;
     public static final int     LINKS_MIN_LENGTH = 36;
     public static final int     LINKS_MAX_TITLE_LENGTH = 200;
-    public static final boolean LINKS_SHOW_TWEETS = true;
 
     // BotUserHelper
     public static final String  BOT_USER_DEFAULT_FLAGS = "DCC";
 
     // ManagedChannelHelper
-    public static final String  MANAGED_CHANNEL_DEFAULT_FLAGS = "AUTO_JOIN,SHORTEN_LINKS,SHOW_TITLES,SHOW_TWEETS";
+    public static final String  MANAGED_CHANNEL_DEFAULT_FLAGS = "AUTO_JOIN,SHORTEN_LINKS,SHOW_TITLES";
 
     // Wordle (Game, WordleListener)
     public static final int     WORDLE_MAX_ATTEMPTS = 6;

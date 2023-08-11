@@ -11,14 +11,13 @@ This is a simple IRC bot I wrote for fun and to learn Java. It is designed for [
 * Command handler
 * DCC CHAT with party line
 * Auto-op
-* Link shortening/title display/tweet lookups
+* Link shortening and title display
 * Google search
 * Weather lookups
 * Stock symbol lookups
 * IMDB and Rotten Tomatoes search
 * GeoIP2 address location lookups
 * Merriam-Webster dictionary and word-of-the-day lookups
-* BottleBlueBook search
 * Urban Dictionary lookups
 * Wordle game
 * Shodan host lookups
@@ -87,7 +86,7 @@ For example:
 > &lt;rick&gt; .channel add #blipsandchitz<br/>
 > &lt;morty&gt; Added channel #blipsandchitz with flags AUTO_JOIN, SHORTEN_LINKS<br/>
 > &lt;rick&gt; .channel addflag #blipsandchitz show_titles,show_tweets<br/>
-> &lt;morty&gt; Flags for #blipsandchitz: AUTO_JOIN, SHORTEN_LINKS, SHOW_TITLES, SHOW_TWEETS<br/>
+> &lt;morty&gt; Flags for #blipsandchitz: AUTO_JOIN, SHORTEN_LINKS, SHOW_TITLES<br/>
 
 Managed Channel Flags:
 
@@ -98,7 +97,6 @@ Managed Channel Flags:
 | ENFORCE_MODES | Enforce channel modes (not implemented yet) |
 | SHORTEN_LINKS | Shorten links on the channel                |
 | SHOW_TITLES   | Fetch and display titles for links          |
-| SHOW_TWEETS   | Fetch and display the text of tweets        |
 
 ### Features Requiring API Keys
 
@@ -109,7 +107,6 @@ There are a number of features that require (free) API keys to function. They ca
 | Link shortening with bit.ly                | bitly.api.key        | BITLY_API_KEY        |
 | MaxMind GeoLite IP lookups (GEOIP command) | maxmind.api.key      | MAXMIND_API_KEY      |
 | Shodan host lookups (HOST command)         | shodan.api.key       | SHODAN_API_KEY       |
-| Tweet lookups (link shortener)             | twitter.bearer.token | TWITTER_BEARER_TOKEN |
 
 ## Running the Bot
 
