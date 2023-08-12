@@ -30,7 +30,7 @@ import java.util.Objects;
  */
 public class MortyBot extends PircBotX {
 
-    public static final String VERSION = "0.9.0-SNAPSHOT"; // automatically generated; do not change
+    public static final String VERSION = "0.9.0"; // automatically generated; do not change
 
     MortyBot(Configuration config) {
         super(config);
