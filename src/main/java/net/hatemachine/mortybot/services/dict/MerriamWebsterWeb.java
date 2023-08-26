@@ -51,7 +51,12 @@ public class MerriamWebsterWeb implements Dictionary {
         log.info("Fetching definition for \"{}\"", term);
 
         try {
-            Document doc = Jsoup.connect(url).get();
+            Document doc = Jsoup.connect(url)
+                    .header("Cache-Control", "max-age=0, no-cache, must-revalidate, proxy-revalidate")
+                    .header("Cache-Store", "no-store")
+                    .timeout(5000)
+                    .get();
+
             Element content = doc.select("div#left-content").first();
 
             if (content == null) {
@@ -60,18 +65,7 @@ public class MerriamWebsterWeb implements Dictionary {
                 Elements entryHeaderDivs = content.select("div.row.entry-header");
                 Elements entryAttrDivs = content.select("div.row.entry-attr");
                 Elements headwordDivs = content.select("div.row.headword-row");
-                List<Element> dictEntryDivs = new ArrayList<>();
-
-                // this seems to be the most reliable way to determine the number of definitions on the page
-                boolean end = false;
-                for (int i = 1; !end; i++) {
-                    Element div = content.select("div#dictionary-entry-" + i).first();
-                    if (div == null) {
-                        end = true;
-                    } else {
-                        dictEntryDivs.add(div);
-                    }
-                }
+                Elements dictEntryDivs = content.select("div[id~=^dictionary-entry-[0-9]+]");
 
                 for (int i = 0; i < dictEntryDivs.size(); i++) {
                     String word = "--";
@@ -82,28 +76,29 @@ public class MerriamWebsterWeb implements Dictionary {
 
                     // word and attributes
                     // the top entry is different, so we have to do things like this
+                    Element wordElement;
                     if (i == 0) {
-                        Element h1 = headerDiv.select("h1").first();
-                        if (h1 != null) {
-                            word = h1.text();
-                        }
+                        wordElement = headerDiv.select("h1").first();
+
                         if (entryAttrDivs.size() >= dictEntryDivs.size()) {
                             attributes = entryAttrDivs.get(i).text();
                         }
                     } else {
-                        Element p = headerDiv.select("p").first();
-                        if (p != null) {
-                            word = p.text();
-                        }
+                        wordElement = headerDiv.select("p").first();
+
                         if (headwordDivs.size() >= dictEntryDivs.size()) {
                             attributes = headwordDivs.get(i).text();
                         }
                     }
 
+                    if (wordElement != null) {
+                        word = wordElement.text();
+                    }
+
                     // type
-                    Element flSpan = headerDiv.select("span.fl").first();
-                    if (flSpan != null) {
-                        type = flSpan.text();
+                    Element h2 = headerDiv.select("h2").first();
+                    if (h2 != null) {
+                        type = h2.text();
                     }
 
                     // definitions
@@ -116,7 +111,7 @@ public class MerriamWebsterWeb implements Dictionary {
                 }
             }
         } catch (IOException e) {
-            log.error("Exception encountered fetching page", e);
+            log.error("Exception encountered fetching page: {}", url, e);
         }
 
         log.info("Found {} dictionary entries for \"{}\"", entries.size(), term);
@@ -134,7 +129,12 @@ public class MerriamWebsterWeb implements Dictionary {
         log.info("Fetching word of the day");
 
         try {
-            Document doc = Jsoup.connect(WOTD_URL).get();
+            Document doc = Jsoup.connect(WOTD_URL)
+                    .header("Cache-Control", "max-age=0, no-cache, must-revalidate, proxy-revalidate")
+                    .header("Cache-Store", "no-store")
+                    .timeout(5000)
+                    .get();
+
             Element wordDiv = doc.select("div.word-and-pronunciation").first();
             Element typeAttrSpan = doc.select("div.word-attributes span.main-attr").first();
             Element syllableAttrSpan = doc.select("div.word-attributes span.word-syllables").first();
@@ -146,7 +146,7 @@ public class MerriamWebsterWeb implements Dictionary {
                 log.error("One or more elements were null");
             }
         } catch (IOException e) {
-            log.error("Exception encountered fetching page", e);
+            log.error("Exception encountered fetching page: {}", WOTD_URL, e);
         }
 
         return optEntry;
