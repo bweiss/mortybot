@@ -97,7 +97,7 @@ public class WordleListener extends ExtendedListenerAdapter {
                                         Colors.BOLD + game.getWord() + Colors.BOLD,
                                         game.getTried().size(),
                                         game.getMaxAttempts(),
-                                        DateTimeUtils.printDuration(gameDuration)));
+                                        DateTimeUtils.formatDuration(gameDuration)));
                             }
 
                             case LOST -> {
@@ -106,7 +106,7 @@ public class WordleListener extends ExtendedListenerAdapter {
                                         Colors.BOLD + game.getWord() + Colors.BOLD,
                                         game.getTried().size(),
                                         game.getMaxAttempts(),
-                                        DateTimeUtils.printDuration(gameDuration)));
+                                        DateTimeUtils.formatDuration(gameDuration)));
                             }
 
                             case ACTIVE -> {

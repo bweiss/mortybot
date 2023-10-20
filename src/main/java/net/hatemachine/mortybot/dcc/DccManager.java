@@ -17,11 +17,10 @@
  */
 package net.hatemachine.mortybot.dcc;
 
-import net.hatemachine.mortybot.custom.entity.BotUserFlag;
-import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.events.DccChatMessageEvent;
-import net.hatemachine.mortybot.helpers.BotUserHelper;
+import net.hatemachine.mortybot.model.BotUser;
+import net.hatemachine.mortybot.repositories.BotUserRepository;
 import org.pircbotx.User;
 import org.pircbotx.Utils;
 import org.pircbotx.dcc.Chat;
@@ -30,11 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * DCC manager class that keeps track of sessions and handles dispatching messages to the party line.
@@ -175,12 +170,12 @@ public class DccManager {
 
             // if adminOnly flag is set, skip over users that do not have the ADMIN flag
             if (adminOnly) {
-                boolean adminFlag = false;
-                BotUserHelper botUserHelper = new BotUserHelper();
-                List<BotUser> botUsers = botUserHelper.findByHostmask(user.getHostmask());
+                var adminFlag = false;
+                var botUserRepository = new BotUserRepository();
+                Optional<BotUser> optionalBotUser = botUserRepository.findByHostmask(user.getHostmask());
 
-                if (!botUsers.isEmpty()) {
-                    adminFlag = botUsers.stream().anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.ADMIN));
+                if (optionalBotUser.isPresent()) {
+                    adminFlag = optionalBotUser.get().hasAdminFlag();
                 }
 
                 if (!adminFlag) {

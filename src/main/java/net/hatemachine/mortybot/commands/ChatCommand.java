@@ -17,22 +17,22 @@
  */
 package net.hatemachine.mortybot.commands;
 
-import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.custom.entity.BotUserFlag;
-import net.hatemachine.mortybot.model.BotUser;
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.dcc.DccManager;
 import net.hatemachine.mortybot.listeners.CommandListener;
-import net.hatemachine.mortybot.helpers.BotUserHelper;
+import net.hatemachine.mortybot.model.BotUser;
+import net.hatemachine.mortybot.repositories.BotUserRepository;
 import org.pircbotx.User;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Implements the CHAT command. This instructs the bot to initiate a DCC CHAT session with a user.
@@ -70,11 +70,10 @@ public class ChatCommand implements Command {
             }
 
             if (user != null) {
-                BotUserHelper botUserHelper = new BotUserHelper();
-                List<BotUser> botUsers = botUserHelper.findByHostmask(user.getHostmask());
-                boolean dccFlag = botUsers.stream().anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.DCC));
+                var botUserRepository = new BotUserRepository();
+                Optional<BotUser> optionalBotUser = botUserRepository.findByHostmask(user.getHostmask());
 
-                if (dccFlag) {
+                if (optionalBotUser.isPresent() && optionalBotUser.get().hasDccFlag()) {
                     log.info("Sending DCC CHAT request to {}", user.getHostmask());
                     DccManager mgr = DccManager.getManager();
                     mgr.startDccChat(user);

@@ -23,6 +23,8 @@ import com.google.common.collect.Range;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.*;
+import net.hatemachine.mortybot.repositories.BotChannelRepository;
+import net.hatemachine.mortybot.repositories.BotUserRepository;
 import org.pircbotx.Configuration;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.delay.StaticDelay;
@@ -70,13 +72,17 @@ public class Main {
                 .addListener(new CommandListener(props.getStringProperty("bot.command.prefix", BotDefaults.BOT_COMMAND_PREFIX)))
                 .addListener(new DccListener())
                 .addListener(new LinkListener())
-                .addListener(new ManagedChannelListener())
                 .addListener(new WordleListener());
 
         // SSL
         if (props.getBooleanProperty("irc.ssl", BotDefaults.IRC_SSL)) {
             config.setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates());
         }
+
+        // Auto-join channels
+        var bcRepo = new BotChannelRepository();
+        var autoJoinChannels = bcRepo.findAutoJoinChannels();
+        autoJoinChannels.forEach(bc -> config.addAutoJoinChannel(bc.getName()));
 
         // DCC settings
 
@@ -156,6 +162,15 @@ public class Main {
      */
     public static void main(String[] args) {
         try (MortyBot bot = new MortyBot(buildBotConfig())) {
+            var botUserRepository = new BotUserRepository();
+            var userCount = botUserRepository.count();
+
+            if (userCount < 1) {
+                log.info("There are no bot users. You should issue a REGISTER command to the bot to claim admin privileges.");
+            } else {
+                log.info("Found {} bot users", userCount);
+            }
+
             log.info("Starting bot with nick: {}", bot.getNick());
             bot.startBot();
         } catch (IrcException ex) {

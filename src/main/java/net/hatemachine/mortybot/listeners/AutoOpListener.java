@@ -17,18 +17,10 @@
  */
 package net.hatemachine.mortybot.listeners;
 
-import net.hatemachine.mortybot.custom.entity.ManagedChannelUserFlag;
-import net.hatemachine.mortybot.dao.ManagedChannelDao;
-import net.hatemachine.mortybot.dao.ManagedChannelUserDao;
-import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
-import net.hatemachine.mortybot.model.ManagedChannel;
-import net.hatemachine.mortybot.model.ManagedChannelUser;
-import net.hatemachine.mortybot.helpers.BotUserHelper;
 import org.pircbotx.Channel;
-import org.pircbotx.UserHostmask;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.JoinEvent;
 import org.pircbotx.hooks.events.NickChangeEvent;
@@ -76,55 +68,56 @@ public class AutoOpListener extends ListenerAdapter {
      * @param event the join event
      */
     private void handleJoin(final JoinEvent event) {
-        Channel channel = event.getChannel();
-        UserHostmask uh = event.getUserHostmask();
-        String nick = uh.getNick();
-        var mcDao = new ManagedChannelDao();
-        var mcuDao = new ManagedChannelUserDao();
-        BotUserHelper botUserHelper = new BotUserHelper();
-        List<BotUser> botUsers = botUserHelper.findByHostmask(uh.getHostmask());
-        Optional<ManagedChannel> optionalManagedChannel = mcDao.getWithName(channel.getName());
-
-        // check that we have a matching bot user and that this is a managed channel
-        if (!botUsers.isEmpty() && optionalManagedChannel.isPresent()) {
-            ManagedChannel managedChannel = optionalManagedChannel.get();
-            Optional<ManagedChannelUser> optionalManagedChannelUser = mcuDao.getWithManagedChannelIdAndBotUserId(managedChannel.getId(),
-                    botUsers.get(0).getId());
-
-            // check if this bot user is a member of this managed channel
-            if (optionalManagedChannelUser.isPresent()) {
-                ManagedChannelUser managedChannelUser = optionalManagedChannelUser.get();
-
-                // does this user have the AUTO_OP flag on this channel?
-                if (managedChannelUser.getManagedChannelUserFlags().contains(ManagedChannelUserFlag.AUTO_OP)) {
-                    log.info("Adding {} to auto-op queue for {}", nick, channel.getName());
-
-                    Queue<String> queue = pending.containsKey(channel.getName()) ? pending.get(channel.getName()) : new LinkedList<>();
-
-                    if (!queue.contains(nick)) {
-                        queue.add(nick);
-                    }
-
-                    pending.put(channel.getName(), queue);
-
-                    // start a new thread to process this queue after a delay
-                    new Thread(() -> {
-                        log.debug("Created new thread");
-                        try {
-                            int delay = BotProperties.getBotProperties()
-                                    .getIntProperty("aop.delay", BotDefaults.AUTO_OP_DELAY);
-                            log.debug("Sleeping for {}ms", delay);
-                            Thread.sleep(delay);
-                            log.debug("Processing queue");
-                            processQueue(event, channel);
-                        } catch (InterruptedException e) {
-                            log.warn("Thread interrupted", e);
-                            Thread.currentThread().interrupt();
-                        }
-                    }).start();
-                }
-            }
-        }
+        // TODO re-implement handleJoin() in AutoOpListener
+//        Channel channel = event.getChannel();
+//        UserHostmask uh = event.getUserHostmask();
+//        String nick = uh.getNick();
+//        var mcDao = new ManagedChannelDao();
+//        var mcuDao = new ManagedChannelUserDao();
+//        BotUserHelper botUserHelper = new BotUserHelper();
+//        List<BotUser> botUsers = botUserHelper.findByHostmask(uh.getHostmask());
+//        Optional<ManagedChannel> optionalManagedChannel = mcDao.getWithName(channel.getName());
+//
+//        // check that we have a matching bot user and that this is a managed channel
+//        if (!botUsers.isEmpty() && optionalManagedChannel.isPresent()) {
+//            ManagedChannel managedChannel = optionalManagedChannel.get();
+//            Optional<ManagedChannelUser> optionalManagedChannelUser = mcuDao.getWithManagedChannelIdAndBotUserId(managedChannel.getId(),
+//                    botUsers.get(0).getId());
+//
+//            // check if this bot user is a member of this managed channel
+//            if (optionalManagedChannelUser.isPresent()) {
+//                ManagedChannelUser managedChannelUser = optionalManagedChannelUser.get();
+//
+//                // does this user have the AUTO_OP flag on this channel?
+//                if (managedChannelUser.getManagedChannelUserFlags().contains(ManagedChannelUserFlag.AUTO_OP)) {
+//                    log.info("Adding {} to auto-op queue for {}", nick, channel.getName());
+//
+//                    Queue<String> queue = pending.containsKey(channel.getName()) ? pending.get(channel.getName()) : new LinkedList<>();
+//
+//                    if (!queue.contains(nick)) {
+//                        queue.add(nick);
+//                    }
+//
+//                    pending.put(channel.getName(), queue);
+//
+//                    // start a new thread to process this queue after a delay
+//                    new Thread(() -> {
+//                        log.debug("Created new thread");
+//                        try {
+//                            int delay = BotProperties.getBotProperties()
+//                                    .getIntProperty("aop.delay", BotDefaults.AUTO_OP_DELAY);
+//                            log.debug("Sleeping for {}ms", delay);
+//                            Thread.sleep(delay);
+//                            log.debug("Processing queue");
+//                            processQueue(event, channel);
+//                        } catch (InterruptedException e) {
+//                            log.warn("Thread interrupted", e);
+//                            Thread.currentThread().interrupt();
+//                        }
+//                    }).start();
+//                }
+//            }
+//        }
     }
 
     /**

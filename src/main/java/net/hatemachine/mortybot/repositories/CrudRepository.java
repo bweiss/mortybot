@@ -15,10 +15,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.hatemachine.mortybot.custom.entity;
+package net.hatemachine.mortybot.repositories;
 
-public enum BotUserFlag {
-    ADMIN,
-    DCC,
-    IGNORE
+import java.util.Optional;
+
+/**
+ * Defines an interface for a CRUD repository. This is similar to the interface of the same name in Spring Data Core.
+ *
+ * @param <T> the entity class type
+ * @param <ID> the type of the entity's identifier
+ */
+public interface CrudRepository<T, ID> {
+    long count();
+    void delete(T entity);
+    void deleteAll();
+    void deleteAll(Iterable<? extends T> entities);
+    void deleteAllById(Iterable<? extends ID> ids);
+    void deleteById(ID id);
+    boolean existsById(ID id);
+    Iterable<T> findAll();
+    Iterable<T> findAllById(Iterable<ID> ids);
+    Optional<T> findById(ID id);
+    <S extends T> S save(S entity);
+    <S extends T> Iterable<S> saveAll(Iterable<S> entities);
 }

@@ -21,6 +21,8 @@ import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.hooks.types.GenericMessageEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -32,6 +34,8 @@ import java.util.List;
         "Usage: TEST <args>"
 })
 public class TestCommand implements Command {
+
+    private static final Logger log = LoggerFactory.getLogger(TestCommand.class);
 
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;

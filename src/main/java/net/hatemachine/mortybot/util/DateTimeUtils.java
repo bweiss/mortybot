@@ -17,17 +17,64 @@
  */
 package net.hatemachine.mortybot.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A collection of utilities for working with dates and times.
+ */
 public class DateTimeUtils {
+
+    private static final String[] DATE_FORMATS = {
+            "M/d/yyyy", "M/dd/yyyy", "MM/d/yyyy", "MM/dd/yyyy",
+            "M-d-yyyy", "M-dd-yyyy", "MM-d-yyyy", "MM-dd-yyyy",
+            "M.d.yyyy", "M.dd.yyyy", "MM.d.yyyy", "MM.dd.yyyy",
+            "yyyy/M/d", "yyyy/M/dd", "yyyy/MM/d", "yyyy/MM/dd",
+            "yyyy-M-d", "yyyy-M-dd", "yyyy-MM-d", "yyyy-MM-dd",
+            "yyyy.M.d", "yyyy.M.dd", "yyyy.MM.d", "yyyy.MM.dd",
+            "MMM d yyyy", "MMM dd yyyy", "MMM d, yyyy", "MMM dd, yyyy"
+    };
+
+    private static final Logger log = LoggerFactory.getLogger(DateTimeUtils.class);
 
     private DateTimeUtils() {
         throw new IllegalStateException("Utility class");
     }
 
-    public static String printDuration(Duration duration) {
+    /**
+     * Converts a string representing a date into a LocalDate object. Supports a number of common date formats.
+     *
+     * @param dateString the string to convert into a date
+     * @return the resulting date object
+     * @throws IllegalArgumentException if unable to parse the string
+     */
+    public static LocalDate convertToDate(String dateString) {
+        for (String format : DATE_FORMATS) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
+            try {
+                return LocalDate.parse(dateString, formatter);
+            } catch (DateTimeParseException ex) {
+                // do nothing, try next format
+            }
+        }
+
+        throw new IllegalArgumentException("Invalid date: " + dateString);
+    }
+
+    /**
+     * Converts a duration into a human-readable format.
+     *
+     * @param duration the duration to format
+     * @return a string representing the duration
+     */
+    public static String formatDuration(Duration duration) {
         List<String> parts = new ArrayList<>();
 
         long days = duration.toDaysPart();

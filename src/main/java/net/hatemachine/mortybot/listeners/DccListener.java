@@ -21,11 +21,10 @@ import net.hatemachine.mortybot.ExtendedListenerAdapter;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
-import net.hatemachine.mortybot.custom.entity.BotUserFlag;
 import net.hatemachine.mortybot.dcc.DccManager;
 import net.hatemachine.mortybot.events.DccChatMessageEvent;
-import net.hatemachine.mortybot.helpers.BotUserHelper;
 import net.hatemachine.mortybot.model.BotUser;
+import net.hatemachine.mortybot.repositories.BotUserRepository;
 import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.User;
 import org.pircbotx.hooks.Listener;
@@ -55,12 +54,12 @@ public class DccListener extends ExtendedListenerAdapter {
     public void onIncomingChatRequest(IncomingChatRequestEvent event) {
         BotProperties botProperties = BotProperties.getBotProperties();
         boolean dccEnabled = botProperties.getBooleanProperty("dcc.chat.enabled", BotDefaults.DCC_CHAT_ENABLED);
-        User user = (User) Validate.notNull(event.getUser());
-        BotUserHelper botUserHelper = new BotUserHelper();
-        List<BotUser> matchedBotUsers = botUserHelper.findByHostmask(user.getHostmask());
-        boolean userHasDccFlag = matchedBotUsers.stream().anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.DCC));
 
-        if (dccEnabled && userHasDccFlag) {
+        User user = event.getUser();
+        BotUserRepository botUserRepository = new BotUserRepository();
+        Optional<BotUser> optionalBotUser = botUserRepository.findByHostmask(user.getHostmask());
+
+        if (dccEnabled && optionalBotUser.isPresent() && optionalBotUser.get().hasDccFlag()) {
             try {
                 Thread.sleep(1000);
                 log.info("Accepting DCC CHAT request from {}", user.getHostmask());

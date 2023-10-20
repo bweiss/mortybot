@@ -142,7 +142,6 @@ public class CommandListener extends ExtendedListenerAdapter {
         List<String> tokens = Arrays.asList(event.getMessage().split(" "));
         String commandName = tokens.get(0).substring(getCommandPrefix().length()).toUpperCase(Locale.ROOT);
         List<String> args = tokens.subList(1, tokens.size());
-        Map<String, CommandWrapper> commandMap = getCommandMap();
         User user = event.getUser();
 
         if (commandMap.containsKey(commandName)) {
@@ -173,13 +172,13 @@ public class CommandListener extends ExtendedListenerAdapter {
                 CommandProxy.newInstance(cmdWrapper).execute();
             } catch (CommandException e) {
                 if (e.getReason() == CommandException.Reason.INVALID_ARGS) {
-                    event.respondWith(e.getMessage());
+                    event.respondWith("Invalid arguments");
                 } else if (e.getReason() == CommandException.Reason.IGNORED_USER) {
                     log.info("Ignoring command from {}", user.getNick());
                 } else if (e.getReason() == CommandException.Reason.UNAUTHORIZED_USER) {
                     event.respondWith("User unauthorized");
                 }
-            } catch (RuntimeException e) {
+            } catch (Exception e) {
                 log.error("Exception encountered trying to execute command: {}", commandName, e);
             }
         } else {

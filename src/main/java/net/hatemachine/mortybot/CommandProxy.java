@@ -17,10 +17,9 @@
  */
 package net.hatemachine.mortybot;
 
-import net.hatemachine.mortybot.custom.entity.BotUserFlag;
 import net.hatemachine.mortybot.exception.CommandException;
-import net.hatemachine.mortybot.helpers.BotUserHelper;
 import net.hatemachine.mortybot.model.BotUser;
+import net.hatemachine.mortybot.repositories.BotUserRepository;
 import org.pircbotx.User;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
@@ -29,9 +28,10 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.List;
+import java.util.Optional;
 
-import static net.hatemachine.mortybot.exception.CommandException.Reason.*;
+import static net.hatemachine.mortybot.exception.CommandException.Reason.IGNORED_USER;
+import static net.hatemachine.mortybot.exception.CommandException.Reason.UNAUTHORIZED_USER;
 
 /**
  * This class is used by the CommandListener to perform some checks on received commands prior to execution.<br/>
@@ -47,10 +47,10 @@ public class CommandProxy implements InvocationHandler {
 
     private static final Logger log = LoggerFactory.getLogger(CommandProxy.class);
 
-    private final CommandWrapper commandWrapper;
+    private final CommandWrapper command;
 
     private CommandProxy(CommandWrapper cmdWrapper) {
-        this.commandWrapper = cmdWrapper;
+        this.command = cmdWrapper;
     }
 
     public static Command newInstance(CommandWrapper cmdWrapper) {
@@ -83,39 +83,28 @@ public class CommandProxy implements InvocationHandler {
      * @throws CommandException
      */
     @Override
-    public Object invoke(Object proxy, Method m, Object[] args) throws CommandException {
-        Object result = new Object();
-        GenericMessageEvent event = commandWrapper.getInstance().getEvent();
+    public Object invoke(Object proxy, Method m, Object[] args) throws CommandException, InvocationTargetException, IllegalAccessException {
+        GenericMessageEvent event = command.getInstance().getEvent();
         User user = event.getUser();
-        BotUserHelper botUserHelper = new BotUserHelper();
-        List<BotUser> matchingBotUsers = botUserHelper.findByHostmask(user.getHostmask());
-        boolean userIsIgnored = matchingBotUsers.stream().anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.IGNORE));
-        boolean userIsAdmin = matchingBotUsers.stream().anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.ADMIN));
+        BotUserRepository botUserRepository = new BotUserRepository();
+        Optional<BotUser> optionalBotUser = botUserRepository.findByHostmask(user.getHostmask());
 
-        if (userIsIgnored) {
-            throw new CommandException(IGNORED_USER, user.toString());
+        // Check if there are any restrictions
+        if (optionalBotUser.isPresent()) {
+            BotUser botUser = optionalBotUser.get();
 
-        } else if (commandWrapper.isRestricted() && !userIsAdmin) {
-            throw new CommandException(UNAUTHORIZED_USER, user.toString());
-
-        } else {
-            try {
-                result = m.invoke(commandWrapper.getInstance(), args);
-            } catch (InvocationTargetException e) {
-                var targetException = e.getTargetException();
-
-                if (targetException instanceof CommandException ex) {
-                    throw new CommandException(ex.getReason(), ex.getMessage());
-                } else if (targetException instanceof IllegalArgumentException ex) {
-                    throw new IllegalArgumentException(ex.getMessage());
-                } else {
-                    log.error("Exception encountered during command invocation ({})", commandWrapper.getName(), e);
+            if (!botUser.hasAdminFlag()) {
+                if (botUser.hasIgnoreFlag()) {
+                    throw new CommandException(IGNORED_USER, user.toString());
                 }
-            } catch (IllegalAccessException e) {
-                log.error("Access exception: {}", e.getMessage(), e);
+
+                if (command.isRestricted()) {
+                    throw new CommandException(UNAUTHORIZED_USER, user.toString());
+                }
             }
         }
 
-        return result;
+        // Execute the command
+        return m.invoke(command.getInstance(), args);
     }
 }

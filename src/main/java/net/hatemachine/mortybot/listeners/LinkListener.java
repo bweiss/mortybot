@@ -17,17 +17,8 @@
  */
 package net.hatemachine.mortybot.listeners;
 
-import net.hatemachine.mortybot.services.bitly.Bitly;
-import net.hatemachine.mortybot.config.BotDefaults;
-import net.hatemachine.mortybot.config.BotProperties;
-import net.hatemachine.mortybot.custom.entity.BotUserFlag;
-import net.hatemachine.mortybot.custom.entity.ManagedChannelFlag;
-import net.hatemachine.mortybot.dao.ManagedChannelDao;
-import net.hatemachine.mortybot.model.ManagedChannel;
-import net.hatemachine.mortybot.helpers.BotUserHelper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.pircbotx.Colors;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
@@ -75,91 +66,92 @@ public class LinkListener extends ListenerAdapter {
      * @param event the event being handled
      */
     private void handleMessage(final GenericMessageEvent event, Source source) {
-        BotProperties props = BotProperties.getBotProperties();
-        int maxLinks = props.getIntProperty("links.max", BotDefaults.LINKS_MAX);
-        int minLenToShorten = props.getIntProperty("links.min.length", BotDefaults.LINKS_MIN_LENGTH);
-        int maxTitleLength = props.getIntProperty("links.max.title.length", BotDefaults.LINKS_MAX_TITLE_LENGTH);
-        boolean shortenLinksFlag = props.getBooleanProperty("links.shorten", BotDefaults.LINKS_SHORTEN);
-        boolean showTitlesFlag = props.getBooleanProperty("links.show.titles", BotDefaults.LINKS_SHOW_TITLES);
-        String commandPrefix = props.getStringProperty("command.prefix", BotDefaults.BOT_COMMAND_PREFIX);
-        BotUserHelper botUserHelper = new BotUserHelper();
-        boolean ignoreFlag = botUserHelper.findByHostmask(event.getUser().getHostmask())
-                .stream()
-                .anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.IGNORE));
-
-        if (ignoreFlag || event.getMessage().startsWith(commandPrefix)) {
-            return;
-        }
-
-        // if the source is a public message, see if this is a managed channel and check its flags
-        if (source == PUBLIC) {
-            String channelName = ((MessageEvent) event).getChannel().getName();
-            ManagedChannelDao mcDao = new ManagedChannelDao();
-            Optional<ManagedChannel> optionalManagedChannel = mcDao.getWithName(channelName);
-
-            if (optionalManagedChannel.isPresent()) {
-                ManagedChannel managedChannel = optionalManagedChannel.get();
-                List<ManagedChannelFlag> flags = managedChannel.getManagedChannelFlags();
-
-                if (!flags.contains(ManagedChannelFlag.SHORTEN_LINKS)) {
-                    shortenLinksFlag = false;
-                }
-                if (!flags.contains(ManagedChannelFlag.SHOW_TITLES)) {
-                    showTitlesFlag = false;
-                }
-            }
-        }
-
-        // Parse the message looking for links
-        List<String> links = parseLine(event.getMessage());
-
-        for (int i = 0; i < links.size() && i < maxLinks; i++) {
-            String link = links.get(i);
-            Optional<String> shortLink = Optional.empty();
-            Optional<String> title = Optional.empty();
-
-            if (shortenLinksFlag) {
-                if (link.length() < minLenToShorten) {
-                    shortLink = Optional.of(link);
-                } else {
-                    try {
-                        shortLink = Bitly.shorten(link);
-                        log.debug("Shortened {} to {}", link, shortLink.orElse(""));
-                    } catch (InterruptedException e) {
-                        log.warn("Thread interrupted", e);
-                        Thread.currentThread().interrupt();
-                    } catch (IOException e) {
-                        String errMsg = "Failed to shorten link: " + link;
-                        log.error(errMsg, e);
-                        throw new RuntimeException(errMsg, e);
-                    }
-                }
-            }
-
-            if (showTitlesFlag) {
-                title = fetchTitle(link);
-                log.debug("Title: {}", title);
-            }
-
-            // shortened link only
-            if ((shortLink.isPresent() && !shortLink.get().equals(link)) && !shortLink.get().isBlank() && title.isEmpty()) {
-                event.respondWith(Colors.BOLD + shortLink.get() + Colors.BOLD);
-
-            // title only
-            } else if (title.isPresent() && shortLink.isEmpty()) {
-                event.respondWith(trimTitle(title.get(), maxTitleLength, "..."));
-
-            // short link and title
-            } else if (shortLink.isPresent() && title.isPresent()) {
-                event.respondWith(String.format("%s :: %s",
-                        Colors.BOLD + shortLink.get() + Colors.BOLD,
-                        trimTitle(title.get(), maxTitleLength, "...")));
-
-            // nothing to do
-            } else {
-                log.debug("No title or shortened link (link: {}", link);
-            }
-        }
+        // TODO: re-implement handleMessage()
+//        BotProperties props = BotProperties.getBotProperties();
+//        int maxLinks = props.getIntProperty("links.max", BotDefaults.LINKS_MAX);
+//        int minLenToShorten = props.getIntProperty("links.min.length", BotDefaults.LINKS_MIN_LENGTH);
+//        int maxTitleLength = props.getIntProperty("links.max.title.length", BotDefaults.LINKS_MAX_TITLE_LENGTH);
+//        boolean shortenLinksFlag = props.getBooleanProperty("links.shorten", BotDefaults.LINKS_SHORTEN);
+//        boolean showTitlesFlag = props.getBooleanProperty("links.show.titles", BotDefaults.LINKS_SHOW_TITLES);
+//        String commandPrefix = props.getStringProperty("command.prefix", BotDefaults.BOT_COMMAND_PREFIX);
+//        BotUserHelper botUserHelper = new BotUserHelper();
+//        boolean ignoreFlag = botUserHelper.findByHostmask(event.getUser().getHostmask())
+//                .stream()
+//                .anyMatch(u -> u.getBotUserFlags().contains(BotUserFlag.IGNORE));
+//
+//        if (ignoreFlag || event.getMessage().startsWith(commandPrefix)) {
+//            return;
+//        }
+//
+//        // if the source is a public message, see if this is a managed channel and check its flags
+//        if (source == PUBLIC) {
+//            String channelName = ((MessageEvent) event).getChannel().getName();
+//            ManagedChannelDao mcDao = new ManagedChannelDao();
+//            Optional<ManagedChannel> optionalManagedChannel = mcDao.getWithName(channelName);
+//
+//            if (optionalManagedChannel.isPresent()) {
+//                ManagedChannel managedChannel = optionalManagedChannel.get();
+//                List<ManagedChannelFlag> flags = managedChannel.getManagedChannelFlags();
+//
+//                if (!flags.contains(ManagedChannelFlag.SHORTEN_LINKS)) {
+//                    shortenLinksFlag = false;
+//                }
+//                if (!flags.contains(ManagedChannelFlag.SHOW_TITLES)) {
+//                    showTitlesFlag = false;
+//                }
+//            }
+//        }
+//
+//        // Parse the message looking for links
+//        List<String> links = parseLine(event.getMessage());
+//
+//        for (int i = 0; i < links.size() && i < maxLinks; i++) {
+//            String link = links.get(i);
+//            Optional<String> shortLink = Optional.empty();
+//            Optional<String> title = Optional.empty();
+//
+//            if (shortenLinksFlag) {
+//                if (link.length() < minLenToShorten) {
+//                    shortLink = Optional.of(link);
+//                } else {
+//                    try {
+//                        shortLink = Bitly.shorten(link);
+//                        log.debug("Shortened {} to {}", link, shortLink.orElse(""));
+//                    } catch (InterruptedException e) {
+//                        log.warn("Thread interrupted", e);
+//                        Thread.currentThread().interrupt();
+//                    } catch (IOException e) {
+//                        String errMsg = "Failed to shorten link: " + link;
+//                        log.error(errMsg, e);
+//                        throw new RuntimeException(errMsg, e);
+//                    }
+//                }
+//            }
+//
+//            if (showTitlesFlag) {
+//                title = fetchTitle(link);
+//                log.debug("Title: {}", title);
+//            }
+//
+//            // shortened link only
+//            if ((shortLink.isPresent() && !shortLink.get().equals(link)) && !shortLink.get().isBlank() && title.isEmpty()) {
+//                event.respondWith(Colors.BOLD + shortLink.get() + Colors.BOLD);
+//
+//            // title only
+//            } else if (title.isPresent() && shortLink.isEmpty()) {
+//                event.respondWith(trimTitle(title.get(), maxTitleLength, "..."));
+//
+//            // short link and title
+//            } else if (shortLink.isPresent() && title.isPresent()) {
+//                event.respondWith(String.format("%s :: %s",
+//                        Colors.BOLD + shortLink.get() + Colors.BOLD,
+//                        trimTitle(title.get(), maxTitleLength, "...")));
+//
+//            // nothing to do
+//            } else {
+//                log.debug("No title or shortened link (link: {}", link);
+//            }
+//        }
     }
 
     /**

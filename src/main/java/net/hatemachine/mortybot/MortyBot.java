@@ -25,12 +25,10 @@ import java.util.Objects;
 /**
  * Core bot object class. This extends the {@link PircBotX} class and is how you interact with a bot instance.
  * To start a bot you must create an instance of this class and call the startBot() method.
- *
- * @see Main
  */
 public class MortyBot extends PircBotX {
 
-    public static final String VERSION = "0.9.0"; // automatically generated; do not change
+    public static final String VERSION = "0.10.0-SNAPSHOT"; // automatically generated; do not change
 
     MortyBot(Configuration config) {
         super(config);
