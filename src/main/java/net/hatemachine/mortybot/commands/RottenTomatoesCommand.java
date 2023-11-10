@@ -21,7 +21,6 @@ import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
-import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.services.rt.Movie;
 import net.hatemachine.mortybot.services.rt.RTHelper;
@@ -69,7 +68,7 @@ public class RottenTomatoesCommand implements Command {
     @Override
     public void execute() {
         if (args.isEmpty()) {
-            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
+            throw new IllegalArgumentException("Not enough arguments");
         }
 
         ArgumentParser parser = ArgumentParsers.newFor("RT").build();
@@ -82,7 +81,7 @@ public class RottenTomatoesCommand implements Command {
         } catch (ArgumentParserException e) {
             log.error("Problem parsing command arguments", e);
             parser.handleError(e);
-            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Problem parsing command");
+            throw new IllegalArgumentException("Problem parsing command");
         }
 
         if (ns != null) {

@@ -18,8 +18,6 @@
 package net.hatemachine.mortybot.util;
 
 import com.google.common.collect.ImmutableMap;
-import net.hatemachine.mortybot.exception.CommandException;
-import org.apache.commons.lang3.NotImplementedException;
 
 import java.text.NumberFormat;
 import java.text.ParsePosition;
@@ -33,7 +31,7 @@ public class Validate {
 
     private static final int MAX_BOT_USER_NAME_LENGTH = 16;
 
-    private static final Pattern BOT_USER_NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_]+");
+    private static final Pattern BOT_USER_NAME_PATTERN = Pattern.compile("[\\w]+");
     private static final Pattern NICKNAME_PATTERN = Pattern.compile("[a-zA-Z0-9\\[\\]|_-]+");
     private static final Pattern USERNAME_PATTERN = Pattern.compile("[a-zA-Z0-9~]+");
     private static final Pattern HOSTNAME_PATTERN = Pattern.compile("[a-zA-Z0-9.:-]+");
@@ -188,25 +186,6 @@ public class Validate {
             String arg = args.get(i);
             if (arg == null || arg.isBlank()) {
                 throw new IllegalArgumentException("Item in position " + i + " is null or blank");
-            }
-        }
-    }
-
-    /**
-     * Validates a list of arguments to ensure it is not null, empty, or has null or blank items.
-     *
-     * @param args the list of arguments to validate
-     * @param minSize the minimum size of the list
-     * @throws CommandException if list is null, empty, or has null or blank items
-     */
-    public static void commandArguments(List<String> args, Integer minSize) {
-        if (args == null || args.isEmpty() || args.size() < minSize) {
-            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
-        }
-
-        for (String arg : args) {
-            if (arg == null || arg.isBlank()) {
-                throw new CommandException(CommandException.Reason.INVALID_ARGS, "Invalid argument");
             }
         }
     }
@@ -396,10 +375,5 @@ public class Validate {
             throw new IllegalArgumentException("Invalid channel name");
         }
         return s;
-    }
-
-    // TODO implement me!
-    public static String channelModes(String s) {
-        throw new NotImplementedException("channelModes()");
     }
 }

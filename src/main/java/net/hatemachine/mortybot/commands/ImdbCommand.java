@@ -21,7 +21,6 @@ import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
-import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.services.imdb.IMDBHelper;
 import net.hatemachine.mortybot.services.imdb.SearchResult;
 import net.hatemachine.mortybot.listeners.CommandListener;
@@ -63,7 +62,7 @@ public class ImdbCommand implements Command {
     @Override
     public void execute() {
         if (args.isEmpty()) {
-            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
+            throw new IllegalArgumentException("Not enough arguments");
         }
 
         ArgumentParser parser = ArgumentParsers.newFor("IMDB").build();
@@ -76,7 +75,7 @@ public class ImdbCommand implements Command {
         } catch (ArgumentParserException e) {
             log.error("Problem parsing command arguments", e);
             parser.handleError(e);
-            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Problem parsing command");
+            throw new IllegalArgumentException("Problem parsing command");
         }
 
         if (ns != null) {

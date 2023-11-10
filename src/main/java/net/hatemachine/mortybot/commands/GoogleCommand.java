@@ -28,6 +28,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.pircbotx.Colors;
 import org.pircbotx.hooks.types.GenericMessageEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -49,6 +51,8 @@ public class GoogleCommand implements Command {
     private static final String RESPONSE_PREFIX = "[" + Colors.BOLD + "google" + Colors.BOLD + "] ";
     private static final String SEARCH_URL = "https://www.google.com/search?q=";
 
+    private static final Logger log = LoggerFactory.getLogger(GoogleCommand.class);
+
     private final GenericMessageEvent event;
     private final CommandListener.CommandSource source;
     private final List<String> args;
@@ -69,7 +73,7 @@ public class GoogleCommand implements Command {
     @Override
     public void execute() {
         if (args.isEmpty()) {
-            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
+            throw new IllegalArgumentException("Not enough arguments");
         }
 
         String searchUrl = SEARCH_URL + UrlEncoder.encode(String.join(" ", args));
@@ -79,7 +83,8 @@ public class GoogleCommand implements Command {
         try {
             page = Jsoup.connect(searchUrl).get();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Failed to fetch page", e);
+            event.respondWith("Something went wrong");
         }
 
         if (page != null) {

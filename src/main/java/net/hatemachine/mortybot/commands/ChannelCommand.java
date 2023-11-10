@@ -19,16 +19,11 @@ package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.Command;
+import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.model.BotChannel;
 import net.hatemachine.mortybot.repositories.BotChannelRepository;
 import net.hatemachine.mortybot.util.Validate;
-import net.sourceforge.argparse4j.ArgumentParsers;
-import net.sourceforge.argparse4j.inf.ArgumentParser;
-import net.sourceforge.argparse4j.inf.ArgumentParserException;
-import net.sourceforge.argparse4j.inf.Namespace;
-import net.sourceforge.argparse4j.inf.Subparsers;
-import net.sourceforge.argparse4j.internal.UnrecognizedCommandException;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,14 +45,6 @@ import java.util.stream.Collectors;
 })
 public class ChannelCommand implements Command {
 
-    private enum SubCommand {
-        ADD,
-        LIST,
-        RM,
-        SET,
-        SHOW
-    }
-
     private static final Logger log = LoggerFactory.getLogger(ChannelCommand.class);
 
     private final GenericMessageEvent event;
@@ -73,48 +60,26 @@ public class ChannelCommand implements Command {
     }
 
     @Override
-    public void execute() {
-        Validate.commandArguments(args, 1);
+    public void execute() throws CommandException {
+        Validate.arguments(args, 1);
 
-        // As far as I can tell, argparse4j doesn't have a way to do case-insensitive subcommands, so we uppercase the first arg.
-        args.set(0, args.get(0).toUpperCase());
+        String subCommand = args.get(0).toUpperCase();
+        List<String> newArgs = args.subList(1, args.size());
 
-        // Set up our command parsers
-        ArgumentParser parser = ArgumentParsers.newFor("USER").build();
-        Subparsers subparsers = parser.addSubparsers();
+        log.debug("subCommand: {}, args: {}", subCommand, newArgs);
 
-        // For the time being all of our subcommands are the same and consume all remaining args, but we could do other things.
-        for (SubCommand scmd : SubCommand.values()) {
-            subparsers.addParser(scmd.toString()).setDefault("command", scmd).addArgument("args").nargs("*");
-        }
-
-        // Parse the args and dispatch to the appropriate method for handling
-        try {
-            Namespace ns = parser.parseArgs(args.toArray(new String[0]));
-
-            SubCommand subCommand = ns.get("command");
-            List<String> newArgs = ns.get("args");
-
-            log.debug("subCommand: {}, args: {}", subCommand, newArgs);
-
-            switch (subCommand) {
-                case ADD -> addCommand(newArgs);
-                case LIST -> listCommand(newArgs);
-                case RM -> rmCommand(newArgs);
-                case SET -> setCommand(newArgs);
-                case SHOW -> showCommand(newArgs);
-                default -> log.warn("This default case should never happen");
-            }
-        } catch (UnrecognizedCommandException e) {
-            event.respondWith(e.getMessage());
-        } catch (ArgumentParserException e) {
-            log.error("Failed to parse subcommand arguments");
-            event.respondWith("Invalid arguments");
+        switch (subCommand) {
+            case "ADD" -> addCommand(newArgs);
+            case "LIST" -> listCommand(newArgs);
+            case "RM" -> rmCommand(newArgs);
+            case "SET" -> setCommand(newArgs);
+            case "SHOW" -> showCommand(newArgs);
+            default -> event.respondWith("Invalid subcommand: " + subCommand);
         }
     }
 
     private void addCommand(List<String> args) {
-        Validate.commandArguments(args, 1);
+        Validate.arguments(args, 1);
 
         String channelName = args.get(0);
 
@@ -143,7 +108,7 @@ public class ChannelCommand implements Command {
     }
 
     private void setCommand(List<String> args) {
-        Validate.commandArguments(args, 2);
+        Validate.arguments(args, 2);
 
         Optional<BotChannel> optionalBotChannel = botChannelRepository.findByName(args.get(0));
         String attr = args.get(1);

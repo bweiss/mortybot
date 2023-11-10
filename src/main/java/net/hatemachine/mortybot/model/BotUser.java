@@ -44,7 +44,6 @@ public class BotUser {
     private String location;
     private String password;
 
-    // Flags
     private boolean adminFlag = false;
     private boolean dccFlag = true;
     private boolean ignoreFlag = false;

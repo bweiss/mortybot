@@ -62,8 +62,6 @@
         <java.version>21</java.version>
         <fully.qualified.main.class>net.hatemachine.mortybot.Main</fully.qualified.main.class>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <generator.config>${basedir}/src/main/resources//generator/mybatis-generator-config.xml</generator.config>
-        <mybatis.ds.generator.config>${basedir}/src/main/resources/generator/ds-generator-config.xml</mybatis.ds.generator.config>
     </properties>
 
     <repositories>
@@ -107,7 +105,7 @@
 
         <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-core -->
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
             <version>6.3.1.Final</version>
             <type>pom</type>

@@ -171,13 +171,13 @@ public class CommandListener extends ExtendedListenerAdapter {
             try {
                 CommandProxy.newInstance(cmdWrapper).execute();
             } catch (CommandException e) {
-                if (e.getReason() == CommandException.Reason.INVALID_ARGS) {
-                    event.respondWith("Invalid arguments");
-                } else if (e.getReason() == CommandException.Reason.IGNORED_USER) {
+                if (e.getReason() == CommandException.Reason.IGNORED_USER) {
                     log.info("Ignoring command from {}", user.getNick());
                 } else if (e.getReason() == CommandException.Reason.UNAUTHORIZED_USER) {
-                    event.respondWith("User unauthorized");
+                    event.respondWith("You are not authorized");
                 }
+            } catch (IllegalArgumentException e) {
+                event.respondWith(e.getMessage());
             } catch (Exception e) {
                 log.error("Exception encountered trying to execute command: {}", commandName, e);
             }

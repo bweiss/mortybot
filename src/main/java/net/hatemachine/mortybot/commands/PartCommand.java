@@ -19,7 +19,6 @@ package net.hatemachine.mortybot.commands;
 
 import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
-import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.MortyBot;
 import org.pircbotx.hooks.events.MessageEvent;
@@ -61,7 +60,7 @@ public class PartCommand implements Command {
         } else if (!args.isEmpty()) {
             bot.sendRaw().rawLine("PART " + args.get(0));
         } else {
-            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
+            throw new IllegalArgumentException("Not enough arguments");
         }
     }
 

@@ -22,7 +22,6 @@ import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.MortyBot;
 import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
-import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.util.IrcUtils;
 import net.hatemachine.mortybot.util.Validate;
@@ -97,7 +96,7 @@ public class BanKickCommand implements Command {
         List<String> newArgs;
 
         if (args.isEmpty()) {
-            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
+            throw new IllegalArgumentException("Not enough arguments");
         }
 
         // if from a public message, attempt to determine the channel

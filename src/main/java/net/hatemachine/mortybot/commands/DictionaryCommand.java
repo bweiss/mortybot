@@ -24,7 +24,6 @@ import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.services.dict.Dictionary;
 import net.hatemachine.mortybot.services.dict.DictionaryEntry;
 import net.hatemachine.mortybot.services.dict.MerriamWebsterWeb;
-import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
@@ -61,7 +60,7 @@ public class DictionaryCommand implements Command {
     @Override
     public void execute() {
         if (args.isEmpty()) {
-            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
+            throw new IllegalArgumentException("Not enough arguments");
         }
 
         ArgumentParser parser = ArgumentParsers.newFor("DICT").build();
@@ -72,9 +71,7 @@ public class DictionaryCommand implements Command {
         try {
             ns = parser.parseArgs(args.toArray(new String[0]));
         } catch (ArgumentParserException e) {
-            log.error("problem parsing command arguments", e);
-            parser.handleError(e);
-            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Problem parsing command");
+            throw new IllegalArgumentException("Problem parsing command");
         }
 
         if (ns != null) {

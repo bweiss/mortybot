@@ -17,6 +17,8 @@
  */
 package net.hatemachine.mortybot.util;
 
+import net.hatemachine.mortybot.config.BotDefaults;
+import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.model.BotChannel;
 import net.hatemachine.mortybot.model.BotUser;
 import org.hibernate.SessionFactory;
@@ -35,7 +37,9 @@ public class HibernateUtil {
     }
 
     private static SessionFactory buildSessionFactory() {
+        BotProperties props = BotProperties.getBotProperties();
         return new Configuration()
+                .setProperty("hibernate.connection.url", props.getStringProperty("db.url", BotDefaults.DB_URL))
                 .addAnnotatedClass(BotUser.class)
                 .addAnnotatedClass(BotChannel.class)
                 .buildSessionFactory();

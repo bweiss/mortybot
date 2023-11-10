@@ -25,7 +25,6 @@ public class CommandException extends RuntimeException {
     protected final CommandException.Reason reason;
 
     public enum Reason {
-        INVALID_ARGS,
         IGNORED_USER,
         UNAUTHORIZED_USER
     }

@@ -25,7 +25,6 @@ import net.hatemachine.mortybot.dcc.DccManager;
 import net.hatemachine.mortybot.events.DccChatMessageEvent;
 import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.repositories.BotUserRepository;
-import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.User;
 import org.pircbotx.hooks.Listener;
 import org.pircbotx.hooks.events.*;
@@ -33,7 +32,6 @@ import org.pircbotx.hooks.managers.ListenerManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.Optional;
 
 /**

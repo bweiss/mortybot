@@ -23,19 +23,15 @@ import com.jayway.jsonpath.JsonPath;
 import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.config.BotProperties;
-import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.listeners.CommandListener;
+import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.Colors;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -86,7 +82,7 @@ public class HostCommand implements Command {
     @Override
     public void execute() {
         if (args.isEmpty()) {
-            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
+            throw new IllegalArgumentException("Not enough arguments");
         }
 
         try {
@@ -101,7 +97,7 @@ public class HostCommand implements Command {
             }
         } catch (UnknownHostException e) {
             String errMsg = "Unknown host";
-            log.error(errMsg + ": {}", args.get(0));
+            log.error("{}: {}", errMsg, args.get(0));
             event.respondWith(errMsg);
         }
     }
@@ -115,21 +111,27 @@ public class HostCommand implements Command {
     private Optional<String> doShodanHostLookup(String ip) {
         String apiKey = BotProperties.getBotProperties().getStringProperty("shodan.api.key", System.getenv("SHODAN_API_KEY"));
         Optional<String> jsonOptional = Optional.empty();
+        URI uri = null;
 
         if (apiKey == null || apiKey.isBlank()) {
             log.warn("API key not set");
         }
 
         try {
-            URL url = new URL(API_ENDPOINT + ip + "?key=" + apiKey);
+            uri = new URI(API_ENDPOINT + ip + "?key=" + apiKey);
+        } catch (URISyntaxException e) {
+            log.error("Invalid URI", e);
+        }
 
-            HttpClient client = HttpClient.newBuilder()
+        Validate.notNull(uri);
+
+        try (HttpClient client = HttpClient.newBuilder()
                     .followRedirects(HttpClient.Redirect.NORMAL)
                     .version(HttpClient.Version.HTTP_1_1)
                     .connectTimeout(Duration.ofSeconds(10))
-                    .build();
+                    .build()) {
 
-            HttpRequest request = HttpRequest.newBuilder(url.toURI())
+            HttpRequest request = HttpRequest.newBuilder(uri)
                     .header("User-Agent", "Java HttpClient Bot")
                     .GET()
                     .build();
@@ -141,11 +143,8 @@ public class HostCommand implements Command {
             if (response != null && response.statusCode() == 200) {
                 jsonOptional = Optional.of(response.body());
             }
-
         } catch (MalformedURLException e) {
             log.error("Invalid URL", e);
-        } catch (URISyntaxException e) {
-            log.error("Invalid URI", e);
         } catch (IOException e) {
             log.error("Error making HTTP request", e);
         } catch (InterruptedException e) {

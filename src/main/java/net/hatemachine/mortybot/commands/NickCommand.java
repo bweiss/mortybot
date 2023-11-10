@@ -20,7 +20,6 @@ package net.hatemachine.mortybot.commands;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.MortyBot;
-import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
@@ -48,7 +47,7 @@ public class NickCommand implements Command {
     @Override
     public void execute() {
         if (args.isEmpty()) {
-            throw new CommandException(CommandException.Reason.INVALID_ARGS, "Not enough arguments");
+            throw new IllegalArgumentException("Not enough arguments");
         }
 
         String newNick = args.get(0);

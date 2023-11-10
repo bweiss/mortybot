@@ -90,11 +90,11 @@ public class HelpCommand implements Command {
                 .map(CommandWrapper::getName)
                 .toList();
 
-        if (regularCommands.size() > 0) {
+        if (!regularCommands.isEmpty()) {
             event.respondWith("Commands: " + String.join(", ", regularCommands));
         }
 
-        if (adminCommands.size() > 0) {
+        if (!adminCommands.isEmpty()) {
             event.respondWith("Admin commands: " + String.join(", ", adminCommands));
         }
 

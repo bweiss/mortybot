@@ -80,10 +80,11 @@ public class CommandProxy implements InvocationHandler {
      *             {@code java.lang.Integer} or {@code java.lang.Boolean}.
      *
      * @return the result of dispatching the method
-     * @throws CommandException
+     * @throws CommandException if user is not authorized or being ignored
+     * @throws Throwable if an exception occurs in the command instance it will be re-thrown
      */
     @Override
-    public Object invoke(Object proxy, Method m, Object[] args) throws CommandException, InvocationTargetException, IllegalAccessException {
+    public Object invoke(Object proxy, Method m, Object[] args) throws CommandException, Throwable {
         GenericMessageEvent event = command.getInstance().getEvent();
         User user = event.getUser();
         BotUserRepository botUserRepository = new BotUserRepository();
@@ -105,6 +106,10 @@ public class CommandProxy implements InvocationHandler {
         }
 
         // Execute the command
-        return m.invoke(command.getInstance(), args);
+        try {
+            return m.invoke(command.getInstance(), args);
+        } catch (InvocationTargetException e) {
+            throw e.getCause();
+        }
     }
 }

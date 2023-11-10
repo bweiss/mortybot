@@ -22,7 +22,6 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.Command;
-import net.hatemachine.mortybot.exception.CommandException;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.repositories.BotUserRepository;
@@ -94,9 +93,9 @@ public class WeatherCommand implements Command {
             // If user passes the -d option, attempt to set their default location
             if (defaultFlag) {
                 if (location.isBlank()) {
-                    throw new CommandException(CommandException.Reason.INVALID_ARGS, "location not provided");
+                    throw new IllegalArgumentException("location not provided");
                 } else if (optionalBotUser.isEmpty()) {
-                    throw new CommandException(CommandException.Reason.UNAUTHORIZED_USER, "user not registered");
+                    event.respondWith("You must register first");
                 } else {
                     var botUser = optionalBotUser.get();
                     botUser.setLocation(location);
@@ -112,7 +111,7 @@ public class WeatherCommand implements Command {
 
             // One last check
             if (location == null || location.isBlank()) {
-                throw new CommandException(CommandException.Reason.INVALID_ARGS, "location not provided");
+                throw new IllegalArgumentException("location not provided");
             }
 
             // Fetch and parse the data, then respond to the user
@@ -125,7 +124,7 @@ public class WeatherCommand implements Command {
 
         } catch (ArgumentParserException e) {
             log.error("Failed to parse args: {}", args, e);
-            throw new CommandException(CommandException.Reason.INVALID_ARGS, args.toString());
+            event.respondWith("Something went wrong");
         }
     }
 

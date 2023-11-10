@@ -37,19 +37,14 @@ public class Bitly {
 
     private Bitly() {}
 
-    public static Optional<String> shorten(String url) throws IOException, InterruptedException {
+    public static Optional<String> shorten(String url) {
         BotProperties props = BotProperties.getBotProperties();
-        String apiEndpoint = props.getStringProperty("bitly.api.endpoint", System.getenv("BITLY_API_ENDPOINT"));
-        String apiKey = props.getStringProperty("bitly.api.key", System.getenv("BITLY_API_KEY"));
+        String apiEndpoint  = props.getStringProperty("bitly.api.endpoint", System.getenv("BITLY_API_ENDPOINT"));
+        String apiKey       = props.getStringProperty("bitly.api.key",      System.getenv("BITLY_API_KEY"));
 
-        try {
-            Validate.notNullOrBlank(url, "url cannot be null or blank");
-            Validate.notNullOrBlank(apiEndpoint, "apiEndpoint cannot be null or blank");
-            Validate.notNullOrBlank(apiKey, "apiKey cannot be null or blank");
-        } catch (IllegalArgumentException ex) {
-            log.error("Invalid argument to shorten(): {}", ex.getMessage());
-            return Optional.empty();
-        }
+        Validate.notNullOrBlank(url, "url cannot be null or blank");
+        Validate.notNullOrBlank(apiEndpoint, "apiEndpoint cannot be null or blank");
+        Validate.notNullOrBlank(apiKey, "apiKey cannot be null or blank");
 
         URI uri = URI.create(url);
 
@@ -63,29 +58,35 @@ public class Bitly {
                 "    \"long_url\": \"" + uri.toASCIIString() + "\"  \n" +
                 "}";
 
-        HttpClient client = HttpClient.newBuilder()
+        try (HttpClient client = HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .version(HttpClient.Version.HTTP_1_1)
                 .connectTimeout(Duration.ofSeconds(10))
-                .build();
+                .build()) {
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(apiEndpoint))
-                .POST(HttpRequest.BodyPublishers.ofString(requestJson))
-                .setHeader("User-Agent", "Java 11 HttpClient Bot")
-                .setHeader("Content-Type", "application/json")
-                .setHeader("Authorization", "Bearer " + apiKey)
-                .build();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(apiEndpoint))
+                    .POST(HttpRequest.BodyPublishers.ofString(requestJson))
+                    .setHeader("User-Agent", "Java 11 HttpClient Bot")
+                    .setHeader("Content-Type", "application/json")
+                    .setHeader("Authorization", "Bearer " + apiKey)
+                    .build();
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-        int status = response.statusCode();
-        if (status >= 200 && status <= 299) {
-            Gson gson = new Gson();
-            Bitlink bitLink = gson.fromJson(response.body(), Bitlink.class);
-            return Optional.of(bitLink.getLink());
-        } else {
-            return Optional.empty();
+            int status = response.statusCode();
+            if (status >= 200 && status <= 299) {
+                Gson gson = new Gson();
+                Bitlink bitLink = gson.fromJson(response.body(), Bitlink.class);
+                return Optional.of(bitLink.getLink());
+            }
+        } catch (IOException e) {
+            log.error("I/O failure", e);
+        } catch (InterruptedException e) {
+            log.warn("Thread interrupted: {}", Thread.currentThread().getName(), e);
+            Thread.currentThread().interrupt();
         }
+
+        return Optional.empty();
     }
 }
