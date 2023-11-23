@@ -31,18 +31,11 @@ import net.hatemachine.mortybot.config.BotDefaults;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.util.Validate;
+import net.hatemachine.mortybot.util.WebClient;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -109,13 +102,33 @@ public class StockCommand implements Command {
 
         for (int cnt = 0; cnt < args.size() && cnt < maxSymbols; cnt++) {
             String symbol = args.get(cnt);
-            Optional<String> json = fetchQuote(symbol);
+
+            log.info("Fetching stock quote for {}", symbol);
+
+            var webClient = new WebClient();
+            Optional<String> json = webClient.get(BASE_URL + symbol);
 
             if (json.isPresent()) {
                 String quote = parseQuote(json.get());
                 event.respondWith(quote);
             }
         }
+    }
+
+    private static String parseQuote(String json) {
+        Validate.notNullOrBlank(json);
+
+        var conf = Configuration.defaultConfiguration();
+        var metaNode = JsonPath.using(conf).parse(json).read("$.chart.result[0].meta", JsonNode.class);
+        var symbol = metaNode.get("symbol").asText();
+        var marketTime = metaNode.get("regularMarketTime").asInt();
+        var zId = ZoneId.systemDefault();
+        var dt = ZonedDateTime.ofInstant(Instant.ofEpochSecond(marketTime), zId);
+        var df = DateTimeFormatter.ofPattern("h:mma");
+        var timezone = metaNode.get("timezone").asText();
+        var marketPrice = metaNode.get("regularMarketPrice").asDouble();
+
+        return String.format("%s %.2f [%s %s]", symbol, marketPrice, dt.format(df), timezone);
     }
 
     @Override
@@ -131,62 +144,5 @@ public class StockCommand implements Command {
     @Override
     public List<String> getArgs() {
         return args;
-    }
-
-    private static Optional<String> fetchQuote(String symbol) {
-        Validate.notNullOrBlank(symbol);
-        Optional<String> quote = Optional.empty();
-
-        log.info("Fetching stock quote for {}", symbol);
-
-        try {
-            URL url = new URL(BASE_URL + symbol);
-
-            HttpClient client = HttpClient.newBuilder()
-                    .followRedirects(HttpClient.Redirect.NORMAL)
-                    .version(HttpClient.Version.HTTP_1_1)
-                    .connectTimeout(Duration.ofSeconds(10))
-                    .build();
-
-            HttpRequest request = HttpRequest.newBuilder(url.toURI())
-                    .header("User-Agent", "Java HttpClient Bot")
-                    .GET()
-                    .build();
-
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response != null && response.statusCode() == 200) {
-                quote = Optional.of(response.body());
-            }
-
-        } catch (MalformedURLException e) {
-            log.error("Invalid URL", e);
-        } catch (URISyntaxException e) {
-            log.error("Invalid URI", e);
-        } catch (IOException e) {
-            log.error("Error fetching body", e);
-        } catch (InterruptedException e) {
-            log.warn("Thread interrupted", e);
-            Thread.currentThread().interrupt();
-        }
-
-        return quote;
-    }
-
-    private static String parseQuote(String json) {
-        Validate.notNullOrBlank(json);
-        Configuration conf = Configuration.defaultConfiguration();
-        JsonNode metaNode = JsonPath.using(conf)
-                .parse(json)
-                .read("$.chart.result[0].meta", JsonNode.class);
-        String symbol = metaNode.get("symbol").asText();
-        int marketTime = metaNode.get("regularMarketTime").asInt();
-        ZoneId zId = ZoneId.systemDefault();
-        ZonedDateTime dt = ZonedDateTime.ofInstant(Instant.ofEpochSecond(marketTime), zId);
-        DateTimeFormatter df = DateTimeFormatter.ofPattern("h:mma");
-        String timezone = metaNode.get("timezone").asText();
-        Double marketPrice = metaNode.get("regularMarketPrice").asDouble();
-
-        return String.format("%s %.2f [%s %s]", symbol, marketPrice, dt.format(df), timezone);
     }
 }

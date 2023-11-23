@@ -23,25 +23,16 @@ import com.jayway.jsonpath.JsonPath;
 import net.hatemachine.mortybot.BotCommand;
 import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.listeners.CommandListener;
-import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.repositories.BotUserRepository;
+import net.hatemachine.mortybot.util.WebClient;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
-import net.sourceforge.argparse4j.inf.Namespace;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
@@ -82,16 +73,15 @@ public class WeatherCommand implements Command {
         parser.addArgument("location").nargs("*");
 
         try {
-            Namespace ns = parser.parseArgs(args.toArray(new String[0]));
+            var ns = parser.parseArgs(args.toArray(new String[0]));
+            var defaultFlag = ns.getBoolean("default");
+            var location = String.join(" ", ns.getList("location"));
 
-            boolean defaultFlag = ns.getBoolean("default");
-            String location = String.join(" ", ns.getList("location"));
-
-            BotUserRepository botUserRepository = new BotUserRepository();
-            Optional<BotUser> optionalBotUser = botUserRepository.findByHostmask(event.getUser().getHostmask()).stream().findFirst();
+            var botUserRepository = new BotUserRepository();
+            var optionalBotUser = botUserRepository.findByHostmask(event.getUser().getHostmask()).stream().findFirst();
 
             // If user passes the -d option, attempt to set their default location
-            if (defaultFlag) {
+            if (defaultFlag.equals(Boolean.TRUE)) {
                 if (location.isBlank()) {
                     throw new IllegalArgumentException("location not provided");
                 } else if (optionalBotUser.isEmpty()) {
@@ -115,9 +105,11 @@ public class WeatherCommand implements Command {
             }
 
             // Fetch and parse the data, then respond to the user
-            Optional<String> optionalJson = fetchWeatherData(location);
-            if (optionalJson.isPresent()) {
-                event.respondWith(parseWeatherJson(optionalJson.get()));
+            var webClient = new WebClient();
+            Optional<String> json = webClient.get(BASE_URL + location.replace(" ", "+") + PARAMETERS);
+
+            if (json.isPresent()) {
+                event.respondWith(parseWeatherJson(json.get()));
             } else {
                 event.respondWith("No data received");
             }
@@ -126,31 +118,6 @@ public class WeatherCommand implements Command {
             log.error("Failed to parse args: {}", args, e);
             event.respondWith("Something went wrong");
         }
-    }
-
-    private Optional<String> fetchWeatherData(String location) {
-        try (HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build()) {
-            URI uri = new URI(BASE_URL + String.join("+", location.split(" ")) + PARAMETERS);
-
-            HttpRequest request = HttpRequest.newBuilder(uri).header("User-Agent", "Java HttpClient Bot").GET().build();
-
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response != null && response.statusCode() == 200) {
-                return Optional.of(response.body());
-            }
-        } catch (MalformedURLException e) {
-            log.error("Invalid URL", e);
-        } catch (URISyntaxException e) {
-            log.error("Invalid URI", e);
-        } catch (IOException e) {
-            log.error("Error fetching body", e);
-        } catch (InterruptedException e) {
-            log.warn("Thread interrupted", e);
-            Thread.currentThread().interrupt();
-        }
-
-        return Optional.empty();
     }
 
     private String parseWeatherJson(String json) {
