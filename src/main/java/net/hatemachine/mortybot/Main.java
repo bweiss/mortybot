@@ -25,6 +25,7 @@ import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.*;
 import net.hatemachine.mortybot.repositories.BotChannelRepository;
 import net.hatemachine.mortybot.repositories.BotUserRepository;
+import org.flywaydb.core.Flyway;
 import org.pircbotx.Configuration;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.delay.StaticDelay;
@@ -46,6 +47,41 @@ import java.util.regex.Pattern;
 public class Main {
 
     private static final Logger log = LoggerFactory.getLogger(Main.class);
+
+    static {
+        var dbUrl = BotProperties.getBotProperties().getStringProperty("db.url", BotDefaults.DB_URL);
+        var flyway = Flyway.configure().dataSource(dbUrl, null, null).load();
+
+        log.debug("Performing database migrations");
+        flyway.migrate();
+    }
+
+    /**
+     * Main entry point for the bot.
+     *
+     * @param args command line arguments
+     */
+    public static void main(String[] args) {
+        try (MortyBot bot = new MortyBot(buildBotConfig())) {
+            var botUserRepository = new BotUserRepository();
+            var userCount = botUserRepository.count();
+
+            if (userCount < 1) {
+                log.info("There are no bot users. You should issue a REGISTER command to the bot to claim admin privileges.");
+            } else {
+                log.info("Found {} bot users", userCount);
+            }
+
+            log.info("Starting bot with nick: {}", bot.getNick());
+            bot.startBot();
+        } catch (IrcException ex) {
+            log.error("Fatal IRC error: {}", ex.getMessage());
+        } catch (IOException ex) {
+            log.error("Input/output failure", ex);
+        } catch (Exception ex) {
+            log.error("Exception encountered in main()", ex);
+        }
+    }
 
     /**
      * Builds the bot configuration based on our properties and defaults.
@@ -153,32 +189,5 @@ public class Main {
         config.replaceCoreHooksListener(new CoreHooksListener());
 
         return config.buildConfiguration();
-    }
-
-    /**
-     * Main entry point for the bot.
-     *
-     * @param args command line arguments
-     */
-    public static void main(String[] args) {
-        try (MortyBot bot = new MortyBot(buildBotConfig())) {
-            var botUserRepository = new BotUserRepository();
-            var userCount = botUserRepository.count();
-
-            if (userCount < 1) {
-                log.info("There are no bot users. You should issue a REGISTER command to the bot to claim admin privileges.");
-            } else {
-                log.info("Found {} bot users", userCount);
-            }
-
-            log.info("Starting bot with nick: {}", bot.getNick());
-            bot.startBot();
-        } catch (IrcException ex) {
-            log.error("Fatal IRC error: {}", ex.getMessage());
-        } catch (IOException ex) {
-            log.error("Input/output failure", ex);
-        } catch (Exception ex) {
-            log.error("Exception encountered in main()", ex);
-        }
     }
 }
