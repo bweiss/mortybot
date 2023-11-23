@@ -96,13 +96,15 @@ public class CommandProxy implements InvocationHandler {
 
             if (!botUser.hasAdminFlag()) {
                 if (botUser.hasIgnoreFlag()) {
-                    throw new CommandException(IGNORED_USER, user.toString());
+                    throw new CommandException(IGNORED_USER, String.format("%s (bot user: %s)", user.getHostmask(), botUser.getName()));
                 }
 
                 if (command.isRestricted()) {
-                    throw new CommandException(UNAUTHORIZED_USER, user.toString());
+                    throw new CommandException(UNAUTHORIZED_USER, String.format("%s (bot user: %s)", user.getHostmask(), botUser.getName()));
                 }
             }
+        } else if (command.isRestricted()) {
+            throw new CommandException(UNAUTHORIZED_USER, user.getHostmask());
         }
 
         // Execute the command

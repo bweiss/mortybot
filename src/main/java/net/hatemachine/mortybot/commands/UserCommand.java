@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
         "Usage: USER RM <name> [...]",
         "Usage: USER SET <name> <attribute> [new_val]",
         "Usage: USER SHOW <name> [...]",
-        "Attributes supported with SET: ADMIN, AOP, DCC, HMASK, IGNORE, LOCATION"
+        "Attributes: ADMIN, AOP, DCC, HOSTMASK, IGNORE, LOCATION"
 })
 public class UserCommand implements Command {
 
@@ -81,13 +81,17 @@ public class UserCommand implements Command {
     private void addCommand(List<String> args) {
         Validate.arguments(args, 2);
 
-        String botUserName = args.get(0);
-        String botUserHostmask = args.get(1);
+        String name = Validate.botUserName(args.get(0));
+        String hostmask = Validate.hostmask(args.get(1));
 
-        var botUser = new BotUser(botUserName, botUserHostmask);
-        botUserRepository.save(botUser);
+        if (botUserRepository.existsByName(name)) {
+            event.respondWith("User already exists");
+        } else {
+            var botUser = new BotUser(name, hostmask);
+            botUserRepository.save(botUser);
 
-        event.respondWith("Added bot user " + botUserName + " with hostmask " + botUserHostmask);
+            event.respondWith("Added bot user " + name + " with hostmask " + hostmask);
+        }
     }
 
     private void listCommand(List<String> args) {
@@ -99,13 +103,15 @@ public class UserCommand implements Command {
     private void rmCommand(List<String> args) {
         List<BotUser> botUsers = botUserRepository.findAllByName(args);
 
-        botUserRepository.deleteAllById(botUsers.stream()
-                .map(BotUser::getId)
-                .toList());
+        if (botUsers.isEmpty()) {
+            event.respondWith("Nothing to remove");
+        } else {
+            botUserRepository.deleteAll(botUsers);
 
-        event.respondWith("Removed bot users: " + botUsers.stream()
-                .map(BotUser::getName)
-                .collect(Collectors.joining(", ")));
+            event.respondWith("Removed bot users: " + botUsers.stream()
+                    .map(BotUser::getName)
+                    .collect(Collectors.joining(", ")));
+        }
     }
 
     private void setCommand(List<String> args) {
@@ -154,7 +160,7 @@ public class UserCommand implements Command {
                     event.respondWith("dccFlag set to " + botUser.hasDccFlag());
                     break;
 
-                case "HMASK":
+                case "HOSTMASK":
                     if (newVal == null || newVal.isBlank()) {
                         throw new IllegalArgumentException("Not enough arguments");
                     } else if (newVal.startsWith("-")) {

@@ -73,8 +73,6 @@ public class BotDefaults {
 
     // RegisterCommand
     public static final int     REGISTER_MASK_TYPE = 3;
-    public static final String  REGISTER_NORMAL_FLAGS = "DCC";
-    public static final String  REGISTER_OWNER_FLAGS = "ADMIN,DCC";
 
     // RottenTomatoesCommand
     public static final int     RT_MAX_RESULTS = 4;
@@ -84,7 +82,4 @@ public class BotDefaults {
 
     // UrbanDictionaryCommand
     public static final int     URB_MAX_RESPONSE_LENGTH = 430;
-
-    // UserCommand
-    public static final int     USER_ADD_MASK_TYPE = 3;
 }

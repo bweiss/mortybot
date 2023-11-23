@@ -34,9 +34,9 @@ public class BotChannel {
     @Column(unique = true, nullable = false)
     private String name;
 
-    private boolean autoJoinFlag = false;
-    private boolean shortenLinksFlag = false;
-    private boolean showLinkTitlesFlag = false;
+    private boolean autoJoinFlag = true;
+    private boolean shortenLinksFlag = true;
+    private boolean showLinkTitlesFlag = true;
 
     public BotChannel() {}
 

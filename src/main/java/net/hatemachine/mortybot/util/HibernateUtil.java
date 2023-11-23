@@ -23,12 +23,8 @@ import net.hatemachine.mortybot.model.BotChannel;
 import net.hatemachine.mortybot.model.BotUser;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class HibernateUtil {
-
-    private static final Logger log = LoggerFactory.getLogger(HibernateUtil.class);
 
     private static SessionFactory sessionFactory;
 
@@ -40,6 +36,11 @@ public class HibernateUtil {
         BotProperties props = BotProperties.getBotProperties();
         return new Configuration()
                 .setProperty("hibernate.connection.url", props.getStringProperty("db.url", BotDefaults.DB_URL))
+                .setProperty("hibernate.dialect", props.getStringProperty("hibernate.dialect"))
+                .setProperty("hibernate.connection.driver_class", props.getStringProperty("db.driver"))
+                .setProperty("hibernate.connection.provider_class", props.getStringProperty("hibernate.connection.provider_class"))
+                .setProperty("hibernate.show_sql", props.getStringProperty("hibernate.show_sql", "false"))
+                .setProperty("hibernate.hbm2ddl.auto", "none")
                 .addAnnotatedClass(BotUser.class)
                 .addAnnotatedClass(BotChannel.class)
                 .buildSessionFactory();

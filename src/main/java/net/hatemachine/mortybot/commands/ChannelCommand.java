@@ -41,7 +41,8 @@ import java.util.stream.Collectors;
         "Usage: CHANNEL LIST",
         "Usage: CHANNEL RM <name> [...]",
         "Usage: CHANNEL SET <name> <attribute> [new_val]",
-        "Usage: CHANNEL SHOW <name> [...]"
+        "Usage: CHANNEL SHOW <name> [...]",
+        "Attributes: AJOIN, SHORTEN, TITLES"
 })
 public class ChannelCommand implements Command {
 
@@ -81,12 +82,16 @@ public class ChannelCommand implements Command {
     private void addCommand(List<String> args) {
         Validate.arguments(args, 1);
 
-        String channelName = args.get(0);
+        String channelName = Validate.channelName(args.get(0));
 
-        var botChannel = new BotChannel(channelName);
-        botChannelRepository.save(botChannel);
+        if (botChannelRepository.existsByName(channelName)) {
+            event.respondWith("Channel already exists");
+        } else {
+            var botChannel = new BotChannel(channelName);
+            botChannelRepository.save(botChannel);
 
-        event.respondWith("Added channel " + channelName);
+            event.respondWith("Added channel " + channelName);
+        }
     }
 
     private void listCommand(List<String> args) {
@@ -98,27 +103,33 @@ public class ChannelCommand implements Command {
     private void rmCommand(List<String> args) {
         List<BotChannel> botChannels = botChannelRepository.findAllByName(args);
 
-        botChannelRepository.deleteAllById(botChannels.stream()
-                .map(BotChannel::getId)
-                .toList());
+        if (botChannels.isEmpty()) {
+            event.respondWith("Nothing to remove");
+        } else {
+            botChannelRepository.deleteAll(botChannels);
 
-        event.respondWith("Removed channels: " + botChannels.stream()
-                .map(BotChannel::getName)
-                .collect(Collectors.joining(", ")));
+            event.respondWith("Removed channels: " + botChannels.stream()
+                    .map(BotChannel::getName)
+                    .collect(Collectors.joining(", ")));
+        }
     }
 
     private void setCommand(List<String> args) {
         Validate.arguments(args, 2);
 
-        Optional<BotChannel> optionalBotChannel = botChannelRepository.findByName(args.get(0));
+        String channelName = Validate.channelName(args.get(0));
         String attr = args.get(1);
         String newVal = args.size() > 2 ? args.get(2) : null;
 
-        if (optionalBotChannel.isPresent()) {
+        Optional<BotChannel> optionalBotChannel = botChannelRepository.findByName(channelName);
+
+        if (optionalBotChannel.isEmpty()) {
+            event.respondWith("Unknown channel");
+        } else {
             BotChannel botChannel = optionalBotChannel.get();
 
             switch (attr.toUpperCase()) {
-                case "AUTOJOIN":
+                case "AJOIN":
                     if (newVal == null) {
                         botChannel.setAutoJoinFlag(!botChannel.hasAutoJoinFlag());
                     } else {
@@ -136,7 +147,7 @@ public class ChannelCommand implements Command {
                     event.respondWith("shortenLinksFlag set to " + botChannel.hasShortenLinksFlag());
                     break;
 
-                case "SHOWTITLES":
+                case "TITLES":
                     if (newVal == null) {
                         botChannel.setShowLinkTitlesFlag(!botChannel.hasShowLinkTitlesFlag());
                     } else {

@@ -120,7 +120,6 @@ public class LinkListener extends ListenerAdapter {
                     shortLink = Optional.of(link);
                 } else {
                     shortLink = Bitly.shorten(link);
-                    log.debug("Shortened {} to {}", link, shortLink.orElse(""));
                 }
             }
 

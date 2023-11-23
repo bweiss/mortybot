@@ -17,15 +17,12 @@
  */
 package net.hatemachine.mortybot.repositories;
 
-import jakarta.persistence.criteria.CriteriaQuery;
 import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.util.HibernateUtil;
 import net.hatemachine.mortybot.util.StringUtils;
 import org.hibernate.SessionFactory;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class BotUserRepository implements CrudRepository<BotUser, Long> {
@@ -47,7 +44,11 @@ public class BotUserRepository implements CrudRepository<BotUser, Long> {
 
     @Override
     public void deleteAll() {
-        sessionFactory.inTransaction(session -> session.createNativeQuery("delete from BotUser", BotUser.class));
+        sessionFactory.inTransaction(session -> {
+            session.createNativeQuery("delete from BotUser_autoOpChannels", BotUser.class).executeUpdate();
+            session.createNativeQuery("delete from BotUser_hostmasks", BotUser.class).executeUpdate();
+            session.createNativeQuery("delete from BotUser", BotUser.class).executeUpdate();
+        });
     }
 
     @Override
@@ -62,18 +63,34 @@ public class BotUserRepository implements CrudRepository<BotUser, Long> {
     @Override
     public void deleteAllById(Iterable<? extends Long> ids) {
         sessionFactory.inTransaction(session -> {
-            var query = session.createNativeQuery("delete from BotUser where id in :ids", BotUser.class);
-            query.setParameter("ids", ids);
-            query.executeUpdate();
+            var autoOpQuery = session.createNativeQuery("delete from BotUser_autoOpChannels where BotUser_id in :ids", BotUser.class);
+            autoOpQuery.setParameter("ids", ids);
+            autoOpQuery.executeUpdate();
+
+            var hostmasksQuery = session.createNativeQuery("delete from BotUser_hostmasks where BotUser_id in :ids", BotUser.class);
+            hostmasksQuery.setParameter("ids", ids);
+            hostmasksQuery.executeUpdate();
+
+            var usersQuery = session.createNativeQuery("delete from BotUser where id in :ids", BotUser.class);
+            usersQuery.setParameter("ids", ids);
+            usersQuery.executeUpdate();
         });
     }
 
     @Override
     public void deleteById(Long id) {
         sessionFactory.inTransaction(session -> {
-            var query = session.createNativeQuery("delete from BotUser where id = :id", BotUser.class);
-            query.setParameter("id", id);
-            query.executeUpdate();
+            var autoOpQuery = session.createNativeQuery("delete from BotUser_autoOpChannels where BotUser_id = :id", BotUser.class);
+            autoOpQuery.setParameter("id", id);
+            autoOpQuery.executeUpdate();
+
+            var hostmasksQuery = session.createNativeQuery("delete from BotUser_hostmasks where BotUser_id = :id", BotUser.class);
+            hostmasksQuery.setParameter("id", id);
+            hostmasksQuery.executeUpdate();
+
+            var userQuery = session.createNativeQuery("delete from BotUser where id = :id", BotUser.class);
+            userQuery.setParameter("id", id);
+            userQuery.executeUpdate();
         });
     }
 
@@ -97,9 +114,8 @@ public class BotUserRepository implements CrudRepository<BotUser, Long> {
     @Override
     public List<BotUser> findAll() {
         return sessionFactory.fromTransaction(session -> {
-            CriteriaQuery<BotUser> criteria = session.getCriteriaBuilder().createQuery(BotUser.class);
-            criteria.from(BotUser.class);
-            return session.createQuery(criteria).list();
+            var query = session.createSelectionQuery("from BotUser", BotUser.class);
+            return query.getResultList();
         });
     }
 
@@ -121,18 +137,30 @@ public class BotUserRepository implements CrudRepository<BotUser, Long> {
     }
 
     public Optional<BotUser> findByHostmask(String userHostmask) {
-        return findAll().stream()
-                .filter(bu -> {
-                    boolean match = false;
-                    for (String h : bu.getHostmasks()) {
-                        var pattern = Pattern.compile(StringUtils.wildcardToRegex(h.toLowerCase()));
-                        var matcher = pattern.matcher(userHostmask.toLowerCase());
-                        if (matcher.matches()) {
-                            match = true;
-                        }
+        return sessionFactory.fromTransaction(session -> {
+            Optional<BotUser> botUser = Optional.empty();
+
+            var query = session.createNativeQuery("select * from BotUser_hostmasks", Object.class);
+            var results = query.getResultList();
+
+            if (!results.isEmpty()) {
+                for (Object result : results) {
+                    Object[] row = (Object[]) result;
+                    int id = (int) row[0];
+                    String hostmask = (String) row[1];
+
+                    var pattern = Pattern.compile(StringUtils.wildcardToRegex(hostmask.toLowerCase()));
+                    var matcher = pattern.matcher(userHostmask.toLowerCase());
+
+                    if (matcher.matches()) {
+                        botUser = Optional.of(session.find(BotUser.class, id));
+                        break; // we only care about the first match
                     }
-                    return match;
-                }).findFirst();
+                }
+            }
+
+            return botUser;
+        });
     }
 
     @Override

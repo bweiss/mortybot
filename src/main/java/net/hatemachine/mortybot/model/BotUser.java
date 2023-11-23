@@ -21,6 +21,7 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.NaturalId;
 import org.hibernate.proxy.HibernateProxy;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -36,13 +37,13 @@ public class BotUser {
     private String name;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    private Set<String> hostmasks;
+    private Set<String> hostmasks = new HashSet<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
-    private Set<String> autoOpChannels;
+    private Set<String> autoOpChannels = new HashSet<>();
 
-    private String location;
     private String password;
+    private String location;
 
     private boolean adminFlag = false;
     private boolean dccFlag = true;
@@ -92,20 +93,20 @@ public class BotUser {
         this.autoOpChannels = autoOpChannels;
     }
 
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
     public String getPassword() {
         return password;
     }
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 
     public boolean hasAdminFlag() {
@@ -159,8 +160,8 @@ public class BotUser {
                 ", name='" + name + '\'' +
                 ", hostmasks=" + hostmasks +
                 ", autoOpChannels=" + autoOpChannels +
-                ", location='" + location + '\'' +
                 ", password='" + password + '\'' +
+                ", location='" + location + '\'' +
                 ", adminFlag=" + adminFlag +
                 ", dccFlag=" + dccFlag +
                 ", ignoreFlag=" + ignoreFlag +
