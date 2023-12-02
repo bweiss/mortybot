@@ -32,19 +32,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * Listener that handles automatically granting channel operator status to bot users that have
- * the AUTO_OP managed channel flag.
+ * Listener that handles automatically granting channel operator status to bot users.
  */
 public class AutoOpListener extends ListenerAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(AutoOpListener.class);
 
-    private final Map<String, Queue<String>> pending;
+    private final Map<String, BlockingQueue<String>> pending = new HashMap<>();
 
     public AutoOpListener() {
-        this.pending = new HashMap<>();
+        // left empty
     }
 
     @Override
@@ -64,16 +65,18 @@ public class AutoOpListener extends ListenerAdapter {
 
     /**
      * Handles a join event to a channel that the bot is on. This will check to see if the user's hostmask
-     * matches that of a bot user that has the AUTO_OP flag for that channel. If a match is found it will add
+     * matches that of a bot user with this channel in their auto-op list. If a match is found it will add
      * that user to the pending op queue for the channel and spin up a separate thread to process any modes
      * after a short delay. This allows us to op multiple users in a single command to the server and eliminates
-     * redundant modes when a user has already received operator status.
+     * redundant modes when a user has already received operator status, greatly reducing the noisiness of the bot,
+     * particularly after netsplits.
      *
      * @param event the join event
      */
     private void handleJoin(final JoinEvent event) {
         MortyBot bot = event.getBot();
         Channel channel = event.getChannel();
+        String channelName = channel.getName().toLowerCase();
         User user = (User) Validate.notNull(event.getUser());
 
         var botUserRepository = new BotUserRepository();
@@ -82,32 +85,30 @@ public class AutoOpListener extends ListenerAdapter {
         if (matchingBotUser.isPresent() && !user.getNick().equals(bot.getNick())) {
             var botUser = matchingBotUser.get();
 
-            if (botUser.getAutoOpChannels().contains(channel.getName())) {
-                log.info("Adding {} to auto-op queue for {}", user.getNick(), channel.getName());
+            if (botUser.getAutoOpChannels().stream().anyMatch(channelName::equalsIgnoreCase)) {
+                log.info("Adding {} to auto-op queue for {}", user.getNick(), channelName);
 
-                Queue<String> queue = pending.containsKey(channel.getName()) ? pending.get(channel.getName()) : new LinkedList<>();
+                BlockingQueue<String> queue = pending.containsKey(channelName) ? pending.get(channelName) : new LinkedBlockingQueue<>();
 
                 if (!queue.contains(user.getNick())) {
                     queue.add(user.getNick());
                 }
 
-                pending.put(channel.getName(), queue);
+                pending.put(channelName, queue);
 
-                // start a new thread to process this queue after a delay
-                new Thread(() -> {
-                    log.debug("Created new thread");
+                log.debug("Creating new thread to process queue for {}", channelName);
+
+                Thread.ofVirtual().start(() -> {
                     try {
-                        int delay = BotProperties.getBotProperties()
-                                .getIntProperty("aop.delay", BotDefaults.AUTO_OP_DELAY);
-                        log.debug("Sleeping for {}ms", delay);
+                        int delay = BotProperties.getBotProperties().getIntProperty("aop.delay", BotDefaults.AUTO_OP_DELAY);
+                        log.debug("Thread {} sleeping for {}", Thread.currentThread().getName(), delay);
                         Thread.sleep(delay);
-                        log.debug("Processing queue");
-                        processQueue(event, channel);
+                        processQueue(channel, event);
                     } catch (InterruptedException e) {
-                        log.warn("Thread interrupted", e);
+                        log.warn("Thread interrupted: {}", Thread.currentThread().getName());
                         Thread.currentThread().interrupt();
                     }
-                }).start();
+                });
             }
         }
     }
@@ -132,24 +133,24 @@ public class AutoOpListener extends ListenerAdapter {
     /**
      * Processes the op queue for a particular channel.
      *
-     * @param event the join event that triggered the auto-op action
      * @param channel the channel it occurred on
+     * @param event the join event that triggered the auto-op action
      */
-    private synchronized void processQueue(final JoinEvent event, final Channel channel) {
+    private synchronized void processQueue(final Channel channel, final JoinEvent event) {
         MortyBot bot = event.getBot();
-        BotProperties state = BotProperties.getBotProperties();
-        int maxModes = state.getIntProperty("aop.max.modes", -1);
+        BotProperties props = BotProperties.getBotProperties();
+        int maxModes = props.getIntProperty("aop.max.modes", -1);
         if (maxModes == -1) {
             int sInfoMaxModes = bot.getServerInfo().getMaxModes();
             maxModes = sInfoMaxModes == -1 ? BotDefaults.AUTO_OP_MAX_MODES : sInfoMaxModes;
         }
 
-        log.debug("Inside processQueue() - pending: {}", pending);
+        String channelName = channel.getName().toLowerCase();
 
-        if (pending.containsKey(channel.getName())) {
-            Queue<String> queue = pending.get(channel.getName());
+        if (pending.containsKey(channelName)) {
+            Queue<String> queue = pending.get(channelName);
 
-            log.info("Attempting to op {} users on {}", queue.size(), channel.getName());
+            log.info("Attempting to op {} users on {}", queue.size(), channelName);
 
             while (!queue.isEmpty()) {
                 StringBuilder modes = new StringBuilder();
@@ -158,7 +159,7 @@ public class AutoOpListener extends ListenerAdapter {
                 while (targets.size() < maxModes && !queue.isEmpty()) {
                     String nick = queue.remove();
                     if (channel.isOp(bot.getUserChannelDao().getUser(nick))) {
-                        log.debug("{} already has operator status on {}", nick, channel.getName());
+                        log.debug("{} already has operator status on {}", nick, channelName);
                     } else {
                         modes.append("o");
                         targets.add(nick);
@@ -166,15 +167,15 @@ public class AutoOpListener extends ListenerAdapter {
                 }
 
                 if (!channel.isOp(bot.getUserBot())) {
-                    log.debug("Bot is not an operator on {}", channel.getName());
+                    log.debug("Bot is not an operator on {}", channelName);
                 } else if (targets.isEmpty()) {
                     log.debug("No targets to op!");
                 } else {
-                    bot.sendIRC().mode(channel.getName(), "+" + modes + " " + String.join(" ", targets));
+                    bot.sendIRC().mode(channelName, "+" + modes + " " + String.join(" ", targets));
                 }
             }
 
-            pending.remove(channel.getName());
+            pending.remove(channelName);
         }
     }
 }
