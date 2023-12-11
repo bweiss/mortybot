@@ -25,6 +25,10 @@ import org.hibernate.SessionFactory;
 import java.util.*;
 import java.util.regex.Pattern;
 
+/**
+ * Repository for managing BotUser entities.
+ * It implements the CrudRepository interface, providing basic CRUD operations for BotUser objects.
+ */
 public class BotUserRepository implements CrudRepository<BotUser, Long> {
 
     private final SessionFactory sessionFactory;
@@ -33,15 +37,28 @@ public class BotUserRepository implements CrudRepository<BotUser, Long> {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
+    /**
+     * Retrieves the total number of BotUser entities in the database.
+     *
+     * @return the total number of BotUser entities in the database.
+     */
     @Override
     public long count() {
         return sessionFactory.fromTransaction(session -> session.createNativeQuery("select count(*) from BotUser", Long.class).uniqueResult());
     }
 
+    /**
+     * Deletes the specified BotUser from the database.
+     *
+     * @param botUser the BotUser to be deleted
+     */
     public void delete(BotUser botUser) {
         sessionFactory.inTransaction(session -> session.remove(botUser));
     }
 
+    /**
+     * Deletes all BotUser entities from the database.
+     */
     @Override
     public void deleteAll() {
         sessionFactory.inTransaction(session -> {
@@ -51,6 +68,11 @@ public class BotUserRepository implements CrudRepository<BotUser, Long> {
         });
     }
 
+    /**
+     * Deletes multiple BotUser entities from the database by their IDs.
+     *
+     * @param botUsers An Iterable collection of BotUser entities to be deleted.
+     */
     @Override
     public void deleteAll(Iterable<? extends BotUser> botUsers) {
         sessionFactory.inTransaction(session -> {
@@ -60,6 +82,12 @@ public class BotUserRepository implements CrudRepository<BotUser, Long> {
         });
     }
 
+    /**
+     * Deletes multiple BotUser records from the database based on their IDs.
+     *
+     * @param ids An iterable of Long objects representing the IDs of the BotUser records to be deleted.
+     * @throws org.hibernate.HibernateException If an error occurs during the database operation.
+     */
     @Override
     public void deleteAllById(Iterable<? extends Long> ids) {
         sessionFactory.inTransaction(session -> {
@@ -77,6 +105,11 @@ public class BotUserRepository implements CrudRepository<BotUser, Long> {
         });
     }
 
+    /**
+     * Deletes a BotUser entity from the database based on the provided ID.
+     *
+     * @param id The ID of the entity to be deleted.
+     */
     @Override
     public void deleteById(Long id) {
         sessionFactory.inTransaction(session -> {
@@ -94,6 +127,12 @@ public class BotUserRepository implements CrudRepository<BotUser, Long> {
         });
     }
 
+    /**
+     * Determines whether a record with the specified ID exists in the BotUser table.
+     *
+     * @param id the ID of the record to check
+     * @return true if a record with the specified ID exists, false otherwise
+     */
     @Override
     public boolean existsById(Long id) {
         return sessionFactory.fromTransaction(session -> {
@@ -103,6 +142,12 @@ public class BotUserRepository implements CrudRepository<BotUser, Long> {
         });
     }
 
+    /**
+     * Checks if a user with the specified name exists in the database.
+     *
+     * @param name the name of the user to check
+     * @return true if a user with the specified name exists, false otherwise
+     */
     public boolean existsByName(String name) {
         return sessionFactory.fromTransaction(session -> {
             var query = session.createNativeQuery("select 1 from BotUser where name = :name", Integer.class);
@@ -111,6 +156,11 @@ public class BotUserRepository implements CrudRepository<BotUser, Long> {
         });
     }
 
+    /**
+     * Retrieves all the BotUser entities from the database.
+     *
+     * @return A list of BotUser entities representing all the records in the database.
+     */
     @Override
     public List<BotUser> findAll() {
         return sessionFactory.fromTransaction(session -> {
@@ -119,6 +169,12 @@ public class BotUserRepository implements CrudRepository<BotUser, Long> {
         });
     }
 
+    /**
+     * Retrieves a list of BotUser entities by their corresponding IDs.
+     *
+     * @param ids The IDs of the BotUser entities to be retrieved.
+     * @return A list of BotUser entities matching the given IDs.
+     */
     @Override
     public List<BotUser> findAllById(Iterable<Long> ids) {
         return sessionFactory.fromTransaction(session -> {
@@ -128,6 +184,12 @@ public class BotUserRepository implements CrudRepository<BotUser, Long> {
         });
     }
 
+    /**
+     * Find all BotUser objects based on the provided names.
+     *
+     * @param names A collection of names to search for.
+     * @return A list of BotUser objects matching the provided names.
+     */
     public List<BotUser> findAllByName(Iterable<String> names) {
         return sessionFactory.fromTransaction(session -> {
             var query = session.createSelectionQuery("from BotUser where name in :names", BotUser.class);
@@ -136,6 +198,12 @@ public class BotUserRepository implements CrudRepository<BotUser, Long> {
         });
     }
 
+    /**
+     * Finds a BotUser by hostmask.
+     *
+     * @param userHostmask the user hostmask to search for
+     * @return an Optional containing the BotUser if found, or an empty Optional if not found
+     */
     public Optional<BotUser> findByHostmask(String userHostmask) {
         return sessionFactory.fromTransaction(session -> {
             Optional<BotUser> botUser = Optional.empty();
@@ -163,17 +231,36 @@ public class BotUserRepository implements CrudRepository<BotUser, Long> {
         });
     }
 
+    /**
+     * Finds a BotUser by its ID.
+     *
+     * @param id the ID of the BotUser to find
+     * @return an Optional containing the BotUser if found, or an empty Optional if not found
+     */
     @Override
     public Optional<BotUser> findById(Long id) {
         var botUser = sessionFactory.fromTransaction(session -> session.find(BotUser.class, id));
         return botUser == null ? Optional.empty() : Optional.of(botUser);
     }
 
+    /**
+     * Finds a BotUser by their name.
+     *
+     * @param name the name of the BotUser to find
+     * @return an Optional containing the BotUser if found, or an empty Optional if not found
+     */
     public Optional<BotUser> findByName(String name) {
         var botUser = sessionFactory.fromTransaction(session -> session.bySimpleNaturalId(BotUser.class).load(name));
         return botUser == null ? Optional.empty() : Optional.of(botUser);
     }
 
+    /**
+     * Saves a BotUser entity to the database.
+     *
+     * @param botUser The BotUser object to be saved. Cannot be null.
+     * @return The saved BotUser object.
+     * @throws NullPointerException if botUser is null.
+     */
     @Override
     public <S extends BotUser> S save(S botUser) {
         Objects.requireNonNull(botUser, "botUser cannot be null");
@@ -188,6 +275,13 @@ public class BotUserRepository implements CrudRepository<BotUser, Long> {
         });
     }
 
+    /**
+     * Saves all the given bot users to the database.
+     *
+     * @param botUsers the iterable of bot users to save
+     * @param <S> the type of bot user
+     * @return the iterable of saved bot users
+     */
     @Override
     public <S extends BotUser> Iterable<S> saveAll(Iterable<S> botUsers) {
         return sessionFactory.fromTransaction(session -> {
