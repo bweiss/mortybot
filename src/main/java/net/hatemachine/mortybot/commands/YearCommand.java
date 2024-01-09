@@ -51,7 +51,7 @@ public class YearCommand implements Command {
     public void execute() {
         LocalDate now = LocalDate.now();
         ProgressBar bar = new ProgressBar(15, true);
-        event.respondWith("Year progress: " + bar.show(now.getDayOfYear(), 365));
+        event.respondWith("Year progress: " + bar.show(now.getDayOfYear(), now.lengthOfYear()));
     }
 
     @Override
