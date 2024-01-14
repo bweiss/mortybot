@@ -138,7 +138,7 @@ public class ChannelCommand implements Command {
                     event.respondWith("autoJoinFlag set to " + botChannel.hasAutoJoinFlag());
                     break;
 
-                case "SHORTEN":
+                case "SHORT", "SHORTEN":
                     if (newVal == null) {
                         botChannel.setShortenLinksFlag(!botChannel.hasShortenLinksFlag());
                     } else {
@@ -147,7 +147,7 @@ public class ChannelCommand implements Command {
                     event.respondWith("shortenLinksFlag set to " + botChannel.hasShortenLinksFlag());
                     break;
 
-                case "TITLES":
+                case "TIT", "TITLES":
                     if (newVal == null) {
                         botChannel.setShowLinkTitlesFlag(!botChannel.hasShowLinkTitlesFlag());
                     } else {

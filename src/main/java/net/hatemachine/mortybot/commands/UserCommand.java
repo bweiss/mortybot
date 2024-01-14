@@ -160,7 +160,7 @@ public class UserCommand implements Command {
                     event.respondWith("dccFlag set to " + botUser.hasDccFlag());
                     break;
 
-                case "HOSTMASK":
+                case "HOST", "HOSTMASK":
                     if (newVal == null || newVal.isBlank()) {
                         throw new IllegalArgumentException("Not enough arguments");
                     } else if (newVal.startsWith("-")) {
@@ -173,7 +173,7 @@ public class UserCommand implements Command {
                     event.respondWith("Hostmasks for " + botUser.getName() + " set to " + botUser.getHostmasks());
                     break;
 
-                case "IGNORE":
+                case "IG", "IGNORE":
                     if (newVal == null) {
                         botUser.setIgnoreFlag(!botUser.hasIgnoreFlag());
                     } else {
@@ -183,7 +183,7 @@ public class UserCommand implements Command {
                     event.respondWith("ignoreFlag set to " + botUser.hasIgnoreFlag());
                     break;
 
-                case "LOCATION":
+                case "LOC", "LOCATION":
                     botUser.setLocation(newVal);
                     event.respondWith("Location set to " + botUser.getLocation());
                     break;
