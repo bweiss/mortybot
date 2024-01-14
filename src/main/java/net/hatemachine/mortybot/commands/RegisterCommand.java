@@ -65,7 +65,7 @@ public class RegisterCommand implements Command {
         var maskType = props.getIntProperty("register.mask.type", BotDefaults.REGISTER_MASK_TYPE);
 
         User user = event.getUser();
-        String desiredName = args.isEmpty() ? user.getNick() : args.get(0);
+        String desiredName = args.isEmpty() ? user.getNick().replaceAll("[^\\w]", "") : args.getFirst();
         Validate.botUserName(desiredName);
         String maskedAddress = IrcUtils.maskAddress(user.getHostmask(), maskType);
 
