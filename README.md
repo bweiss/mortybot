@@ -73,7 +73,7 @@ Windows:
 
 ### First run
 
-The first time you run the bot, it is strongly recommended that you send a REGISTER command to the bot once it has connected to the network. This will create a bot user profile with your current hostmask and grant admin privileges. Only the first user to register will be given admin privileges.
+The first time you run the bot, it is strongly recommended that you send a REGISTER command to the bot once it has connected to the network. This will create a bot user profile with your current hostmask and grant admin privileges (only the first user to register will be given admin privileges). It is also recommended to set a password with the PASS command via a private message to the bot.
 
 Once registered, the admin user can add, remove, and modify the bot's channels and users via the CHANNEL and USER commands.
 
@@ -83,8 +83,8 @@ To get a list of commands and basic usage information, issue the HELP command in
 
 For example:
 > &lt;rick&gt; .help<br/>
-> &lt;morty&gt; Commands: CHAT, DICT, GEOIP, GOO, GOOGLE, HELP, HOST, IMDB, NICK, REGISTER, RT, STOCK, URB, URBAN, WEATHER, WHO, WORDLE, WOTD, WTR, YEAR<br/>
-> &lt;morty&gt; Admin commands: BAN, BANKICK, CHANNEL, CONFIG, JOIN, KICK, KICKBAN, MSG, NICK, OP, PART, QUIT, USER<br/>
+> &lt;morty&gt; Commands: CHAT, CHPASS, DICT, GEOIP, GOO, GOOGLE, HELP, HOST, IDENT, IDENTIFY, IMDB, MLB, MST, NBA, NFL, NHL, PASS, REGISTER, RT, STOCK, UFC, URB, URBAN, WEATHER, WHO, WHOAMI, WORDLE, WOTD, WTR, YEAR<br/>
+> &lt;morty&gt; Admin commands: BAN, BANKICK, CHANNEL, JOIN, KICK, KICKBAN, MSG, NICK, OP, PART, QUIT, TEST, USER<br/>
 > &lt;morty&gt; Type .HELP &lt;command&gt; to get more information about a command<br/>
 > &lt;rick&gt; .help register<br/>
 > &lt;morty&gt; Registers yourself with the bot using your current hostname<br/>

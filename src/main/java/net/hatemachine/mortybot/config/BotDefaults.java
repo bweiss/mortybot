@@ -40,6 +40,9 @@ public class BotDefaults {
     // HibernateUtil
     public static final String  DB_URL = "jdbc:sqlite:mortybot.db";
 
+    // PasswordEncoderFactory
+    public static final String  PASSWORD_ENCODER = "BCRYPT";
+
     // AutoOpListener
     public static final boolean AUTO_OP = true;
     public static final int     AUTO_OP_DELAY = 10000;
@@ -70,6 +73,9 @@ public class BotDefaults {
 
     // ImdbCommand
     public static final int     IMDB_MAX_RESULTS = 4;
+
+    // IdentifyCommand
+    public static final int     IDENTIFY_MASK_TYPE = 3;
 
     // RegisterCommand
     public static final int     REGISTER_MASK_TYPE = 3;
