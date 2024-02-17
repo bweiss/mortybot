@@ -30,8 +30,11 @@ import java.util.regex.Pattern;
 public class Validate {
 
     private static final int MAX_BOT_USER_NAME_LENGTH = 16;
+    private static final int MIN_PASSWORD_LENGTH = 6;
+    private static final int MAX_PASSWORD_LENGTH = 32;
 
     private static final Pattern BOT_USER_NAME_PATTERN = Pattern.compile("[\\w]+");
+    private static final Pattern PASSWORD_PATTERN = Pattern.compile("[a-zA-Z0-9!@#$%^&*()_+=-]+");
     private static final Pattern NICKNAME_PATTERN = Pattern.compile("[a-zA-Z0-9\\[\\]|_-]+");
     private static final Pattern USERNAME_PATTERN = Pattern.compile("[a-zA-Z0-9~]+");
     private static final Pattern HOSTNAME_PATTERN = Pattern.compile("[a-zA-Z0-9.:-]+");
@@ -168,6 +171,16 @@ public class Validate {
         }
 
         return prefixes.chars().anyMatch(c -> c == s.charAt(0));
+    }
+
+    /**
+     * Checks to see if a string is valid as a password.
+     *
+     * @param s the password string to be checked
+     * @return true if the string is valid as a password, otherwise false
+     */
+    public static boolean isPassword(String s) {
+        return s.length() >= MIN_PASSWORD_LENGTH && s.length() <= MAX_PASSWORD_LENGTH && PASSWORD_PATTERN.matcher(s).matches();
     }
 
     /**
@@ -373,6 +386,20 @@ public class Validate {
     public static String channelName(String s, String prefixes) {
         if (!isChannelName(s, prefixes)) {
             throw new IllegalArgumentException("Invalid channel name");
+        }
+        return s;
+    }
+
+    /**
+     * Ensures that a string is valid as a password.
+     *
+     * @param s the string to check
+     * @return the string if it is a valid password
+     * @throws IllegalArgumentException if the string is not a valid password
+     */
+    public static String password(String s) {
+        if (!isPassword(s)) {
+            throw new IllegalArgumentException("Invalid password");
         }
         return s;
     }

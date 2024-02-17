@@ -73,12 +73,12 @@ public class IdentifyCommand implements Command {
             return;
         }
 
-        String username = args.getFirst();
-        String password = args.get(1);
+        String username = Validate.botUserName(args.getFirst());
+        String password = Validate.password(args.get(1));
         Optional<BotUser> optionalBotUser = repo.findByName(username);
 
         if (optionalBotUser.isEmpty()) {
-            event.respondWith("Invalid username");
+            event.respondWith("User not found");
         } else {
             BotUser botUser = optionalBotUser.get();
             PasswordEncoder encoder = PasswordEncoderFactory.getEncoder();
@@ -93,7 +93,7 @@ public class IdentifyCommand implements Command {
                 repo.save(botUser);
                 event.respondWith("Added hostmask " + newHostmask);
             } else {
-                event.respondWith("Invalid password");
+                event.respondWith("Current password does not match");
             }
         }
     }

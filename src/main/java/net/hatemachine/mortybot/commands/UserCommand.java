@@ -22,10 +22,12 @@ import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.model.BotUser;
 import net.hatemachine.mortybot.repositories.BotUserRepository;
+import net.hatemachine.mortybot.util.PasswordEncoderFactory;
 import net.hatemachine.mortybot.util.Validate;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -39,9 +41,9 @@ import java.util.stream.Collectors;
         "Usage: USER ADD <name> <hostmask>",
         "Usage: USER LIST",
         "Usage: USER RM <name> [...]",
-        "Usage: USER SET <name> <attribute> [new_val]",
+        "Usage: USER SET <name> <attribute> [-][new_val]",
         "Usage: USER SHOW <name> [...]",
-        "Attributes: ADMIN, AOP, DCC, HOSTMASK, IGNORE, LOCATION"
+        "Attributes: ADMIN, AOP, DCC, HOSTMASK, IGNORE, LOCATION, PASSWORD"
 })
 public class UserCommand implements Command {
 
@@ -70,7 +72,7 @@ public class UserCommand implements Command {
 
         switch (subCommand) {
             case "ADD" -> addCommand(newArgs);
-            case "LIST" -> listCommand(newArgs);
+            case "LIST" -> listCommand();
             case "RM" -> rmCommand(newArgs);
             case "SET" -> setCommand(newArgs);
             case "SHOW" -> showCommand(newArgs);
@@ -78,11 +80,11 @@ public class UserCommand implements Command {
         }
     }
 
-    private void addCommand(List<String> args) {
-        Validate.arguments(args, 2);
+    private void addCommand(List<String> newArgs) {
+        Validate.arguments(newArgs, 2);
 
-        String name = Validate.botUserName(args.get(0));
-        String hostmask = Validate.hostmask(args.get(1));
+        String name = Validate.botUserName(newArgs.get(0));
+        String hostmask = Validate.hostmask(newArgs.get(1));
 
         if (botUserRepository.existsByName(name)) {
             event.respondWith("User already exists");
@@ -94,14 +96,14 @@ public class UserCommand implements Command {
         }
     }
 
-    private void listCommand(List<String> args) {
+    private void listCommand() {
         event.respondWith("Bot users: " + botUserRepository.findAll().stream()
                 .map(BotUser::getName)
                 .collect(Collectors.joining(", ")));
     }
 
-    private void rmCommand(List<String> args) {
-        List<BotUser> botUsers = botUserRepository.findAllByName(args);
+    private void rmCommand(List<String> newArgs) {
+        List<BotUser> botUsers = botUserRepository.findAllByName(newArgs);
 
         if (botUsers.isEmpty()) {
             event.respondWith("Nothing to remove");
@@ -114,12 +116,12 @@ public class UserCommand implements Command {
         }
     }
 
-    private void setCommand(List<String> args) {
-        Validate.arguments(args, 2);
+    private void setCommand(List<String> newArgs) {
+        Validate.arguments(newArgs, 2);
 
-        Optional<BotUser> optionalBotUser = botUserRepository.findByName(args.get(0));
-        String attr = args.get(1);
-        String newVal = args.size() > 2 ? args.get(2) : null;
+        Optional<BotUser> optionalBotUser = botUserRepository.findByName(newArgs.get(0));
+        String attr = newArgs.get(1);
+        String newVal = newArgs.size() > 2 ? newArgs.get(2) : null;
 
         if (optionalBotUser.isEmpty()) {
             event.respondWith("Unknown user");
@@ -188,6 +190,13 @@ public class UserCommand implements Command {
                     event.respondWith("Location set to " + botUser.getLocation());
                     break;
 
+                case "PASS", "PASSWORD":
+                    PasswordEncoder encoder = PasswordEncoderFactory.getEncoder();
+                    String newPass = Validate.password(newVal);
+                    botUser.setPassword(encoder.encode(newPass));
+                    event.respondWith("Changed password for " + botUser.getName());
+                    break;
+
                 default:
                     event.respondWith("Unknown attribute: " + attr);
             }
@@ -196,9 +205,13 @@ public class UserCommand implements Command {
         }
     }
 
-    private void showCommand(List<String> args) {
-        var botUsers = botUserRepository.findAllByName(args);
-        botUsers.forEach(bu -> event.respondWith(bu.toString()));
+    private void showCommand(List<String> newArgs) {
+        var botUsers = botUserRepository.findAllByName(newArgs);
+        if (botUsers.isEmpty()) {
+            event.respondWith("No users found");
+        } else {
+            botUsers.forEach(bu -> event.respondWith(bu.toString()));
+        }
     }
 
     @Override

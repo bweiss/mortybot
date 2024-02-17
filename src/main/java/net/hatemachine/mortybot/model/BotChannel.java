@@ -102,12 +102,12 @@ public class BotChannel {
 
     @Override
     public String toString() {
-        return "BotChannel{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", autoJoinFlag=" + autoJoinFlag +
-                ", shortenLinksFlag=" + shortenLinksFlag +
-                ", showLinkTitlesFlag=" + showLinkTitlesFlag +
-                '}';
+        return name +
+                " :: " +
+                "autoJoinFlag[" + autoJoinFlag + "]" +
+                " " +
+                "shortenLinksFlag[" + shortenLinksFlag + "]" +
+                " " +
+                "showLinkTitlesFlag[" + showLinkTitlesFlag + "]";
     }
 }

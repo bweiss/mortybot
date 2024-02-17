@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
         "Usage: CHANNEL ADD <name> <hostmask>",
         "Usage: CHANNEL LIST",
         "Usage: CHANNEL RM <name> [...]",
-        "Usage: CHANNEL SET <name> <attribute> [new_val]",
+        "Usage: CHANNEL SET <name> <attribute> [-][new_val]",
         "Usage: CHANNEL SHOW <name> [...]",
         "Attributes: AJOIN, SHORTEN, TITLES"
 })
@@ -71,7 +71,7 @@ public class ChannelCommand implements Command {
 
         switch (subCommand) {
             case "ADD" -> addCommand(newArgs);
-            case "LIST" -> listCommand(newArgs);
+            case "LIST" -> listCommand();
             case "RM" -> rmCommand(newArgs);
             case "SET" -> setCommand(newArgs);
             case "SHOW" -> showCommand(newArgs);
@@ -79,10 +79,10 @@ public class ChannelCommand implements Command {
         }
     }
 
-    private void addCommand(List<String> args) {
-        Validate.arguments(args, 1);
+    private void addCommand(List<String> newArgs) {
+        Validate.arguments(newArgs, 1);
 
-        String channelName = Validate.channelName(args.get(0));
+        String channelName = Validate.channelName(newArgs.get(0));
 
         if (botChannelRepository.existsByName(channelName)) {
             event.respondWith("Channel already exists");
@@ -94,14 +94,14 @@ public class ChannelCommand implements Command {
         }
     }
 
-    private void listCommand(List<String> args) {
+    private void listCommand() {
         event.respondWith("Bot channels: " + botChannelRepository.findAll().stream()
                 .map(BotChannel::getName)
                 .collect(Collectors.joining(", ")));
     }
 
-    private void rmCommand(List<String> args) {
-        List<BotChannel> botChannels = botChannelRepository.findAllByName(args);
+    private void rmCommand(List<String> newArgs) {
+        List<BotChannel> botChannels = botChannelRepository.findAllByName(newArgs);
 
         if (botChannels.isEmpty()) {
             event.respondWith("Nothing to remove");
@@ -114,12 +114,12 @@ public class ChannelCommand implements Command {
         }
     }
 
-    private void setCommand(List<String> args) {
-        Validate.arguments(args, 2);
+    private void setCommand(List<String> newArgs) {
+        Validate.arguments(newArgs, 2);
 
-        String channelName = Validate.channelName(args.get(0));
-        String attr = args.get(1);
-        String newVal = args.size() > 2 ? args.get(2) : null;
+        String channelName = Validate.channelName(newArgs.get(0));
+        String attr = newArgs.get(1);
+        String newVal = newArgs.size() > 2 ? newArgs.get(2) : null;
 
         Optional<BotChannel> optionalBotChannel = botChannelRepository.findByName(channelName);
 
@@ -129,7 +129,7 @@ public class ChannelCommand implements Command {
             BotChannel botChannel = optionalBotChannel.get();
 
             switch (attr.toUpperCase()) {
-                case "AJOIN":
+                case "AJOIN", "JOIN":
                     if (newVal == null) {
                         botChannel.setAutoJoinFlag(!botChannel.hasAutoJoinFlag());
                     } else {
@@ -164,9 +164,13 @@ public class ChannelCommand implements Command {
         }
     }
 
-    private void showCommand(List<String> args) {
-        var botChannels = botChannelRepository.findAllByName(args);
-        botChannels.forEach(bc -> event.respondWith(bc.toString()));
+    private void showCommand(List<String> newArgs) {
+        var botChannels = botChannelRepository.findAllByName(newArgs);
+        if (botChannels.isEmpty()) {
+            event.respondWith("No channels found");
+        } else {
+            botChannels.forEach(bc -> event.respondWith(bc.toString()));
+        }
     }
 
     @Override

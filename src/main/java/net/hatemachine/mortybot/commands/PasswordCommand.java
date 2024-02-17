@@ -88,7 +88,8 @@ public class PasswordCommand implements Command {
 
             if (botUser.getPassword() == null) {
                 PasswordEncoder encoder = PasswordEncoderFactory.getEncoder();
-                botUser.setPassword(encoder.encode(args.getFirst()));
+                String newPass = Validate.password(args.getFirst());
+                botUser.setPassword(encoder.encode(newPass));
                 repo.save(botUser);
                 event.respondWith("Password set");
             } else {
@@ -108,9 +109,9 @@ public class PasswordCommand implements Command {
 
         if (optionalBotUser.isPresent()) {
             BotUser botUser = optionalBotUser.get();
+            String currentPass = Validate.password(args.getFirst());
+            String newPass = Validate.password(args.get(1));
             PasswordEncoder encoder = PasswordEncoderFactory.getEncoder();
-            String currentPass = args.getFirst();
-            String newPass = args.get(1);
 
             if (botUser.getPassword() == null) {
                 event.respondWith("You do not have a password set. Use the PASS command to set one.");

@@ -155,16 +155,20 @@ public class BotUser {
 
     @Override
     public String toString() {
-        return "BotUser{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", hostmasks=" + hostmasks +
-                ", autoOpChannels=" + autoOpChannels +
-                ", password='" + password + '\'' +
-                ", location='" + location + '\'' +
-                ", adminFlag=" + adminFlag +
-                ", dccFlag=" + dccFlag +
-                ", ignoreFlag=" + ignoreFlag +
-                '}';
+        return name +
+                " :: " +
+                "hostmasks" + hostmasks +
+                " " +
+                "password[" + (password == null ? "no" : "yes") + "]" +
+                " " +
+                "autoOpChannels" + autoOpChannels +
+                " " +
+                "location[" + location + "]" +
+                " " +
+                "adminFlag[" + adminFlag + "]" +
+                " " +
+                "dccFlag[" + dccFlag + "]" +
+                " " +
+                "ignoreFlag[" + ignoreFlag + "]";
     }
 }
