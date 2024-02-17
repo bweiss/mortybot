@@ -148,11 +148,10 @@ public class CommandListener extends ExtendedListenerAdapter {
             log.info("{} command triggered by {}, source: {}, args: {}", commandName, user.getNick(), source, args);
 
             // Dispatch a notification to admins on the party line
-            DccManager.getManager().dispatchMessage(String.format("*** %s command triggered by %s [%s]: %s",
+            DccManager.getManager().dispatchMessage(String.format("*** %s command triggered by %s [%s]",
                     commandName,
                     user.getNick(),
-                    source == PUBLIC ? ((MessageEvent) event).getChannel().getName() : source.toString(),
-                    event.getMessage()
+                    source == PUBLIC ? ((MessageEvent) event).getChannel().getName() : source.toString()
             ), true);
 
             CommandWrapper cmdWrapper = commandMap.get(commandName);

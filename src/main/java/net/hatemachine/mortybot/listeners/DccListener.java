@@ -80,12 +80,7 @@ public class DccListener extends ExtendedListenerAdapter {
      */
     @Override
     public void onDccChatMessage(final DccChatMessageEvent event) {
-        MortyBot bot = event.getBot();
-        ListenerManager listenerManager = bot.getConfiguration().getListenerManager();
-        Optional<Listener> commandListener = listenerManager.getListeners()
-                .stream()
-                .filter(CommandListener.class::isInstance)
-                .findFirst();
+        Optional<Listener> commandListener = getCommandListener(event.getBot());
 
         if (commandListener.isPresent()) {
             String commandPrefix = ((CommandListener) commandListener.get()).getCommandPrefix();
@@ -151,6 +146,16 @@ public class DccListener extends ExtendedListenerAdapter {
      */
     @Override
     public void onPrivateMessage(final PrivateMessageEvent event) {
+        Optional<Listener> commandListener = getCommandListener(event.getBot());
+
+        if (commandListener.isPresent()) {
+            String commandPrefix = ((CommandListener) commandListener.get()).getCommandPrefix();
+            if (event.getMessage().startsWith(commandPrefix)) {
+                // ignore commands
+                return;
+            }
+        }
+
         User user = event.getUser();
 
         if (user != null) {
@@ -158,5 +163,13 @@ public class DccListener extends ExtendedListenerAdapter {
                     user.getNick(), user.getIdent(), user.getHostname(), event.getMessage()
             ), true);
         }
+    }
+
+    private Optional<Listener> getCommandListener(MortyBot bot) {
+        ListenerManager listenerManager = bot.getConfiguration().getListenerManager();
+        return listenerManager.getListeners()
+                .stream()
+                .filter(CommandListener.class::isInstance)
+                .findFirst();
     }
 }
