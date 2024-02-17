@@ -38,14 +38,14 @@ public class WebClient {
         POST
     }
 
-    private static final int DEFAULT_TIMEOUT = 30;
+    private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(10);
     private static final String[] DEFAULT_HEADERS = {
             "User-Agent", "Java HttpClient Bot"
     };
 
     private static final Logger log = LoggerFactory.getLogger(WebClient.class);
 
-    private int timeout;
+    private Duration timeout;
     private String[] headers;
 
     /**
@@ -62,7 +62,7 @@ public class WebClient {
      *
      * @param timeout request timeout in seconds
      */
-    public WebClient(int timeout) {
+    public WebClient(Duration timeout) {
         this(timeout, DEFAULT_HEADERS);
     }
 
@@ -83,7 +83,7 @@ public class WebClient {
      * @param timeout request timeout in seconds
      * @param headers list of strings representing the key value pairs of headers to use
      */
-    public WebClient(int timeout, String[] headers) {
+    public WebClient(Duration timeout, String[] headers) {
         this.timeout = timeout;
         this.headers = headers;
     }
@@ -112,7 +112,7 @@ public class WebClient {
     private Optional<String> doRequest(RequestType type, String url, String body) {
         Validate.notNullOrBlank(url, "url cannot be null or blank");
 
-        try (HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(timeout)).build()) {
+        try (HttpClient client = HttpClient.newBuilder().connectTimeout(timeout).build()) {
             HttpRequest request;
 
             if (type == RequestType.GET) {
@@ -131,7 +131,9 @@ public class WebClient {
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            if (response != null && response.statusCode() == 200) {
+            log.debug("HTTP response status code: {}", response.statusCode());
+
+            if (response.statusCode() == 200) {
                 return Optional.of(response.body());
             }
         } catch (IOException e) {
@@ -144,11 +146,11 @@ public class WebClient {
         return Optional.empty();
     }
 
-    public int getTimeout() {
+    public Duration getTimeout() {
         return timeout;
     }
 
-    public void setTimeout(int timeout) {
+    public void setTimeout(Duration timeout) {
         this.timeout = timeout;
     }
 

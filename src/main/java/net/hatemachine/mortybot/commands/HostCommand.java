@@ -20,22 +20,19 @@ package net.hatemachine.mortybot.commands;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
-import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.BotCommand;
+import net.hatemachine.mortybot.Command;
 import net.hatemachine.mortybot.config.BotProperties;
 import net.hatemachine.mortybot.listeners.CommandListener;
 import net.hatemachine.mortybot.util.Validate;
+import net.hatemachine.mortybot.util.WebClient;
 import org.pircbotx.Colors;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.*;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -85,9 +82,13 @@ public class HostCommand implements Command {
             throw new IllegalArgumentException("Not enough arguments");
         }
 
+        String apiKey = BotProperties.getBotProperties().getStringProperty("shodan.api.key", System.getenv("SHODAN_API_KEY"));
+        Validate.notNullOrBlank(apiKey, "apiKey cannot be null or blank");
+
         try {
-            InetAddress addr = InetAddress.getByName(args.get(0));
-            Optional<String> json = doShodanHostLookup(addr.getHostAddress());
+            InetAddress addr = InetAddress.getByName(args.getFirst());
+            WebClient webClient = new WebClient();
+            Optional<String> json = webClient.get(API_ENDPOINT + addr.getHostAddress() + "?key=" + apiKey);
 
             if (json.isPresent()) {
                 Host host = parseJson(json.get());
@@ -100,59 +101,6 @@ public class HostCommand implements Command {
             log.error("{}: {}", errMsg, args.get(0));
             event.respondWith(errMsg);
         }
-    }
-
-    /**
-     * Performs a host search by IP address and retrieves the JSON response from the Shodan API.
-     *
-     * @param ip the ip address to lookup
-     * @return an optional that may contain json with information about the host
-     */
-    private Optional<String> doShodanHostLookup(String ip) {
-        String apiKey = BotProperties.getBotProperties().getStringProperty("shodan.api.key", System.getenv("SHODAN_API_KEY"));
-        Optional<String> jsonOptional = Optional.empty();
-        URI uri = null;
-
-        if (apiKey == null || apiKey.isBlank()) {
-            log.warn("API key not set");
-        }
-
-        try {
-            uri = new URI(API_ENDPOINT + ip + "?key=" + apiKey);
-        } catch (URISyntaxException e) {
-            log.error("Invalid URI", e);
-        }
-
-        Validate.notNull(uri);
-
-        try (HttpClient client = HttpClient.newBuilder()
-                    .followRedirects(HttpClient.Redirect.NORMAL)
-                    .version(HttpClient.Version.HTTP_1_1)
-                    .connectTimeout(Duration.ofSeconds(10))
-                    .build()) {
-
-            HttpRequest request = HttpRequest.newBuilder(uri)
-                    .header("User-Agent", "Java HttpClient Bot")
-                    .GET()
-                    .build();
-
-            HttpResponse<String> response;
-
-            response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response != null && response.statusCode() == 200) {
-                jsonOptional = Optional.of(response.body());
-            }
-        } catch (MalformedURLException e) {
-            log.error("Invalid URL", e);
-        } catch (IOException e) {
-            log.error("Error making HTTP request", e);
-        } catch (InterruptedException e) {
-            log.warn("Thread interrupted", e);
-            Thread.currentThread().interrupt();
-        }
-
-        return jsonOptional;
     }
 
     /**
