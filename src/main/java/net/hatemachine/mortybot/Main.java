@@ -107,8 +107,7 @@ public class Main {
                 .addListener(new AutoOpListener())
                 .addListener(new CommandListener(props.getStringProperty("bot.command.prefix", BotDefaults.BOT_COMMAND_PREFIX)))
                 .addListener(new DccListener())
-                .addListener(new LinkListener())
-                .addListener(new WordleListener());
+                .addListener(new LinkListener());
 
         // SSL
         if (props.getBooleanProperty("irc.ssl", BotDefaults.IRC_SSL)) {

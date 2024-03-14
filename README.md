@@ -19,7 +19,6 @@ This is a simple IRC bot I wrote for fun and to learn Java. It is designed for [
 * GeoIP2 address location lookups
 * Merriam-Webster dictionary and word-of-the-day lookups
 * Urban Dictionary lookups
-* Wordle game
 * Shodan host lookups
 * Sports scores for MLB, NBA, NFL, and NHL
 
@@ -83,7 +82,7 @@ To get a list of commands and basic usage information, issue the HELP command in
 
 For example:
 > &lt;rick&gt; .help<br/>
-> &lt;morty&gt; Commands: CHAT, CHPASS, DICT, GEOIP, GOO, GOOGLE, HELP, HOST, IDENT, IDENTIFY, IMDB, MLB, MST, NBA, NFL, NHL, PASS, REGISTER, RT, STOCK, UFC, URB, URBAN, WEATHER, WHO, WHOAMI, WORDLE, WOTD, WTR, YEAR<br/>
+> &lt;morty&gt; Commands: CHAT, CHPASS, DICT, GEOIP, GOO, GOOGLE, HELP, HOST, IDENT, IDENTIFY, IMDB, MLB, MST, NBA, NFL, NHL, PASS, REGISTER, RT, STOCK, UFC, URB, URBAN, WEATHER, WHO, WHOAMI, WOTD, WTR, YEAR<br/>
 > &lt;morty&gt; Admin commands: BAN, BANKICK, CHANNEL, JOIN, KICK, KICKBAN, MSG, NICK, OP, PART, QUIT, TEST, USER<br/>
 > &lt;morty&gt; Type .HELP &lt;command&gt; to get more information about a command<br/>
 > &lt;rick&gt; .help register<br/>
