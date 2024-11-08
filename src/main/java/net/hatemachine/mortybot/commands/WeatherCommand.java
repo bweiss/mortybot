@@ -132,7 +132,7 @@ public class WeatherCommand implements Command {
         String windDir16Point = parsedJson.read("$.current_condition[0].winddir16Point");
         Integer windspeedMiles = Integer.parseInt(parsedJson.read("$.current_condition[0].windspeedMiles"));
 
-        return String.format("[wtr] %s, %s (%d°F/%d°C/%s) [H:%d W:%dmph/%s]", areaName, region, tempF, tempC, weatherDesc, humidity, windspeedMiles, windDir16Point);
+        return String.format("[wtr] %s, %s (%d°F/%d°C/%s) [H:%d%% W:%dmph/%s]", areaName, region, tempF, tempC, weatherDesc, humidity, windspeedMiles, windDir16Point);
     }
 
     @Override
